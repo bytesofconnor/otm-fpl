@@ -1,61 +1,47 @@
-// Description: Light-weight Privacy Policy for OTM FPL Draftkit
+// Description: Light-weight Privacy Policy for Over the Moon.
+import { PageShell } from "@/components/page-shell"
+
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen p-6 sm:p-10">
-      <h1 className="text-2xl font-semibold text-yellow-400 -skew-x-6 mb-6">Privacy Policy</h1>
-      <div className="prose prose-invert max-w-3xl text-sm text-white/80">
+    <PageShell width="article">
+      <p className="otm-kicker">Legal</p>
+      <h1 className="otm-title mt-2 text-3xl sm:text-[2.15rem]">Privacy</h1>
+      <div className="otm-prose mt-8">
         <h3>Overview</h3>
         <p>
-          We care about privacy and collect as little personal data as possible to operate the
-          Service.
+          We collect as little personal data as possible to run Over the Moon.
         </p>
 
         <h3>What we store</h3>
         <ul>
-          <li><strong>Local data</strong>: Your rankings and license status are stored locally in your browser (cookies/localStorage).</li>
-          <li><strong>Server logs</strong>: Basic request logs (timestamps, IP via hosting provider) for security and troubleshooting.</li>
-          <li><strong>Payments</strong>: Payment information is processed by our provider (e.g., Stripe). We do not store full card details.</li>
+          <li><strong>Local data</strong>: League and team choice, and any license status, live in your browser.</li>
+          <li><strong>Server logs</strong>: Basic request logs from the host for security and troubleshooting.</li>
+          <li><strong>Payments</strong>: Handled by Stripe. We do not store card numbers.</li>
         </ul>
 
         <h3>How we use information</h3>
         <ul>
-          <li>Operate and improve the Service.</li>
-          <li>Prevent abuse (e.g., limited rate‑limiting, fraud prevention by our payment provider).</li>
-          <li>Provide support if you contact us.</li>
+          <li>Operate and improve the companion.</li>
+          <li>Prevent abuse.</li>
+          <li>Reply if you contact us.</li>
         </ul>
 
         <h3>Cookies</h3>
         <p>
-          We use cookies to save your ranking and to remember license status. Clearing cookies will
-          remove this data from your device.
+          We use cookies and local storage to remember your league, team, and license. Clearing site data removes them from this device.
         </p>
 
         <h3>Data sharing</h3>
         <p>
-          We do not sell personal data. We may share minimal information with service providers
-          (e.g., payment processing) to operate the Service.
-        </p>
-
-        <h3>Data retention</h3>
-        <p>
-          Local data persists on your device until you delete it. Server logs are retained briefly by
-          our hosting provider. License tokens include an expiration.
+          We do not sell personal data. Payment processing may receive what Stripe needs to complete a purchase.
         </p>
 
         <h3>Your choices</h3>
         <ul>
-          <li>You may clear local data in your browser at any time.</li>
-          <li>You can use your license token to re‑activate paid features on a new device.</li>
+          <li>Clear local data in the browser at any time.</li>
+          <li>Use a license token to restore paid features on a new device.</li>
         </ul>
-
-        <h3>Updates</h3>
-        <p>
-          We may update this Privacy Policy from time to time. Continued use of the Service after
-          changes take effect means you agree to the updated policy.
-        </p>
       </div>
-    </div>
+    </PageShell>
   )
 }
-
-

@@ -1,119 +1,111 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono, Unbounded } from "next/font/google";
-import { Analytics } from "@vercel/analytics/react";
-import "./globals.css";
-import { Footer } from "@/components/footer";
-import { TopProgress } from "@/components/ui/top-progress";
+import type { Metadata, Viewport } from "next"
+import { Barlow_Condensed, Barlow_Semi_Condensed, IBM_Plex_Mono } from "next/font/google"
+import { Analytics } from "@vercel/analytics/react"
+import "./globals.css"
+import { AppHeader } from "@/components/app-header"
+import { Footer } from "@/components/footer"
+import { TopProgress } from "@/components/ui/top-progress"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { LeagueStatusProvider } from "@/components/league-status"
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const sans = Barlow_Semi_Condensed({
+  variable: "--font-sans-otm",
   subsets: ["latin"],
-});
+  weight: ["400", "500", "600", "700"],
+})
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const display = Barlow_Condensed({
+  variable: "--font-display-otm",
   subsets: ["latin"],
-});
+  weight: ["600", "700"],
+})
 
-const unbounded = Unbounded({ subsets: ['latin'], variable: '--font-display', weight: ['400','600','700'] })
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-mono-otm",
+  subsets: ["latin"],
+  weight: ["400", "500"],
+})
+
+export const viewport: Viewport = {
+  themeColor: "#161616",
+  viewportFit: "cover",
+  width: "device-width",
+  initialScale: 1,
+}
 
 export const metadata: Metadata = {
-  title: "OTM FPL Draftkit 2025/26",
+  title: "Over the Moon",
   description:
-    "2025/26 FPL Draft Kit – compare positions side‑by‑side, predicted XIs, highlights, smart pairing, and Fantrax CSV export.",
+    "Live Fantrax companion for Over the Moon FPL: this week’s matchup, standings, form, and the wire.",
   keywords: [
     "FPL",
     "Fantasy Premier League",
-    "FPL Draft 2025/26",
+    "FPL Draft",
     "Premier League draft tool",
-    "Fantrax export",
-    "predicted lineups",
-    "GW1 XIs",
-    "player comparison",
-    "draft rankings",
+    "Fantrax",
   ],
   metadataBase: new URL("https://fpldraftkit.com"),
   alternates: { canonical: "/" },
   openGraph: {
-    title: "OTM FPL Draftkit 2025/26",
-    description:
-      "The only stripped‑back FPL draft kit for 2025/26: compare positions side‑by‑side, predicted XIs, highlights, smart pairing, Fantrax CSV.",
+    title: "Over the Moon",
+    description: "Live Fantrax companion for Over the Moon FPL.",
     url: "https://fpldraftkit.com",
-    siteName: "OTM FPL Draftkit",
+    siteName: "Over the Moon",
     images: [{ url: "/favicon.svg", width: 512, height: 512 }],
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "OTM FPL Draftkit 2025/26",
-    description: "Compare players quickly, predicted XIs, highlights, smart pairing – export to Fantrax.",
+    title: "Over the Moon",
+    description: "Live Fantrax companion for Over the Moon FPL.",
     images: ["/favicon.svg"],
   },
   robots: {
     index: true,
     follow: true,
-    googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1, 'max-video-preview': -1 },
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 },
   },
   icons: {
     icon: [
       { url: "/favicon.ico" },
-      { url: "/favicon.svg", type: 'image/svg+xml' },
+      { url: "/favicon.svg", type: "image/svg+xml" },
     ],
     shortcut: "/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
   manifest: "/site.webmanifest",
-};
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} ${unbounded.variable} antialiased bg-black text-white relative`}>
-        <TopProgress />
-        {/* Subtle stadium/noise background */}
-        <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
-          <div className="absolute inset-0 bg-[radial-gradient(1200px_600px_at_50%_-200px,rgba(234,179,8,0.06),transparent)]" />
-          <div className="absolute inset-0 bg-[url('/bg/pl-stadium-noise.webp')] bg-center bg-cover opacity-20" />
-          {/* Subtle rotating conic glow for depth */}
-          <div
-            className="absolute inset-0 opacity-15 [mask-image:radial-gradient(80%_60%_at_50%_40%,#000_60%,transparent_100%)] animate-[spin_60s_linear_infinite]"
-            style={{
-              background:
-                'conic-gradient(from 120deg at 50% 30%, rgba(250,204,21,0.08), transparent 40%, rgba(255,255,255,0.06) 60%, transparent)'
-            }}
-          />
-        </div>
-        {/* Preload app bundle in the background for faster route changes */}
-        <script dangerouslySetInnerHTML={{ __html: `
+      <body className={`${sans.variable} ${display.variable} ${plexMono.variable} antialiased bg-background text-foreground`}>
+        <LeagueStatusProvider>
+          <TooltipProvider>
+          <TopProgress />
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
           (function(){
             try { fetch('/api/app-bundle', { cache: 'force-cache' }); } catch(e) {}
           })();
-        ` }} />
-        {/* Structured data for SEO */}
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'SoftwareApplication',
-          name: 'OTM FPL Draftkit 2025/26',
-          applicationCategory: 'SportsApplication',
-          operatingSystem: 'Web',
-          url: 'https://fpldraftkit.com',
-          description: 'FPL Draft kit for the 2025/26 season featuring player comparisons, predicted XIs, highlights, and Fantrax CSV export.',
-          keywords: 'FPL Draft 2025/26, Premier League draft tool, Fantrax export, predicted lineups, player comparison'
-        }) }} />
-        <div className="min-h-screen flex flex-col">
-          <div className="sticky top-0 z-40 h-0">
-            <div className="pointer-events-none border-b border-yellow-400/60"></div>
+        `,
+            }}
+          />
+          <div className="min-h-screen flex flex-col">
+            <AppHeader />
+            <div className="flex-1">{children}</div>
+            <Footer />
           </div>
-          <div className="flex-1">{children}</div>
-          <Footer />
-        </div>
-        <Analytics />
+          <Analytics />
+          </TooltipProvider>
+        </LeagueStatusProvider>
       </body>
     </html>
-  );
+  )
 }

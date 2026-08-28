@@ -6,9 +6,21 @@ import { useEffect, useMemo, useState } from 'react'
 import type { AppBundle, AppPlayer } from '@/lib/types'
 import { getBundle } from '@/lib/bundle-store'
 import { ImageWithFallback } from '@/components/ui/image-with-fallback'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { PageShell } from '@/components/page-shell'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { motion } from 'framer-motion'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import LZString from 'lz-string'
 
@@ -95,7 +107,19 @@ export default function RankingsPage() {
   const endIdx = Math.min(ranked.length, startIdx + PAGE_SIZE)
   const rankedPage = ranked.slice(startIdx, endIdx)
 
-  if (!bundle) return <div className="p-8">Loading…</div>
+  if (!bundle) {
+    return (
+      <PageShell>
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="mt-3 h-4 w-64" />
+        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <Skeleton key={i} className="h-14 w-full" />
+          ))}
+        </div>
+      </PageShell>
+    )
+  }
 
   function toCsv(rows: string[][]): string {
     return rows.map((r) => r.map((c) => `"${(c ?? '').replace(/"/g, '""')}"`).join(',')).join('\n')
@@ -180,56 +204,52 @@ export default function RankingsPage() {
   const ROUND_COLORS = ['#22c55e', '#06b6d4', '#f59e0b', '#ef4444', '#a855f7', '#10b981', '#3b82f6', '#eab308', '#f97316', '#14b8a6']
 
   return (
-    <div className="min-h-screen p-6 sm:p-10">
+    <PageShell>
       <div className="mb-6 relative z-20">
-        {/* Top bar: wordmark left, Back right */}
-        <div className="flex items-center justify-between gap-3 sm:gap-4">
-          <h1 className="text-2xl font-semibold italic">
-            <Link href="/" prefetch className="text-yellow-400 -skew-x-6 tracking-wider" aria-label="Go to Home" style={{ touchAction: 'manipulation' }}>
-              OTM&nbsp;FPL
-            </Link>
-          </h1>
-          <Button
-            variant="ghost"
-            className="rounded-full h-8 px-3 min-w-[132px] justify-center text-yellow-400"
-            aria-label="Back"
-            onClick={() => router.push('/compare')}
-          >
-            BACK
-          </Button>
+        <div className="mb-4">
+          <h1 className="otm-title text-2xl">Rankings</h1>
+          <p className="mt-1 text-[13px] text-muted-foreground">Your board. Export to Fantrax when it is locked.</p>
         </div>
         {/* Action row below on desktop */}
         <div className="hidden md:flex items-center gap-2 mt-3">
-          <div className="relative group">
-            <Button
-              className="rounded-full h-8 px-3 min-w-[132px] justify-center"
-              variant="ghost"
-              onClick={handleExportCsv}
-              title="Export a CSV formatted for Fantrax → Rankings → Import Rankings (First Last,TEAM)"
-            >
-              Export CSV
-            </Button>
-            <div className="pointer-events-none absolute left-0 top-[110%] hidden w-[240px] rounded border border-black/10 dark:border-white/15 bg-white/95 dark:bg-zinc-900/95 p-2 text-[11px] text-black/70 dark:text-white/70 shadow-lg group-hover:block">
-              CSV is formatted for Fantrax: use Rankings → Import Rankings. Each row is &quot;First Last,TEAM&quot;.
-            </div>
-          </div>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  className="h-8 min-w-[132px] justify-center rounded-full px-3"
+                  variant="ghost"
+                  onClick={handleExportCsv}
+                >
+                  Export CSV
+                </Button>
+              }
+            />
+            <TooltipContent className="max-w-[240px]">
+              CSV is formatted for Fantrax: Rankings → Import Rankings. Each row is &quot;First Last,TEAM&quot;.
+            </TooltipContent>
+          </Tooltip>
           <Button
-            variant="danger"
-            className="rounded-full h-10 sm:h-8 px-3 sm:px-2 min-w-0 w-10 sm:w-8 justify-center text-lg"
+            variant="destructive"
+            className="h-10 w-10 min-w-0 justify-center rounded-full px-3 text-lg sm:h-8 sm:w-8 sm:px-2"
             onClick={() => setConfirmResetOpen(true)}
-            title="Reset rankings"
             aria-label="Reset rankings"
           >
             ↺
           </Button>
-          <Button
-            variant="ghost"
-            className="rounded-full h-8 px-3 min-w-[132px] justify-center"
-            onClick={shareLink}
-            title="Create a shareable link to sync this ranking across devices"
-          >
-            Share/Sync
-          </Button>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  className="h-8 min-w-[132px] justify-center rounded-full px-3"
+                  onClick={shareLink}
+                >
+                  Share/Sync
+                </Button>
+              }
+            />
+            <TooltipContent>Create a shareable link to sync this ranking across devices.</TooltipContent>
+          </Tooltip>
         </div>
         {/* Mobile action stack */}
         <div className="mt-3 grid grid-cols-2 gap-2 md:hidden">
@@ -251,7 +271,7 @@ export default function RankingsPage() {
           </Button>
           <Button
             className="rounded-xl h-12 text-base col-span-2"
-            variant="danger"
+            variant="destructive"
             onClick={() => setConfirmResetOpen(true)}
             title="Reset rankings"
             aria-label="Reset rankings"
@@ -260,52 +280,39 @@ export default function RankingsPage() {
           </Button>
         </div>
       </div>
-      {confirmResetOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setConfirmResetOpen(false)} />
-          <div className="relative w-[min(92vw,520px)] rounded-lg border border-black/10 dark:border-white/15 bg-white dark:bg-zinc-900 p-4 shadow-xl">
-            <h3 className="text-lg font-medium mb-2">Reset rankings?</h3>
-            <p className="text-sm text-black/70 dark:text-white/70 mb-4">This will clear your saved ranking cookie and restore the default consensus order.</p>
-            <div className="flex justify-end gap-2">
-              <button className="px-3 py-1 rounded border border-black/10 dark:border-white/15" onClick={() => setConfirmResetOpen(false)}>Cancel</button>
-              <button
-                className="px-3 py-1 rounded bg-red-600 text-white"
-                onClick={() => {
-                  if (!bundle) { setConfirmResetOpen(false); return }
-                  deleteCookie('otm_ranking')
-                  const seeded = computeConsensusOrder(bundle.players)
-                  commitOrder(seeded)
-                  setConfirmResetOpen(false)
-                }}
-              >
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Dialog open={confirmResetOpen} onOpenChange={setConfirmResetOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset rankings?</DialogTitle>
+            <DialogDescription>This clears your saved board and restores the default consensus order.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmResetOpen(false)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (!bundle) { setConfirmResetOpen(false); return }
+                deleteCookie('otm_ranking')
+                const seeded = computeConsensusOrder(bundle.players)
+                commitOrder(seeded)
+                setConfirmResetOpen(false)
+              }}
+            >
+              Reset
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div className="flex items-center justify-between mb-2">
-        <div className="text-sm text-white/70">Showing {startIdx + 1}–{endIdx} of {ranked.length}</div>
+        <div className="text-sm text-muted-foreground">Showing {startIdx + 1}–{endIdx} of {ranked.length}</div>
         <div className="flex items-center gap-2">
-          <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
-            className="px-3 py-1 rounded border border-white/20 disabled:opacity-40 disabled:cursor-default cursor-pointer bg-white/5 hover:bg-white/10"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
+          <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
             Prev
-          </motion.button>
+          </Button>
           <span className="text-sm">Page {page}/{totalPages}</span>
-          <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
-            className="px-3 py-1 rounded border border-white/20 disabled:opacity-40 disabled:cursor-default cursor-pointer bg-white/5 hover:bg-white/10"
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-          >
+          <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
             Next
-          </motion.button>
+          </Button>
         </div>
       </div>
       <motion.ol layout className="mb-10 columns-1 sm:columns-2 lg:columns-3 gap-6 [column-fill:balance]">
@@ -315,19 +322,19 @@ export default function RankingsPage() {
           <motion.li
             key={p.id}
             layout
-            className={`relative mb-2 break-inside-avoid flex items-center gap-4 sm:gap-3 rounded p-3 sm:p-2 select-none w-full overflow-hidden cursor-pointer hover:border-yellow-400/40 hover:ring-2 hover:ring-yellow-400/20 transition-colors ${dragId === p.id ? 'ring-2 ring-yellow-400/70 shadow-[0_10px_28px_rgba(250,204,21,0.28)]' : ''} ${dragOverId === p.id && dragId != null ? 'ring-2 ring-yellow-300/70 shadow-[0_8px_24px_rgba(250,204,21,0.22)]' : ''}`}
-            style={{
-              borderWidth: 1,
-              borderStyle: 'solid',
-              borderColor: 'var(--tw-border-color)',
-              // subtle inner outline + colored left bar per round
-              boxShadow: `inset 0 0 0 1px rgba(255,255,255,0.06), inset 6px 0 0 0 ${ROUND_COLORS[roundIndex(idx + 1)]}66`,
-              ...({ ['--tw-border-color']: 'rgba(255,255,255,0.15)', perspective: '1000px' } as unknown as Record<string, string>)
-            }}
+            className="relative mb-2 w-full break-inside-avoid"
             whileHover={{ y: -2, scale: 1.01, rotateX: 1, rotateY: -1 }}
             animate={dragId === p.id ? { scale: 1.02, rotateX: 4, rotateY: -4 } : dragOverId === p.id && dragId != null ? { scale: 1.005 } : { scale: 1, rotateX: 0, rotateY: 0 }}
             transition={{ type: 'spring', stiffness: 400, damping: 24 }}
           >
+            <Card
+              size="flush"
+              className={`relative flex cursor-pointer flex-row items-center gap-4 overflow-hidden p-3 select-none sm:gap-3 sm:p-2 hover:border-gold ${dragId === p.id ? "border-gold" : ""} ${dragOverId === p.id && dragId != null ? "border-gold" : ""}`}
+              style={{
+                borderLeftWidth: 3,
+                borderLeftColor: ROUND_COLORS[roundIndex(idx + 1)],
+              }}
+            >
             {/* removed full-card drag overlay to keep buttons clickable */}
             {dragOverId === p.id && dragId != null ? (
               <motion.div
@@ -343,15 +350,16 @@ export default function RankingsPage() {
                 exit={{ opacity: 0 }}
               />
             ) : null}
-            <span className="w-8 sm:w-6 text-right text-base sm:text-sm text-black/60 dark:text-white/60">{idx + 1}</span>
+            <span className="w-8 sm:w-6 text-right font-mono text-[13px] text-muted-foreground">{idx + 1}</span>
             {idx % 12 === 0 ? (
-              <span
-                className="ml-1 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium"
-                style={{ backgroundColor: `${ROUND_COLORS[roundIndex(idx + 1)]}33`, color: '#ccc' }}
+              <Badge
+                variant="outline"
+                className="ml-1"
+                style={{ backgroundColor: `${ROUND_COLORS[roundIndex(idx + 1)]}33`, color: "#ccc" }}
                 title={`Round ${roundIndex(idx + 1) + 1}`}
               >
                 R{roundIndex(idx + 1) + 1}
-              </span>
+              </Badge>
             ) : null}
             <ImageWithFallback src={p.images.avatar ?? undefined} alt="" className="h-8 w-8 sm:h-6 sm:w-6 rounded-full" />
             <div
@@ -391,17 +399,17 @@ export default function RankingsPage() {
               onDragEnd={() => { setDragId(null); setDragOverId(null) }}
             >
               <span className={`truncate text-base sm:text-sm ${dragId === p.id ? 'opacity-70' : ''}`}>{p.name}</span>
-              <span className="text-xs text-black/60 dark:text-white/60 whitespace-nowrap">{p.team.shortName} • {p.position}</span>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">{p.team.shortName} · {p.position}</span>
               {p.fantraxProjection?.pp90 != null ? (() => {
               const v = p.fantraxProjection!.pp90
-              let cls = 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
-              if (v >= 12) cls = 'border-green-500/40 bg-green-500/10 text-green-400'
-              else if (v >= 10) cls = 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
-              else if (v >= 8) cls = 'border-amber-500/40 bg-amber-500/10 text-amber-300'
-              else cls = 'border-rose-500/40 bg-rose-500/10 text-rose-300'
+              let cls = 'text-muted-foreground'
+              if (v >= 12) cls = 'text-live'
+              else if (v >= 10) cls = 'text-gold'
+              else if (v >= 8) cls = 'text-muted-foreground'
+              else cls = 'text-muted-foreground'
               return (
                 <span
-                  className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] sm:text-[11px] whitespace-nowrap ${cls}`}
+                  className={`font-mono text-[11px] whitespace-nowrap ${cls}`}
                   title="Projected points per 90"
                 >
                   PP/90 {v.toFixed(2)}
@@ -410,40 +418,45 @@ export default function RankingsPage() {
             })() : null}
             </div>
             <span className={`ml-auto shrink-0 flex items-center gap-2 sm:gap-1 relative z-10 ${dragOverId === p.id && dragId != null ? 'ring-2 ring-emerald-500/40 rounded' : ''}`}> 
-              <button
-                className="h-10 w-10 sm:h-7 sm:w-7 rounded-md border border-black/10 dark:border-white/15 hover:bg-green-500/10 text-green-600 dark:text-green-400 cursor-pointer flex items-center justify-center text-lg sm:text-base"
+              <Button
+                variant="outline"
+                size="icon-sm"
+                className="size-10 sm:size-7"
                 aria-label="Move up"
                 onClick={() => moveUp(p.id)}
               >
                 ↑
-              </button>
-              <button
-                className="h-10 w-10 sm:h-7 sm:w-7 rounded-md border border-black/10 dark:border-white/15 hover:bg-red-500/10 text-red-600 dark:text-red-400 cursor-pointer flex items-center justify-center text-lg sm:text-base"
+              </Button>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                className="size-10 sm:size-7"
                 aria-label="Move down"
                 onClick={() => moveDown(p.id)}
               >
                 ↓
-              </button>
+              </Button>
             </span>
+            </Card>
           </motion.li>
           )
         })}
       </motion.ol>
       <div className="flex items-center justify-center gap-3 mt-4">
-        <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} className="px-3 py-1 rounded border border-white/20 disabled:opacity-40 disabled:cursor-default cursor-pointer bg-white/5 hover:bg-white/10" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</motion.button>
-        <span className="text-sm">Page {page}/{totalPages}</span>
-        <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} className="px-3 py-1 rounded border border-white/20 disabled:opacity-40 disabled:cursor-default cursor-pointer bg-white/5 hover:bg-white/10" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Next</motion.button>
+        <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</Button>
+        <span className="text-sm text-muted-foreground">Page {page}/{totalPages}</span>
+        <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Next</Button>
       </div>
 
       <h2 className="text-lg font-medium mb-3">Unranked suggestions</h2>
       <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
         {unranked.map((p) => (
           <li key={p.id} className="text-sm">
-            {p.name} <span className="text-black/50 dark:text-white/50">({p.team.shortName})</span>
+            {p.name} <span className="text-muted-foreground">({p.team.shortName})</span>
           </li>
         ))}
       </ul>
-    </div>
+    </PageShell>
   )
 }
 

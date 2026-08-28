@@ -5,7 +5,19 @@ import * as React from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 // removed button usage for card click selection
 import { ImageWithFallback } from '@/components/ui/image-with-fallback'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { PageShell } from '@/components/page-shell'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { RestoreLicense } from '@/components/ui/restore-license'
 import { CopyLicenseButton } from '@/components/ui/copy-license'
 import { PaywallDialog } from '@/components/ui/paywall-dialog'
@@ -13,7 +25,6 @@ import { FormationMini } from '@/components/ui/formation-mini'
 import type { AppBundle, AppPlayer } from '@/lib/types'
 import { getBundle } from '@/lib/bundle-store'
 import { motion } from 'framer-motion'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useFeature } from '@/lib/feature-flags'
 // brand removed per request – simple wordmark instead
@@ -215,29 +226,11 @@ const TEAM_COLORS: Record<string, string> = {
   SUN: '#E2231A',
 }
 
-function hexToRgb(hex: string): { r: number; g: number; b: number } {
-  const h = hex.replace('#', '')
-  const bigint = parseInt(h.length === 3 ? h.split('').map((c) => c + c).join('') : h, 16)
-  return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 }
-}
-
-function getReadableTextColor(bgHex: string): 'black' | 'white' {
-  const { r, g, b } = hexToRgb(bgHex)
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-  return luminance > 0.6 ? 'black' : 'white'
-}
-
 function TeamChip({ code }: { code: string }) {
-  const bg = TEAM_COLORS[code] ?? '#666'
-  const fg = getReadableTextColor(bg)
   return (
-    <span
-      className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-black/10"
-      style={{ backgroundColor: bg, color: fg === 'white' ? 'white' : 'black' }}
-      title={code}
-    >
+    <Badge variant="outline" className="uppercase tracking-[0.14em]" title={code}>
       {code}
-    </span>
+    </Badge>
   )
 }
 
@@ -467,7 +460,7 @@ export default function ComparePage() {
     SUN: '#E2231A',
   }
 
-  if (!bundle || !pair) return <div className="p-8">Loading…</div>
+  if (!bundle || !pair) return <PageShell><p className="text-muted-foreground">Loading…</p></PageShell>
 
   const [a, b] = pair
 
@@ -490,19 +483,17 @@ export default function ComparePage() {
       ? { backgroundColor: `${color}33`, borderColor: color, color }
       : undefined
     return (
-      <motion.button
+      <Button
         type="button"
+        variant={active ? "default" : "outline"}
+        size="sm"
         onClick={onClick}
         aria-pressed={active}
-        whileHover={{ scale: 1.04 }}
-        whileTap={{ scale: 0.96 }}
-        className={`cursor-pointer rounded-full border whitespace-nowrap px-4 py-2 md:px-4 md:py-2 text-base md:text-sm leading-none select-none ${
-          active ? '' : 'border-white/20 text-white/80 hover:border-white/40'
-        }`}
+        className="uppercase tracking-[0.12em]"
         style={active ? activeStyles : undefined}
       >
         {label}
-      </motion.button>
+      </Button>
     )
   }
 
@@ -524,45 +515,33 @@ export default function ComparePage() {
     }, [p.id])
     if (!vid) return null
     return (
-      <button
+      <Button
         type="button"
+        variant="outline"
         onClick={(e) => { e.stopPropagation(); setMobileVideoOpenId(mobileVideoOpenId === p.id ? null : p.id) }}
-        className="md:hidden absolute right-3 top-3 z-30 rounded overflow-hidden border border-black/10 dark:border-white/15"
+        className="absolute right-3 top-3 z-30 h-auto overflow-hidden p-0 md:hidden"
         aria-label="Play highlights"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={`https://img.youtube.com/vi/${vid}/mqdefault.jpg`} alt="" className="h-14 w-20 object-cover" />
-      </button>
+      </Button>
     )
   }
 
 
   return (
-    <div className="min-h-screen p-6 sm:p-10">
-      <div className="mb-2 flex items-center justify-between gap-2 relative z-30">
-        <h1 className="text-2xl font-semibold">
-          <Link
-            href="/"
-            prefetch
-            aria-label="Go to Home"
-            onClick={(e) => { e.preventDefault(); router.push('/') }}
-            className="cursor-pointer inline-block text-yellow-400 -skew-x-6 tracking-wider"
-            style={{ touchAction: 'manipulation' }}
-          >
-            OTM&nbsp;FPL
-          </Link>
-        </h1>
+    <PageShell>
+      <div className="mb-4 flex items-end justify-between gap-2 relative z-30">
+        <div>
+          <h1 className="otm-title text-2xl">Compare</h1>
+          <p className="mt-1 text-[13px] text-muted-foreground">A tool for the wire and the board — not the whole product.</p>
+        </div>
         <div className="flex items-center gap-2">
-          {/* Desktop filters – moved to full-width row below */}
-          {/* Mobile filter button */}
           <Button className="md:hidden h-8 px-3" variant="ghost" onClick={() => setFiltersOpen(true)}>Filter</Button>
-          <Button variant="ghost" className="h-8 px-3" aria-label="View your rankings" onClick={() => router.push('/rankings')}>
-            View Rankings
-          </Button>
           {isPaidEnv ? (
             <div className="hidden md:flex items-center gap-3 ml-2">
               <RestoreLicense />
-              <span className="text-white/30">·</span>
+              <span className="text-muted-foreground">·</span>
               <CopyLicenseButton />
             </div>
           ) : null}
@@ -570,16 +549,19 @@ export default function ComparePage() {
       </div>
       {/* Desktop filters row (full width, larger chips, not under nav) */}
       <div className="hidden md:flex items-center gap-3 mt-3 relative z-20">
-        <div className="flex items-center gap-2">
+        <ToggleGroup
+          multiple
+          value={Array.from(selectedPositions)}
+          onValueChange={(next) => setSelectedPositions(new Set(Array.isArray(next) ? next : []))}
+          variant="outline"
+          size="sm"
+        >
           {allPositions.map((pos) => (
-            <FilterChip
-              key={pos}
-              label={pos}
-              active={selectedPositions.has(pos)}
-              onClick={() => setSelectedPositions((s) => toggleSet(s, pos))}
-            />
+            <ToggleGroupItem key={pos} value={pos} className="uppercase tracking-[0.12em]">
+              {pos}
+            </ToggleGroupItem>
           ))}
-        </div>
+        </ToggleGroup>
         <div
           className="flex items-center gap-2 overflow-x-auto scrollbar-thin pr-24 whitespace-nowrap flex-1 py-1"
           style={{ overscrollBehaviorX: 'contain', WebkitOverflowScrolling: 'touch' }}
@@ -595,184 +577,114 @@ export default function ComparePage() {
           ))}
         </div>
         {(selectedPositions.size || selectedTeams.size) ? (
-          <button className="text-xs underline text-white/70 shrink-0" onClick={clearFilters}>Clear</button>
+          <Button variant="ghost" size="sm" className="shrink-0" onClick={clearFilters}>Clear</Button>
         ) : null}
       </div>
-      <p className="mb-6 text-sm text-black/70 dark:text-white/70">
-        Your ranking is saved locally on this device (cookies). Use <span className="text-yellow-400">Share/Sync</span> from the Rankings page to move it to another device. Avoid clearing cookies if you want to keep your progress.
+      <p className="mb-6 text-[13px] text-muted-foreground">
+        Rankings stay on this device. Share/Sync from Rankings if you need them elsewhere.
       </p>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
         {[a, b].map((p) => (
           <motion.div
             key={p.id}
             role="button"
             onClick={() => handleSelect(p, p.id === a.id ? b : a)}
-            whileHover={{
-              y: -4,
-              scale: 1.01,
-              boxShadow:
-                '0 12px 28px rgba(0,0,0,0.35), 0 0 0 1px rgba(250,204,21,0.65), 0 0 14px rgba(250,204,21,0.28)'
-            }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.995 }}
             animate={choosingId == null
-              ? { scale: 1, opacity: 1, filter: 'none' }
+              ? { opacity: 1 }
               : (choosingId === p.id
-                ? { scale: 1.08, y: -12, boxShadow: '0 0 0 4px rgba(255,255,255,0.40), 0 28px 60px rgba(0,0,0,0.55)' }
-                : { opacity: 0.25, scale: 0.94, y: 10, filter: 'grayscale(45%) blur(1px)' })}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="group relative rounded-lg border border-black/10 dark:border-white/15 cursor-pointer transition p-4 flex flex-col h-full min-h-[300px] md:min-h-[420px] overflow-hidden"
+                ? { opacity: 1 }
+                : { opacity: 0.35 })}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="h-full"
           >
-            {/* Background player image */}
-            {p.images.card ? (
-              <>
-                <ImageWithFallback
-                  src={p.images.card}
-                  alt=""
-                  className="pointer-events-none absolute inset-0 h-full w-full object-cover object-top md:object-center opacity-20 md:opacity-25 blur-[8px] brightness-75 scale-105"
-                />
-                {/* Team color tint overlay (very subtle) */}
-                {(() => {
-                  const tint = (TEAM_COLORS as Record<string, string>)[p.team.shortName] ?? '#666666'
-                  return (
-                    <span
-                      className="pointer-events-none absolute inset-0"
-                      style={{
-                        background: `radial-gradient(120% 140% at 50% 0%, ${tint}26 0%, ${tint}1a 45%, transparent 75%)`,
-                        mixBlendMode: 'screen' as React.CSSProperties['mixBlendMode']
-                      }}
-                    />
-                  )
-                })()}
-                <span className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60" />
-              </>
-            ) : null}
-            {/* Subtle electric border on hover */}
-            <span className="pointer-events-none absolute inset-0 rounded-lg border border-yellow-300 opacity-0 group-hover:opacity-60 transition-opacity" />
-            {choosingId === p.id ? (
-              <motion.span
-                className="pointer-events-none absolute inset-0 rounded-lg"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: [0.0, 0.4, 0], scale: 1.25 }}
-                transition={{ duration: 0.65, ease: 'easeOut' }}
-                style={{
-                  background:
-                    'radial-gradient(closest-side, rgba(255,255,255,0.35), rgba(255,255,255,0.15) 60%, rgba(255,255,255,0) 70%)'
-                }}
-              />
-            ) : null}
-            <div className="relative z-10 flex items-center gap-3 mb-4">
+            <Card
+              size="flush"
+              className={`group relative h-full min-h-[280px] cursor-pointer p-5 md:min-h-[380px] ${
+                choosingId === p.id ? "border-gold" : "hover:border-gold"
+              }`}
+            >
+            <div className="relative z-10 flex items-center gap-3 mb-5">
               <PlayerHeader p={p} />
-              <div>
-                <div className="text-lg font-medium flex items-center gap-2">
-                  {p.name}
+              <div className="min-w-0">
+                <div className="flex items-baseline gap-2">
+                  <span className="otm-title text-2xl truncate">{p.name}</span>
                   {typeof p.draftSocietyTop50Rank === 'number' ? (
-                    <span
-                      title={`Draft Society consensus (Top 75) – #${p.draftSocietyTop50Rank}`}
-                      className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-yellow-500 text-black text-[11px] font-semibold"
-                    >
-                      {p.draftSocietyTop50Rank}
+                    <span className="font-mono text-[12px] text-gold" title={`Draft Society #${p.draftSocietyTop50Rank}`}>
+                      #{p.draftSocietyTop50Rank}
                     </span>
                   ) : null}
-                  {/* Removed green Fantrax overall chip near the name to avoid duplication */}
                 </div>
-                <div className="text-sm text-black/60 dark:text-white/60 flex items-center gap-2">
+                <div className="mt-1 text-[12px] text-muted-foreground flex items-center gap-2">
                   <TeamChip code={p.team.shortName} />
-                  <span>• {p.position}</span>
-                  <span>• £{p.price.toFixed(1)}m</span>
+                  <span>{p.position}</span>
+                  <span>£{p.price.toFixed(1)}m</span>
                 </div>
-                {/* Mobile quick chips (rank + PP/90) placed near top to avoid bottom crowding */}
                 {p.fantraxProjection ? (
-                  <div className="mt-2 flex md:hidden items-center gap-2 text-xs">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/40" title={`Fantrax overall rank – #${p.fantraxProjection.overallRank}`}>
-                      #{p.fantraxProjection.overallRank}
-                    </span>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-300 border border-yellow-500/30" title="PP/90">
-                      PP/90 {p.fantraxProjection.pp90.toFixed(2)}
-                    </span>
+                  <div className="mt-2 font-mono text-[11px] text-gold md:hidden">
+                    #{p.fantraxProjection.overallRank} · PP/90 {p.fantraxProjection.pp90.toFixed(2)}
                   </div>
                 ) : null}
               </div>
             </div>
-            {/* Tiny video thumbnail (mobile) */}
             <MobileHighlightThumb p={p} />
-            {/* Desktop core stats in-grid (not absolute) for clean layout */}
-            <div className="grid grid-cols-3 gap-3 text-sm hidden md:grid">
+            <div className="grid grid-cols-4 gap-px border border-border bg-border text-center hidden md:grid">
               <Stat label="Pts" value={p.lastSeason ? p.lastSeason.totalPoints : p.stats.points} />
               <Stat label="G" value={p.lastSeason ? p.lastSeason.goals : p.stats.goals} />
               <Stat label="A" value={p.lastSeason ? p.lastSeason.assists : p.stats.assists} />
               <Stat label="CS" value={p.lastSeason ? p.lastSeason.cleanSheets : p.stats.cleanSheets} />
-              <Stat label="G/90" value={p.lastSeason ? p.lastSeason.per90.points != null ? p.lastSeason.per90.goals : null : p.stats.per90.goals} />
-              <Stat label="A/90" value={p.lastSeason ? p.lastSeason.per90.points != null ? p.lastSeason.per90.assists : null : p.stats.per90.assists} />
             </div>
-            {/* Mobile quick chips */}
-            {/* Moved mobile chips above; this block removed to prevent bottom crowding */}
-            {/* Add mini season counters on mobile */}
             {(() => {
               const pts = p.lastSeason ? p.lastSeason.totalPoints : p.stats.points
               const g = p.lastSeason ? p.lastSeason.goals : p.stats.goals
               const aVal = p.lastSeason ? p.lastSeason.assists : p.stats.assists
               const cs = p.lastSeason ? p.lastSeason.cleanSheets : p.stats.cleanSheets
-              const StatPill = ({ label, val }: { label: string; val: number }) => (
-                <span className="pointer-events-none inline-flex flex-col items-center justify-center h-16 w-20 rounded-md border border-white/20 bg-black/45 backdrop-blur-sm text-white/90 shadow-[0_8px_20px_rgba(0,0,0,0.35)]">
-                  <span className="text-lg font-semibold leading-5 text-white">{val}</span>
-                  <span className="text-xs uppercase tracking-wide text-white/75">{label}</span>
-                </span>
-              )
               return (
-                <div className="mt-2 md:hidden relative z-10 flex items-start justify-between gap-4 px-1">
-                  <div className="flex flex-col gap-2">
-                    <StatPill label="Pts" val={pts} />
-                    <StatPill label="G" val={g} />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <StatPill label="A" val={aVal} />
-                    <StatPill label="CS" val={cs} />
-                  </div>
+                <div className="mt-3 grid grid-cols-4 gap-px border border-border bg-border md:hidden">
+                  <Stat label="Pts" value={pts} />
+                  <Stat label="G" value={g} />
+                  <Stat label="A" value={aVal} />
+                  <Stat label="CS" value={cs} />
                 </div>
               )
             })()}
             {p.fantraxProjection ? (
-              <div className="mt-3 rounded border border-yellow-500/50 bg-yellow-500/10 p-2 hidden md:block">
-                <div className="text-[10px] uppercase tracking-wide text-yellow-600 dark:text-yellow-400 mb-1">Fantrax projection</div>
-                <div className="flex flex-wrap gap-2 text-xs">
-                  <span className="inline-flex items-center gap-1 bg-yellow-500 text-black px-2 py-0.5 rounded-full font-medium" title="Overall ranking among all players">
-                    <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-black/20 text-[10px] font-semibold">{p.fantraxProjection.overallRank}</span>
-                    Overall
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-800 dark:text-yellow-300 border border-yellow-500/40" title="Ranking at the player's position">
-                    Pos #{p.fantraxProjection.posRank}
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-800 dark:text-yellow-300 border border-yellow-500/40" title="Projected total points">
-                    Pts {p.fantraxProjection.points.toFixed(0)}
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-800 dark:text-yellow-300 border border-yellow-500/40" title="Projected points per 90 minutes">
-                    PP/90 {p.fantraxProjection.pp90.toFixed(2)}
-                  </span>
-                </div>
+              <div className="mt-4 hidden md:block font-mono text-[12px] text-muted-foreground">
+                Fantrax #{p.fantraxProjection.overallRank}
+                <span className="mx-2 text-muted-foreground">/</span>
+                Pos #{p.fantraxProjection.posRank}
+                <span className="mx-2 text-muted-foreground">/</span>
+                {p.fantraxProjection.points.toFixed(0)} pts
+                <span className="mx-2 text-muted-foreground">/</span>
+                {p.fantraxProjection.pp90.toFixed(2)} pp90
               </div>
             ) : null}
-            <div className="mt-2 text-xs text-black/70 dark:text-white/70 hidden md:block">
+            <div className="mt-3 text-[12px] text-muted-foreground hidden md:block">
               {p.lastSeason ? (
-                <>
-                  Last season: {p.lastSeason.season} • Pts {p.lastSeason.totalPoints}, G {p.lastSeason.goals}, A {p.lastSeason.assists}
-                  <div className="mt-1">Per 90: Pts {p.lastSeason.per90.points ?? '–'}, G {p.lastSeason.per90.goals ?? '–'}, A {p.lastSeason.per90.assists ?? '–'}</div>
-                </>
+                <>Last season {p.lastSeason.season}: {p.lastSeason.totalPoints} pts, {p.lastSeason.goals} G, {p.lastSeason.assists} A</>
               ) : (
-                <>No prior season data found • Showing base profile only</>
+                <>No prior season data</>
               )}
             </div>
-            {/* Predicted lineup subtext */}
-            <div className="mt-1 text-[11px] italic text-white/60">
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] text-muted-foreground">
+              {p.predictedGW1 === true ? (
+                <Badge variant="live">Predicted starter</Badge>
+              ) : p.predictedGW1 === false ? (
+                <span>Not in predicted XI</span>
+              ) : (
+                <span>XI status unknown</span>
+              )}
+              {p.gw1InjuryTag ? <span className="ml-2 uppercase tracking-wider">{p.gw1InjuryTag}</span> : null}
               {(() => {
                 const form = getFormationString(p.team.id)
                 const slot = getRowSlot(p)
                 if (!form && !slot) return null
-                return <span>{form ? `Formation ${form}` : ''}{form && slot ? ' • ' : ''}{slot ? `Role ${slot}` : ''}</span>
+                return <span className="ml-2">{form ? form : ''}{form && slot ? ' · ' : ''}{slot ?? ''}</span>
               })()}
             </div>
-            {/* Formation mini-map */}
             {p.predictedGW1 === true ? (
-              <div className="mt-2 hidden md:block">
+              <div className="mt-3">
                 {(() => {
                   const form = getFormationString(p.team.id)
                   const role = getRowSlot(p)
@@ -781,71 +693,11 @@ export default function ComparePage() {
                 })()}
               </div>
             ) : null}
-            <div className="mt-1 text-xs relative z-20">
-              Predicted GW1 XI: {p.predictedGW1 === true ? (
-                <motion.span
-                  initial={{ scale: 0.96, opacity: 0.95 }}
-                  animate={{
-                    scale: [1, 1.06, 1],
-                    boxShadow: [
-                      '0 0 0 0 rgba(16,185,129,0.55)',
-                      '0 0 0 10px rgba(16,185,129,0)',
-                      '0 0 0 0 rgba(16,185,129,0)'
-                    ],
-                    opacity: 1,
-                  }}
-                  transition={{ duration: 1.6, repeat: Infinity, repeatType: 'loop', ease: 'easeOut' }}
-                  className="ml-2 inline-flex items-center gap-1.5 rounded-full pl-2.5 pr-2 py-0.5 border border-emerald-500/50 bg-emerald-500/15 text-emerald-300 font-semibold"
-                  title="Predicted to start GW1"
-                >
-                  <span>🔥</span> YES
-                </motion.span>
-              ) : p.predictedGW1 === false ? (
-                <motion.span
-                  initial={{ scale: 0.96, opacity: 0.95 }}
-                  animate={{
-                    scale: [1, 1.04, 1],
-                    boxShadow: [
-                      '0 0 0 0 rgba(244,63,94,0.55)',
-                      '0 0 0 10px rgba(244,63,94,0)',
-                      '0 0 0 0 rgba(244,63,94,0)'
-                    ],
-                    opacity: 1,
-                  }}
-                  transition={{ duration: 1.6, repeat: Infinity, repeatType: 'loop', ease: 'easeOut' }}
-                  className="ml-2 inline-flex items-center gap-1.5 rounded-full pl-2.5 pr-2 py-0.5 border border-rose-500/50 bg-rose-500/15 text-rose-300 font-semibold"
-                  title="Not expected to start GW1"
-                >
-                  <span>⛔</span> NO
-                </motion.span>
-              ) : (
-                <span className="ml-2 inline-flex items-center gap-1.5 rounded-full pl-2.5 pr-2 py-0.5 border border-white/20 bg-white/5 text-white/70">TBD</span>
-              )}
-              {p.gw1InjuryTag ? (
-                <span className="ml-2 px-1.5 py-0.5 rounded border text-[10px] uppercase tracking-wide
-                 border-black/15 dark:border-white/20 text-black/70 dark:text-white/70">
-                  {p.gw1InjuryTag}
-                </span>
-              ) : null}
-            </div>
-            {/* Mobile compact formation */}
-            {p.predictedGW1 === true ? (
-              <div className="mt-2 md:hidden">
-                {(() => {
-                  const form = getFormationString(p.team.id)
-                  const role = getRowSlot(p)
-                  if (!form || !role) return null
-                  return <FormationMini formation={form} playerPosition={p.position as 'GKP'|'DEF'|'MID'|'FWD'} role={role} aspectRatio="7 / 3" />
-                })()}
-              </div>
-            ) : null}
-            {/* Hide highlights and fixture details on mobile to fit two cards */}
             {(() => { const vid = p.highlight?.videoId ?? mobileVideoById[p.id]; return vid ? (
               <>
                 <div className="mt-3 hidden md:block">
                   <YouTubeEmbed videoId={vid} title={`${p.name} highlights`} />
                 </div>
-                {/* Expanded video on mobile when tapped */}
                 {mobileVideoOpenId === p.id ? (
                   <div className="mt-2 md:hidden">
                     <YouTubeEmbed videoId={vid} title={`${p.name} highlights`} />
@@ -857,10 +709,11 @@ export default function ComparePage() {
                 <DynamicHighlight query={`${p.name} ${p.team.name} highlights`} />
               </div>
             )})()}
-            <div className="mt-2 md:mt-3 text-xs text-black/60 dark:text-white/60 hidden md:block">
-              Next3: {p.upcoming.next3.map((f) => `${f.isHome ? 'H' : 'A'} ${f.opponent}${typeof f.difficulty === 'number' ? `(${f.difficulty})` : ''}`).join(' • ')}
+            <div className="mt-3 text-[12px] text-muted-foreground hidden md:block">
+              Next 3: {p.upcoming.next3.map((f) => `${f.isHome ? 'H' : 'A'} ${f.opponent}${typeof f.difficulty === 'number' ? ` ${f.difficulty}` : ''}`).join(' · ')}
             </div>
-            <div className="mt-auto pt-2 md:pt-4 text-xs text-black/50 dark:text-white/50 hidden md:block">Click card to prefer</div>
+            <div className="mt-auto pt-4 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Tap to prefer</div>
+            </Card>
           </motion.div>
         ))}
       </div>
@@ -876,30 +729,33 @@ export default function ComparePage() {
           window.location.href = data.url as string
         }}
       />
-      {/* Mobile filters modal */}
-      {filtersOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setFiltersOpen(false)} />
-          <div className="relative w-[min(92vw,560px)] max-h-[80vh] overflow-auto rounded-lg border border-black/10 dark:border-white/15 bg-white dark:bg-zinc-900 p-4 shadow-xl">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-medium">Filters</h3>
-              <button className="text-sm underline" onClick={clearFilters}>Clear</button>
+      <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
+        <DialogContent className="max-h-[80vh] overflow-auto sm:max-w-lg">
+          <DialogHeader>
+            <div className="flex items-center justify-between gap-3 pr-8">
+              <DialogTitle>Filters</DialogTitle>
+              <Button variant="ghost" size="sm" onClick={clearFilters}>Clear</Button>
             </div>
+          </DialogHeader>
             <div className="mb-3">
-              <div className="text-xs uppercase tracking-wide mb-1 text-black/60 dark:text-white/60">Positions</div>
-              <div className="flex flex-wrap gap-2">
+              <div className="otm-kicker mb-1">Positions</div>
+              <ToggleGroup
+                multiple
+                value={Array.from(selectedPositions)}
+                onValueChange={(next) => setSelectedPositions(new Set(Array.isArray(next) ? next : []))}
+                variant="outline"
+                size="sm"
+                className="flex-wrap"
+              >
                 {allPositions.map((pos) => (
-                  <FilterChip
-                    key={pos}
-                    label={pos}
-                    active={selectedPositions.has(pos)}
-                    onClick={() => setSelectedPositions((s) => toggleSet(s, pos))}
-                  />
+                  <ToggleGroupItem key={pos} value={pos} className="uppercase tracking-[0.12em]">
+                    {pos}
+                  </ToggleGroupItem>
                 ))}
-              </div>
+              </ToggleGroup>
             </div>
-            <div className="mb-1">
-              <div className="text-xs uppercase tracking-wide mb-1 text-black/60 dark:text-white/60">Teams</div>
+            <div>
+              <div className="otm-kicker mb-1">Teams</div>
               <div className="flex flex-wrap gap-2">
                 {allTeams.map((t) => (
                   <FilterChip
@@ -911,22 +767,21 @@ export default function ComparePage() {
                 ))}
               </div>
             </div>
-            <div className="mt-4 flex justify-end gap-2">
-              <Button variant="ghost" className="h-8 px-3" onClick={() => setFiltersOpen(false)}>Close</Button>
-              <Button className="h-10 px-4" onClick={() => setFiltersOpen(false)}>Apply</Button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setFiltersOpen(false)}>Close</Button>
+              <Button onClick={() => setFiltersOpen(false)}>Apply</Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </PageShell>
   )
 }
 
 function Stat({ label, value }: { label: string; value: number | null }) {
   return (
-    <div className="rounded bg-black/5 dark:bg-white/10 p-2 text-center">
-      <div className="text-[10px] uppercase tracking-wide text-black/60 dark:text-white/60">{label}</div>
-      <div className="text-base font-medium">{value ?? '–'}</div>
+    <div className="bg-card p-2 text-center">
+      <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{label}</div>
+      <div className="mt-0.5 font-mono text-[15px]">{value ?? '–'}</div>
     </div>
   )
 }
@@ -975,9 +830,7 @@ function DynamicHighlight({ query }: { query: string }) {
 }
 
 function VideoSkeleton() {
-  return (
-    <div className="mt-3 w-full aspect-video rounded border border-black/10 dark:border-white/15 bg-black/10 dark:bg-white/10 animate-pulse" />
-  )
+  return <Skeleton className="mt-3 aspect-video w-full rounded-md" />
 }
 
 function YouTubeEmbed({ videoId, title }: { videoId: string; title: string }) {
@@ -986,7 +839,7 @@ function YouTubeEmbed({ videoId, title }: { videoId: string; title: string }) {
     <div className="relative">
       {!loaded && <VideoSkeleton />}
       <iframe
-        className={`w-full aspect-video rounded border border-black/10 dark:border-white/15 ${loaded ? '' : 'invisible absolute inset-0'}`}
+        className={`aspect-video w-full rounded-md border border-border ${loaded ? "" : "invisible absolute inset-0"}`}
         src={`https://www.youtube.com/embed/${videoId}`}
         title={title}
         onLoad={() => setLoaded(true)}

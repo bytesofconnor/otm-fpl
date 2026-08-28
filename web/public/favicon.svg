@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="64" height="64" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" fill="none">
-  <circle cx="128" cy="128" r="120" fill="#0A0A0A"/>
-  <circle cx="128" cy="128" r="122" fill="none" stroke="#FACC15" stroke-width="8"/>
-  <path d="M170 54c-23 11-40 35-40 62s17 51 40 62c-9 3-18 5-27 5-40 0-72-32-72-72s32-72 72-72c9 0 18 2 27 5z" fill="#121212"/>
-  <circle cx="128" cy="128" r="104" fill="none" stroke="#FACC15" stroke-opacity="0.35" stroke-width="6"/>
+<svg width="64" height="64" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" rx="8" fill="#161616"/>
+  <path fill="#F1F1EE" fill-rule="evenodd" d="M16 4.2A11.8 11.8 0 1 0 16 27.8 11.8 11.8 0 1 0 16 4.2Zm6.3 3.55A9.5 9.5 0 1 1 22.3 24.25 10.4 10.4 0 1 0 22.3 7.75Z"/>
 </svg>
-

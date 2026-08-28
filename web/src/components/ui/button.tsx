@@ -1,34 +1,56 @@
-// Description: Minimal button primitive with Tailwind styles.
-"use client"
+import { Button as ButtonPrimitive } from "@base-ui/react/button"
+import { cva, type VariantProps } from "class-variance-authority"
 
-import * as React from 'react'
+import { cn } from "@/lib/utils"
 
-type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'ghost' | 'link' | 'danger'
-  asChild?: boolean
+const buttonVariants = cva(
+  "group/button inline-flex shrink-0 cursor-pointer items-center justify-center rounded-md border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-[color,background-color,border-color,box-shadow,transform] outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
+        outline:
+            "border-border bg-card shadow-sm hover:border-foreground/20 hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary",
+        ghost:
+          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground",
+        destructive:
+          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20",
+        link: "text-link underline-offset-4 hover:underline",
+        live: "bg-live text-white shadow-sm hover:bg-live/90",
+      },
+      size: {
+        default: "h-9 gap-1.5 px-3",
+        xs: "h-6 gap-1 rounded-sm px-2 text-xs [&_svg:not([class*='size-'])]:size-3",
+        sm: "h-8 gap-1 px-2.5 text-[0.8rem] [&_svg:not([class*='size-'])]:size-3.5",
+        lg: "h-11 gap-1.5 px-4 text-[15px]",
+        icon: "size-9",
+        "icon-xs": "size-6 rounded-sm [&_svg:not([class*='size-'])]:size-3",
+        "icon-sm": "size-8",
+        "icon-lg": "size-11",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+function Button({
+  className,
+  variant = "default",
+  size = "default",
+  ...props
+}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+  return (
+    <ButtonPrimitive
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    />
+  )
 }
 
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { className = '', variant = 'primary', asChild = false, ...props },
-  ref
-) {
-  const base = 'inline-flex items-center justify-center rounded-md text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none h-10 px-4 cursor-pointer active:scale-[0.98]'
-  const variants = {
-    primary: 'bg-black text-white hover:bg-black/85 active:bg-black/75 dark:bg-white dark:text-black dark:hover:bg-white/85 dark:active:bg-white/70 shadow-sm hover:shadow-md',
-    ghost: 'bg-transparent hover:bg-black/5 active:bg-black/10 dark:hover:bg-white/10 dark:active:bg-white/15 border border-black/10 dark:border-white/15',
-    link: 'underline underline-offset-2 hover:opacity-90 active:opacity-80 px-0 h-auto',
-    danger: 'bg-red-600/10 text-red-500 border border-red-600/40 hover:bg-red-600/15 active:bg-red-600/20'
-  }
-  const classes = `${base} ${variants[variant]} ${className}`
-  if (asChild) {
-    const { children, ...rest } = props
-    return (
-      <span className={classes} {...(rest as Omit<React.HTMLAttributes<HTMLSpanElement>, 'children'>)}>
-        {children}
-      </span>
-    )
-  }
-  return <button ref={ref} className={classes} {...props} />
-})
-
-
+export { Button, buttonVariants }

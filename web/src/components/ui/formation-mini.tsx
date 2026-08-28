@@ -43,7 +43,7 @@ export function FormationMini({ formation, playerPosition, role, className, aspe
   }
 
   return (
-    <div className={"relative rounded-md border border-white/12 overflow-hidden " + (className ?? '')} style={{ width: '100%', aspectRatio }}>
+    <div className={"relative overflow-hidden border border-border bg-background " + (className ?? "")} style={{ width: "100%", aspectRatio }}>
       {/* rows */}
       <div className="absolute inset-0 p-2 flex flex-col justify-between">
         {rows.map((r, rIdx) => {
@@ -51,7 +51,7 @@ export function FormationMini({ formation, playerPosition, role, className, aspe
           const total = Math.max(1, r.count)
           return (
             <div key={rIdx} className="relative flex items-center justify-center" style={{ height: '20%' }}>
-              <div className="absolute inset-x-4 h-px bg-white/10" />
+              <div className="absolute inset-x-4 h-px bg-line" />
               <div className="relative flex items-center justify-center gap-2" style={{ width: '100%' }}>
                 {Array.from({ length: total }).map((_, i) => {
                   const hi = getHighlightIndex(total, isPlayerRow)
@@ -59,17 +59,13 @@ export function FormationMini({ formation, playerPosition, role, className, aspe
                   return isPlayer ? (
                     <motion.div
                       key={i}
-                      className="h-3 w-3 rounded-full bg-yellow-400 shadow-[0_0_0_2px_rgba(250,204,21,0.4)]"
+                      className="h-3 w-3 rounded-full bg-foreground"
                       title={`${r.key} ${hi != null ? hi + 1 : ''} in ${formation}`}
-                      animate={{ scale: [1, 1.3, 1], boxShadow: [
-                        '0 0 0 2px rgba(250,204,21,0.4)',
-                        '0 0 0 6px rgba(250,204,21,0.0)',
-                        '0 0 0 2px rgba(250,204,21,0.4)'
-                      ] }}
-                      transition={{ duration: 1.6, repeat: Infinity, ease: 'easeOut' }}
+                      animate={{ scale: [1, 1.12, 1] }}
+                      transition={{ duration: 1.8, repeat: Infinity, ease: 'easeOut' }}
                     />
                   ) : (
-                    <div key={i} className="h-2.5 w-2.5 rounded-full bg-white/35" />
+                    <div key={i} className="h-2.5 w-2.5 rounded-full bg-muted/40" />
                   )
                 })}
               </div>

@@ -18,25 +18,20 @@ export default function TermsPage() {
 
         <h3>2. Access</h3>
         <p>
-          We do not require accounts. Some features may require a one-time payment processed by Stripe. A successful payment grants a license token for use on supported devices.
+          Over the Moon is free to use. No accounts or payments are required.
         </p>
 
-        <h3>3. Payments</h3>
-        <p>
-          Prices are shown at checkout. We do not store full card details. Unless required by law, purchases are generally non-refundable.
-        </p>
-
-        <h3>4. License</h3>
+        <h3>3. License</h3>
         <p>
           You receive a personal, non-transferable license. Do not copy, resell, or scrape the service.
         </p>
 
-        <h3>5. Data</h3>
+        <h3>4. Data</h3>
         <p>
           The companion reads public Fantrax league data and your local choices. We do not guarantee accuracy or uptime.
         </p>
 
-        <h3>6. No warranties</h3>
+        <h3>5. No warranties</h3>
         <p>
           The service is provided as is. Your use is at your own risk.
         </p>

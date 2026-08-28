@@ -22,6 +22,7 @@ import type {
 } from "./fantrax-shared"
 import { scorePickup } from "./fantrax-shared"
 import { loadFplIndex, matchFplPlayer } from "./fpl"
+import { getProjectionSnapshots } from "./supabase"
 
 const FANTRAX_UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
@@ -1147,6 +1148,7 @@ function buildPlayerSeries(weeks: Array<{ period: number; players: FantraxRoster
 
 /**
  * Loads manager trajectories, upcoming player projections, and news for the Form page.
+ * Merges frozen projection snapshots from Supabase with live Fantrax data.
  */
 export async function loadFantraxForm(leagueId: string, teamId?: string | null): Promise<FantraxFormSnapshot> {
   const [infoResult, projResult, liveResult, fplResult, takenResult, availResult, takenLiveResult] = await Promise.allSettled([
@@ -1160,6 +1162,9 @@ export async function loadFantraxForm(leagueId: string, teamId?: string | null):
   ])
   const info = asRecord(infoResult.status === "fulfilled" ? infoResult.value : {}) ?? {}
   const currentPeriod = currentPeriodNumber(info.scoringPeriods ?? info.rosterPeriods) ?? 1
+  
+  // Fetch projection snapshots for current period (graceful fallback if Supabase not configured)
+  const snapshots = await getProjectionSnapshots(leagueId, currentPeriod).catch(() => null)
   const windowStart = currentPeriod
   const windowEnd = Math.min(38, currentPeriod + 5)
   const periods = Array.from({ length: windowEnd - windowStart + 1 }, (_, i) => windowStart + i)
@@ -1193,7 +1198,24 @@ export async function loadFantraxForm(leagueId: string, teamId?: string | null):
     const weeks = bundles
       .map((bundle, i) => (bundle ? { period: periods[i], players: bundle.players } : null))
       .filter((row): row is { period: number; players: FantraxRosterPlayer[] } => row != null)
-    players = buildPlayerSeries(weeks)
+    
+    // Build player series and merge in snapshots for current period
+    players = buildPlayerSeries(weeks).map((playerSeries) => {
+      // For the current period, use frozen projection from snapshot if available
+      const currentPeriodPoint = playerSeries.points.find((pt) => pt.period === currentPeriod)
+      if (currentPeriodPoint && snapshots) {
+        const snapshot = snapshots.get(playerSeries.id)
+        if (snapshot) {
+          const frozenProj = Number(snapshot.projected)
+          // Replace the projected value with the frozen one
+          currentPeriodPoint.value = frozenProj
+          if (currentPeriodPoint.projected) {
+            currentPeriodPoint.forecast = frozenProj
+          }
+        }
+      }
+      return playerSeries
+    })
     const current = weeks.find((w) => w.period === currentPeriod)?.players ?? weeks[0]?.players ?? []
     if (bundles[0]?.owner && teamName) {
       teamName = teamName
@@ -1235,16 +1257,32 @@ export async function loadFantraxForm(leagueId: string, teamId?: string | null):
   const takenLive = takenLiveResult.status === "fulfilled" ? takenLiveResult.value : []
   const liveById = new Map(takenLive.map((p) => [p.id, p.points]))
   const projectedTaken = takenResult.status === "fulfilled" ? takenResult.value.filter((p) => p.ownerTeamId) : []
-  const leagueOwned = projectedTaken.map((p) => ({
-    ...p,
-    live: liveById.has(p.id) ? (liveById.get(p.id) ?? 0) : null,
-  }))
+  
+  // Merge snapshot projections with league-owned players
+  const leagueOwned = projectedTaken.map((p) => {
+    const snapshot = snapshots?.get(p.id)
+    const frozenProj = snapshot ? Number(snapshot.projected) : null
+    const livePoints = liveById.has(p.id) ? (liveById.get(p.id) ?? 0) : null
+    
+    return {
+      ...p,
+      // Use frozen projection from snapshot if available, otherwise fall back to live Fantrax proj
+      points: frozenProj ?? p.points,
+      live: livePoints,
+    }
+  })
+  // Merge snapshots into available players (for accurate pickup scoring)
   const unowned = (availResult.status === "fulfilled" ? availResult.value : [])
     .filter((p) => !p.ownerTeamId)
     .map((p) => {
       const fplEl = matchFplPlayer(fpl, p.name, p.team)
+      const snapshot = snapshots?.get(p.id)
+      const frozenProj = snapshot ? Number(snapshot.projected) : null
+      
       const next = {
         ...p,
+        // Use frozen projection if available, otherwise use live Fantrax proj
+        points: frozenProj ?? p.points,
         chance: fplEl?.chance ?? p.chance,
         playedMinutes: (fplEl && fplEl.minutes > 0 ? fplEl.minutes : null) ?? p.playedMinutes,
         news: fplEl?.news?.trim() || p.news,

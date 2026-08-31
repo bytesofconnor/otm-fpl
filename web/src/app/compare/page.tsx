@@ -18,16 +18,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { RestoreLicense } from '@/components/ui/restore-license'
-import { CopyLicenseButton } from '@/components/ui/copy-license'
-import { PaywallDialog } from '@/components/ui/paywall-dialog'
 import { FormationMini } from '@/components/ui/formation-mini'
 import type { AppBundle, AppPlayer } from '@/lib/types'
 import { getBundle } from '@/lib/bundle-store'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { useFeature } from '@/lib/feature-flags'
-// brand removed per request – simple wordmark instead
 import LZString from 'lz-string'
 
 function readBundleFromWindow(): AppBundle | null {
@@ -200,32 +195,6 @@ function updateRanking(current: number[], winner: number, loser: number): number
   return arr
 }
 
-// initials helper no longer used after header change
-
-// Approximate primary colors for clubs. Keyed by team.shortName.
-const TEAM_COLORS: Record<string, string> = {
-  ARS: '#EF0107',
-  MUN: '#DA020E',
-  CHE: '#034694',
-  LIV: '#C8102E',
-  MCI: '#6CABDD',
-  NEW: '#241F20',
-  CRY: '#1B458F',
-  AVL: '#670E36',
-  BOU: '#DA291C',
-  BRE: '#E30613',
-  WHU: '#7A263A',
-  BHA: '#0057B8',
-  EVE: '#003399',
-  NFO: '#DD0000',
-  TOT: '#132257',
-  FUL: '#000000',
-  WOL: '#FDB913',
-  LEE: '#FFCD00',
-  BRN: '#6C1D45', // Burnley
-  SUN: '#E2231A',
-}
-
 function TeamChip({ code }: { code: string }) {
   return (
     <Badge variant="outline" className="uppercase tracking-[0.14em]" title={code}>
@@ -257,48 +226,6 @@ export default function ComparePage() {
   const [choosingId, setChoosingId] = useState<number | null>(null)
   const [mobileVideoOpenId, setMobileVideoOpenId] = useState<number | null>(null)
   const [mobileVideoById, setMobileVideoById] = useState<Record<number, string>>({})
-  const paidMode = useFeature('PAID_VERSION')
-  const [picksCount, setPicksCount] = useState<number>(() => {
-    const v = typeof window !== 'undefined' ? window.localStorage.getItem('otm_picks_count') : null
-    return v ? Number(v) || 0 : 0
-  })
-  const paidAllowedHost = process.env.NEXT_PUBLIC_PAID_HOST || ''
-  function hostMatches(allowed: string, host: string): boolean {
-    if (!allowed) return true
-    const list = allowed.split(',').map((s) => s.trim()).filter(Boolean)
-    const candidates = new Set<string>()
-    for (const h of list) {
-      candidates.add(h)
-      candidates.add(h.replace(/^www\./, ''))
-      candidates.add(h.startsWith('www.') ? h.slice(4) : `www.${h}`)
-    }
-    return candidates.has(host)
-  }
-  const [isPaid, setIsPaid] = useState<boolean>(false)
-  const isPaidEnv = React.useMemo(() => {
-    const host = typeof window !== 'undefined' ? window.location.hostname : ''
-    const hostOk = paidAllowedHost ? hostMatches(paidAllowedHost, host) : true
-    return paidMode && hostOk
-  }, [paidMode, paidAllowedHost])
-
-  useEffect(() => {
-    fetch('/api/me').then((r) => r.json()).then((d) => setIsPaid(Boolean(d?.paid))).catch(() => {})
-  }, [])
-  const [paywallOpen, setPaywallOpen] = useState(false)
-
-  // Debug logs for paywall state
-  useEffect(() => {
-    try {
-      console.log('[Paywall]', {
-        paidMode,
-        paidAllowedHost,
-        hostname: typeof window !== 'undefined' ? window.location.hostname : 'n/a',
-        isPaidEnv,
-        isPaid,
-        picksCount,
-      })
-    } catch {}
-  }, [paidMode, paidAllowedHost, isPaidEnv, isPaid, picksCount])
 
   useEffect(() => {
     getBundle().then(setBundle).catch(console.error)
@@ -390,21 +317,8 @@ export default function ComparePage() {
   }
 
   const onPick = (winner: AppPlayer, loser: AppPlayer) => {
-    // If paid mode is enabled and we are on the designated host, limit free picks to 5
-    if (isPaidEnv && !isPaid && picksCount >= 5) {
-      console.log('[Paywall] Triggering paywall at picksCount=', picksCount)
-      setPaywallOpen(true)
-      return
-    }
     const nextOrder = updateRanking(ranking.order, winner.id, loser.id)
     setRankCookie(JSON.stringify({ order: nextOrder }))
-    // Increment pick counter for paid gating
-    if (isPaidEnv && !isPaid) {
-      const next = picksCount + 1
-      setPicksCount(next)
-      try { localStorage.setItem('otm_picks_count', String(next)) } catch {}
-      console.log('[Paywall] Increment picksCount →', next)
-    }
     // advance pair
     if (bundle) {
       // rotate focus round to ensure coverage across first 10 rounds
@@ -538,13 +452,6 @@ export default function ComparePage() {
         </div>
         <div className="flex items-center gap-2">
           <Button className="md:hidden h-8 px-3" variant="ghost" onClick={() => setFiltersOpen(true)}>Filter</Button>
-          {isPaidEnv ? (
-            <div className="hidden md:flex items-center gap-3 ml-2">
-              <RestoreLicense />
-              <span className="text-muted-foreground">·</span>
-              <CopyLicenseButton />
-            </div>
-          ) : null}
         </div>
       </div>
       {/* Desktop filters row (full width, larger chips, not under nav) */}
@@ -717,18 +624,6 @@ export default function ComparePage() {
           </motion.div>
         ))}
       </div>
-      <PaywallDialog
-        open={paywallOpen}
-        onClose={() => setPaywallOpen(false)}
-        onUnlock={async () => {
-          const res = await fetch('/api/checkout', { method: 'POST' })
-          const data = await res.json()
-          if (!res.ok || !data?.url) {
-            throw new Error(data?.error || 'Checkout unavailable')
-          }
-          window.location.href = data.url as string
-        }}
-      />
       <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
         <DialogContent className="max-h-[80vh] overflow-auto sm:max-w-lg">
           <DialogHeader>

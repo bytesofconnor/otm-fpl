@@ -37,18 +37,12 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## Environment template
 
-Create a `.env.local` file in this `web/` folder using the template below:
+Create a `.env.local` file in this `web/` folder if you need to override defaults.
+
+Most features work without environment variables in development. For production deployment or specific configurations, you may need:
 
 ```
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
-NEXT_PUBLIC_PAID_HOST=localhost
-NEXT_PUBLIC_FLAG_PAID_VERSION=1
-
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_PRICE_ID=price_test_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-
-# License token signing (use LICENSE_SECRETS for rotation; first is active)
-LICENSE_SECRETS=replace-with-long-random-secret
 ```
+
 

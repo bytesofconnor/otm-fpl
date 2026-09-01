@@ -648,7 +648,7 @@ export default function ComparePage() {
             </div>
           </DialogHeader>
             <div className="mb-3">
-              <label id="position-filter-label" className="otm-kicker mb-1 block">Positions</label>
+              <div id="position-filter-label" className="otm-kicker mb-1 block">Positions</div>
               <ToggleGroup
                 multiple
                 value={Array.from(selectedPositions)}

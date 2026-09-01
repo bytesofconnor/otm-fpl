@@ -4,7 +4,6 @@
 import * as React from 'react'
 import type { AppBundle, AppPlayer } from '@/lib/types'
 import { getBundle } from '@/lib/bundle-store'
-import { ImageWithFallback } from '@/components/ui/image-with-fallback'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'

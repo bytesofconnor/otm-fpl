@@ -372,7 +372,7 @@ export function LeagueForm(): React.ReactElement {
       </a>
       <div id="form-dock" className="sticky top-[calc(var(--header-h)+env(safe-area-inset-top))] z-40 border-b border-border bg-card">
         <div className={pageWidth}>
-          <div className="flex items-stretch justify-between gap-4">
+          <div className="flex items-stretch justify-between gap-2 sm:gap-4">
             <LayoutGroup id="form-tabs">
             <Tabs
               value={pane}
@@ -381,12 +381,15 @@ export function LeagueForm(): React.ReactElement {
               }}
               className="min-w-0 flex-1 gap-0"
             >
-              <TabsList variant="line" className="h-12 w-full justify-start gap-1 rounded-none bg-transparent p-0 sm:h-14 sm:gap-2">
+              <TabsList variant="line" className="h-12 w-full justify-start gap-1 rounded-none bg-transparent p-0 sm:h-14 sm:gap-2" role="tablist" aria-label="Form views">
                 {jumps.map((item) => (
                   <TabsTrigger
                     key={item.id}
                     value={item.id}
                     className="relative h-12 flex-none rounded-none px-2.5 text-[12px] font-semibold uppercase tracking-[0.14em] after:!hidden sm:h-14 sm:px-3"
+                    role="tab"
+                    aria-selected={pane === item.id}
+                    aria-controls={`form-panel-${item.id}`}
                   >
                     <span>{item.label}</span>
                     {item.count != null ? (
@@ -397,6 +400,7 @@ export function LeagueForm(): React.ReactElement {
                         layoutId="form-tab-ink"
                         className="absolute inset-x-2 bottom-0 h-0.5 bg-foreground"
                         transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 380, damping: 32 }}
+                        aria-hidden="true"
                       />
                     ) : null}
                   </TabsTrigger>
@@ -404,7 +408,7 @@ export function LeagueForm(): React.ReactElement {
               </TabsList>
             </Tabs>
             </LayoutGroup>
-            <div className="flex shrink-0 items-center self-center rounded-md bg-muted/80 p-0.5 ring-1 ring-border/80">
+            <div className="flex shrink-0 items-center self-center rounded-md bg-muted/80 p-0.5 ring-1 ring-border/80" role="group" aria-label="Navigate between charts">
               <Tooltip>
                 <TooltipTrigger
                   render={
@@ -412,7 +416,7 @@ export function LeagueForm(): React.ReactElement {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      aria-label="Previous graph"
+                      aria-label="Previous chart (Left arrow or [ key)"
                       onClick={() => step(-1)}
                     >
                       <ChevronLeft className="size-5" />
@@ -428,7 +432,7 @@ export function LeagueForm(): React.ReactElement {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      aria-label="Next graph"
+                      aria-label="Next chart (Right arrow or ] key)"
                       onClick={() => step(1)}
                     >
                       <ChevronRight className="size-5" />
@@ -438,16 +442,18 @@ export function LeagueForm(): React.ReactElement {
                 <TooltipContent>Next graph (→ or ])</TooltipContent>
               </Tooltip>
             </div>
-            <Button type="button" variant="ghost" size="sm" className="shrink-0 self-center" onClick={() => void onCopy()}>
+            <Button type="button" variant="ghost" size="sm" className="shrink-0 self-center" onClick={() => void onCopy()} aria-label="Copy share link">
               {copied ? "Copied" : "Copy"}
             </Button>
           </div>
 
           {pane !== "teams" ? (
-            <div className="mb-3 flex flex-col gap-1.5 rounded-md bg-muted/70 p-1.5 ring-1 ring-border/70 focus-within:ring-foreground/20 sm:flex-row sm:items-center sm:gap-0 sm:p-0 sm:pr-1.5">
+            <div className="mb-3 flex flex-col gap-1.5 rounded-md bg-muted/70 p-1.5 ring-1 ring-border/70 focus-within:ring-foreground/20 sm:flex-row sm:items-center sm:gap-0 sm:p-0 sm:pr-1.5" role="search">
               <div className="flex min-w-0 flex-1 items-center">
-                <Search className="ml-3 size-4 shrink-0 text-muted-foreground" aria-hidden />
+                <label htmlFor="form-search" className="sr-only">Search players, managers, or clubs</label>
+                <Search className="ml-3 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                 <Input
+                  id="form-search"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Player, manager, or club"
@@ -472,9 +478,15 @@ export function LeagueForm(): React.ReactElement {
                   size="sm"
                   spacing={0}
                   className="rounded-lg bg-card p-0.5 ring-1 ring-border/80"
+                  aria-label="Filter by position"
                 >
                   {POS_COLS.map((col) => (
-                    <ToggleGroupItem key={col.id} value={col.id} aria-label={`Filter ${col.name}`} title={col.name}>
+                    <ToggleGroupItem 
+                      key={col.id} 
+                      value={col.id} 
+                      aria-label={`Filter to ${col.name}`} 
+                      title={col.name}
+                    >
                       {col.code}
                     </ToggleGroupItem>
                   ))}
@@ -489,6 +501,7 @@ export function LeagueForm(): React.ReactElement {
                     setQuery("")
                     setClubFilter(null)
                   }}
+                  aria-label="Clear all filters"
                 >
                   Clear
                 </Button>
@@ -511,6 +524,8 @@ export function LeagueForm(): React.ReactElement {
           onPointerCancel={() => {
             swipe.current = null
           }}
+          aria-live="polite"
+          aria-atomic="false"
         >
           <AnimatePresence mode="wait" custom={dir}>
             <motion.div

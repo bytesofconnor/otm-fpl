@@ -28,7 +28,7 @@ export function AppHeader(): ReactElement {
   const { periodLabel, live } = useLeagueStatus()
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-card pt-[env(safe-area-inset-top)]">
+    <header className="sticky top-0 z-50 border-b-2 border-border bg-card pt-[env(safe-area-inset-top)] shadow-sm">
       <div className={`${pageWidth} flex h-[var(--header-h)] items-stretch gap-2 sm:gap-8`}>
         <Link href="/" className="tap flex shrink-0 items-center px-1" aria-label="Over the Moon, home">
           <BrandLockup wordmarkClassName="hidden sm:inline" />
@@ -45,14 +45,14 @@ export function AppHeader(): ReactElement {
                 render={<Link href={item.href} prefetch aria-current={active ? "page" : undefined} />}
                 nativeButton={false}
                 className={cn(
-                  "relative h-full min-w-[4.5rem] rounded-none px-3 py-2 text-[12px] font-semibold uppercase tracking-[0.16em] hover:bg-transparent",
+                  "relative h-full min-w-[5rem] rounded-none px-4 py-2 text-[13px] font-bold uppercase tracking-[0.14em] hover:bg-transparent sm:text-[12px]",
                   active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {item.label}
                 <span
                   className={cn(
-                    "absolute inset-x-3 bottom-0 h-0.5 bg-foreground transition-opacity",
+                    "absolute inset-x-4 bottom-0 h-[3px] bg-foreground transition-opacity",
                     active ? "opacity-100" : "opacity-0",
                   )}
                   aria-hidden="true"
@@ -62,18 +62,25 @@ export function AppHeader(): ReactElement {
           })}
         </nav>
 
-        <p
+        <div
           className={cn(
-            "flex shrink-0 items-center gap-1.5 self-center px-2 text-[13px] font-bold uppercase tracking-[0.12em]",
-            live ? "font-medium text-live" : "text-muted-foreground",
+            "flex shrink-0 items-center gap-1.5 self-center",
+            live ? "rounded-md bg-live px-2.5 py-1.5" : "",
           )}
           aria-live="polite"
           aria-atomic="true"
         >
-          {live ? <span className="otm-live-dot size-1.5 rounded-full bg-live" aria-hidden="true" /> : null}
-          {live ? <span className="sr-only">Live. </span> : null}
-          {periodLabel}
-        </p>
+          {live ? <span className="size-1.5 animate-pulse rounded-full bg-white" aria-hidden="true" /> : null}
+          <p
+            className={cn(
+              "text-[13px] font-bold uppercase tracking-[0.12em] sm:text-[14px]",
+              live ? "text-white" : "text-muted-foreground",
+            )}
+          >
+            {live ? <span className="sr-only">Live. </span> : null}
+            {periodLabel}
+          </p>
+        </div>
       </div>
     </header>
   )

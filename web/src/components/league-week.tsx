@@ -97,20 +97,20 @@ function PlayerBlock({
       type="button"
       variant="ghost"
       onClick={onToggle}
-      className={`h-auto min-h-11 w-full min-w-0 flex-col items-stretch justify-start gap-0 rounded-md px-1 py-2 whitespace-normal ${align === "right" ? "text-right" : "text-left"}`}
+      className={`h-auto min-h-[3rem] w-full min-w-0 flex-col items-stretch justify-start gap-0 rounded-md px-2 py-2.5 whitespace-normal ${align === "right" ? "text-right" : "text-left"}`}
     >
-      <div className={`flex items-center gap-2 ${align === "right" ? "flex-row-reverse" : ""}`}>
+      <div className={`flex items-center gap-2.5 ${align === "right" ? "flex-row-reverse" : ""}`}>
         <Crest src={player.headshotUrl} alt={player.team} />
-        <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-foreground sm:text-[15px]">{player.name}</span>
+        <span className="min-w-0 flex-1 truncate text-[15px] font-semibold leading-snug text-foreground sm:text-[16px]">{player.name}</span>
         <span className="shrink-0 text-right">
-          <span className={`block font-mono text-[13px] tabular-nums ${scoreClass(player.points)}`}>{pts(player.points)}</span>
+          <span className={`block font-mono text-[15px] tabular-nums font-bold ${scoreClass(player.points)}`}>{pts(player.points)}</span>
           {left >= 0.4 ? (
-            <span className="block font-mono text-[11px] tabular-nums text-muted-foreground">+{left.toFixed(1)}</span>
+            <span className="block font-mono text-[12px] tabular-nums font-medium text-muted-foreground">+{left.toFixed(1)}</span>
           ) : null}
         </span>
       </div>
       {meta ? (
-        <div className={`mt-0.5 text-[12px] leading-snug ${availabilityClass(player.availability)} ${align === "right" ? "text-right" : ""}`}>
+        <div className={`mt-1 text-[13px] font-medium leading-snug ${availabilityClass(player.availability)} ${align === "right" ? "text-right" : ""}`}>
           {meta}
         </div>
       ) : null}
@@ -146,18 +146,18 @@ function FacingRows({
   return (
     <div>
       {groupLines(lines).map((group) => (
-        <div key={group.position} className="border-t border-border/80">
+        <div key={group.position} className="border-t-2 border-border">
           {group.position !== "BN" ? (
-            <div className="flex items-center gap-3 px-1 py-2.5">
+            <div className="flex items-center gap-3 px-2 py-3">
               <Separator className="flex-1" />
-              <span className="otm-kicker">{POS[group.position] ?? group.position}</span>
+              <span className="otm-kicker text-[13px]">{POS[group.position] ?? group.position}</span>
               <Separator className="flex-1" />
             </div>
           ) : null}
           {group.lines.map((line, i) => (
             <div
               key={`${line.position}-${line.home?.id ?? "h"}-${line.away?.id ?? "a"}-${i}`}
-              className="grid grid-cols-[minmax(0,1fr)_2rem_minmax(0,1fr)] items-start gap-2 border-t border-border/70 py-0.5"
+              className="grid grid-cols-[minmax(0,1fr)_1.5rem_minmax(0,1fr)] items-start gap-2 border-t border-border py-1"
             >
               <PlayerBlock
                 player={line.home}
@@ -189,8 +189,8 @@ function Bench({ matchup, expandedId, setExpandedId }: { matchup: FantraxMatchup
     away: matchup.awayBench[i] ?? null,
   }))
   return (
-    <div className="mt-2 border-t border-border pt-3 opacity-80">
-            <div className="mb-2 otm-kicker">Bench</div>
+    <div className="mt-3 border-t-2 border-border pt-4 opacity-90">
+            <div className="mb-2 px-2 otm-kicker text-[13px]">Bench</div>
       <FacingRows lines={lines} expandedId={expandedId} setExpandedId={setExpandedId} />
     </div>
   )
@@ -210,16 +210,16 @@ function TeamMark({
   align: "left" | "right"
 }): React.ReactElement {
   return (
-    <div className={`flex min-w-0 items-center gap-2.5 ${align === "right" ? "flex-row-reverse text-right" : ""}`}>
+    <div className={`flex min-w-0 items-center gap-3 ${align === "right" ? "flex-row-reverse text-right" : ""}`}>
       {logoUrl ? (
-        <ImageWithFallback src={logoUrl} alt="" className="h-9 w-9 shrink-0 rounded-lg bg-background object-cover shadow-sm ring-1 ring-border sm:h-11 sm:w-11" fallback="/favicon.svg" />
+        <ImageWithFallback src={logoUrl} alt="" className="h-10 w-10 shrink-0 rounded-lg bg-background object-cover shadow-sm ring-2 ring-border sm:h-12 sm:w-12" fallback="/favicon.svg" />
       ) : (
-        <div className="h-9 w-9 shrink-0 rounded-lg border border-border bg-muted/40 sm:h-11 sm:w-11" />
+        <div className="h-10 w-10 shrink-0 rounded-lg border-2 border-border bg-muted/60 sm:h-12 sm:w-12" />
       )}
       <div className="min-w-0">
-        <div className="otm-kicker">{shortName || (align === "left" ? "Home" : "Away")}</div>
-        <div className="otm-title mt-0.5 truncate text-[0.95rem] leading-tight sm:text-[1.25rem]">{name}</div>
-        {owner ? <div className="mt-0.5 hidden truncate text-[13px] text-muted-foreground sm:block">{owner}</div> : null}
+        <div className="otm-kicker text-[12px]">{shortName || (align === "left" ? "Home" : "Away")}</div>
+        <div className="otm-title mt-0.5 truncate text-[1.05rem] leading-tight sm:text-[1.35rem]">{name}</div>
+        {owner ? <div className="mt-0.5 hidden truncate text-[13px] font-medium text-muted-foreground sm:block">{owner}</div> : null}
       </div>
     </div>
   )
@@ -311,58 +311,66 @@ export function LeagueWeek({
 
   return (
     <Card size="flush">
-      <div className="flex items-center justify-between gap-3 border-b border-border/80 px-4 py-4 sm:px-7">
-        <div className="min-w-0">
-          <h2 className="otm-title text-[1.4rem] sm:text-[1.6rem]">This week</h2>
-          <p className="mt-0.5 truncate text-[13px] text-muted-foreground">
-            {live ? <span className="font-medium text-live">Live</span> : null}
-            {live ? " · " : null}
-            {periodLabel || `GW${period}`}
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label="Previous gameweek"
-            disabled={period <= 1}
-            onClick={() => onPeriod(period - 1)}
-          >
-            ‹
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label="Next gameweek"
-            disabled={period >= periodCount}
-            onClick={() => onPeriod(period + 1)}
-          >
-            ›
-          </Button>
-          {matchup ? (
-            <Button type="button" variant="outline" size="sm" className="ml-1" onClick={() => void onCopy()}>
-              {copied ? "Copied" : "Copy"}
+      <div className="border-b-2 border-border px-4 py-5 sm:px-7 sm:py-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <h2 className="otm-title text-[1.6rem] leading-tight sm:text-[2rem]">This week</h2>
+            <div className="mt-2 flex items-center gap-2">
+              {live ? (
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-live px-2 py-1 text-[12px] font-bold uppercase tracking-wider text-white">
+                  <span className="size-1.5 animate-pulse rounded-full bg-white" aria-hidden />
+                  Live
+                </span>
+              ) : null}
+              <span className="text-[14px] font-semibold text-foreground sm:text-[15px]">
+                {periodLabel || `GW${period}`}
+              </span>
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="tap h-11 w-11 p-0 text-[20px] font-bold"
+              aria-label="Previous gameweek"
+              disabled={period <= 1}
+              onClick={() => onPeriod(period - 1)}
+            >
+              ‹
             </Button>
-          ) : null}
+            <Button
+              type="button"
+              variant="outline"
+              className="tap h-11 w-11 p-0 text-[20px] font-bold"
+              aria-label="Next gameweek"
+              disabled={period >= periodCount}
+              onClick={() => onPeriod(period + 1)}
+            >
+              ›
+            </Button>
+          </div>
         </div>
+        {matchup ? (
+          <Button type="button" variant="secondary" size="sm" className="mt-3" onClick={() => void onCopy()}>
+            {copied ? "Copied" : "Copy matchup"}
+          </Button>
+        ) : null}
       </div>
 
       {matchup ? (
-        <div className="p-4 sm:p-7">
-          <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-6">
+        <div className="p-5 sm:p-7">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-6">
             <TeamMark name={matchup.home} shortName={matchup.homeShort} owner={matchup.homeOwner} logoUrl={matchup.homeLogo} align="left" />
             <div className="text-center">
-              <div className="inline-flex min-w-[9.5rem] flex-col items-center rounded-md bg-foreground px-4 py-2.5 text-background sm:min-w-[13rem] sm:px-6 sm:py-3">
-                <div className={live ? "otm-kicker text-live" : "otm-kicker text-background/55"}>{live ? "Live" : "Projected"}</div>
-                <div className="otm-score mt-1 text-[2rem] leading-none sm:text-[3.4rem]">
+              <div className="inline-flex min-w-[10rem] flex-col items-center rounded-lg bg-foreground px-5 py-3 text-background shadow-lg sm:min-w-[14rem] sm:px-7 sm:py-4">
+                <div className={live ? "otm-kicker text-[#5dd4a8]" : "otm-kicker text-background/60"}>{live ? "Live" : "Projected"}</div>
+                <div className="otm-score mt-1.5 text-[2.25rem] leading-none sm:text-[3.75rem]">
                   {live ? matchup.homeScore ?? "0" : matchup.homeProjected ?? "—"}
-                  <span className="mx-1 text-[0.72em] font-semibold text-background/45">–</span>
+                  <span className="mx-1.5 text-[0.7em] font-bold text-background/50 sm:mx-2">–</span>
                   {live ? matchup.awayScore ?? "0" : matchup.awayProjected ?? "—"}
                 </div>
                 {live && (matchup.homeProjected || matchup.awayProjected) ? (
-                  <div className="mt-1.5 font-mono text-[11px] text-background/55">
+                  <div className="mt-2 font-mono text-[12px] text-background/60">
                     proj {matchup.homeProjected} – {matchup.awayProjected}
                   </div>
                 ) : null}
@@ -394,28 +402,33 @@ export function LeagueWeek({
       )}
 
       {slate.length ? (
-        <div className="grid grid-cols-1 border-t border-border sm:grid-cols-2 lg:grid-cols-3">
-          {slate.map((game) => (
-            <div
-              key={`${game.awayId}-${game.homeId}`}
-              className={`border-b border-border px-5 py-4 last:border-b-0 transition-colors hover:bg-accent/40 sm:border-r sm:[&:nth-child(2n)]:border-r-0 lg:[&:nth-child(2n)]:border-r lg:[&:nth-child(3n)]:border-r-0 ${
-                game.yours ? "bg-muted/80 shadow-[inset_2px_0_0_0_var(--foreground)]" : ""
-              }`}
-            >
-              <div className="flex items-baseline justify-between gap-3 text-[13px]">
-                <span className={`truncate ${game.yours ? "text-foreground" : "text-muted-foreground"}`}>{game.home}</span>
-                <span className={`shrink-0 font-mono tabular-nums ${scoreClass(Number(live ? game.homeScore : game.homeProjected))}`}>
-                  {live ? game.homeScore ?? "0" : game.homeProjected ?? "—"}
-                </span>
+        <div className="border-t-2 border-border">
+          <div className="px-5 py-4 sm:px-7">
+            <h3 className="otm-kicker">All matchups</h3>
+          </div>
+          <div className="grid grid-cols-1 border-t border-border sm:grid-cols-2 lg:grid-cols-3">
+            {slate.map((game) => (
+              <div
+                key={`${game.awayId}-${game.homeId}`}
+                className={`border-b border-border px-5 py-4 last:border-b-0 transition-colors hover:bg-accent/60 sm:border-r sm:[&:nth-child(2n)]:border-r-0 lg:[&:nth-child(2n)]:border-r lg:[&:nth-child(3n)]:border-r-0 ${
+                  game.yours ? "bg-muted shadow-[inset_3px_0_0_0_var(--foreground)]" : ""
+                }`}
+              >
+                <div className="flex items-baseline justify-between gap-3 text-[14px] sm:text-[15px]">
+                  <span className={`truncate font-medium ${game.yours ? "text-foreground" : "text-foreground"}`}>{game.home}</span>
+                  <span className={`shrink-0 font-mono text-[14px] tabular-nums font-semibold ${scoreClass(Number(live ? game.homeScore : game.homeProjected))}`}>
+                    {live ? game.homeScore ?? "0" : game.homeProjected ?? "—"}
+                  </span>
+                </div>
+                <div className="mt-2 flex items-baseline justify-between gap-3 text-[14px] sm:text-[15px]">
+                  <span className={`truncate font-medium ${game.yours ? "text-foreground" : "text-foreground"}`}>{game.away}</span>
+                  <span className={`shrink-0 font-mono text-[14px] tabular-nums font-semibold ${scoreClass(Number(live ? game.awayScore : game.awayProjected))}`}>
+                    {live ? game.awayScore ?? "0" : game.awayProjected ?? "—"}
+                  </span>
+                </div>
               </div>
-              <div className="mt-1 flex items-baseline justify-between gap-3 text-[13px]">
-                <span className={`truncate ${game.yours ? "text-foreground" : "text-muted-foreground"}`}>{game.away}</span>
-                <span className={`shrink-0 font-mono tabular-nums ${scoreClass(Number(live ? game.awayScore : game.awayProjected))}`}>
-                  {live ? game.awayScore ?? "0" : game.awayProjected ?? "—"}
-                </span>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       ) : null}
     </Card>

@@ -80,7 +80,7 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.NodeNode
 }>) {
   return (
     <html lang="en">
@@ -99,7 +99,7 @@ export default function RootLayout({
           />
           <div className="min-h-screen flex flex-col">
             <AppHeader />
-            <div className="flex-1">{children}</div>
+            <main id="main-content" className="flex-1">{children}</main>
             <Footer />
           </div>
           <Analytics />

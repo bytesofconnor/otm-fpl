@@ -201,6 +201,9 @@ body {
 .tap {
   min-height: 44px;
   min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .otm-kicker {
@@ -305,6 +308,16 @@ body.otm-resizing * {
   }
   a {
     text-underline-offset: 0.18em;
+  }
+  *:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 }
 

@@ -152,31 +152,35 @@ export function LeagueHome(): React.ReactElement {
 
   return (
     <PageShell>
-      <div className="mb-5 flex items-center gap-3">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
         {snap.teams.length > 0 ? (
-          <Select value={teamId || null} onValueChange={(id) => { if (typeof id === "string") chooseTeam(id) }}>
-            <SelectTrigger className="h-12 min-h-12 w-full min-w-0 flex-1 overflow-hidden rounded-md px-4 text-[15px] shadow-none md:text-[15px]">
-              <span className="truncate">{selectedTeam?.name ?? "Choose your team"}</span>
-            </SelectTrigger>
-            <SelectContent>
-              {snap.teams.map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  {t.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex-1">
+            <label htmlFor="team-select" className="sr-only">Choose your team</label>
+            <Select value={teamId || null} onValueChange={(id) => { if (typeof id === "string") chooseTeam(id) }}>
+              <SelectTrigger id="team-select" className="h-12 min-h-12 w-full min-w-0 overflow-hidden rounded-md px-4 text-[15px] shadow-none md:text-[15px]">
+                <span className="truncate">{selectedTeam?.name ?? "Choose your team"}</span>
+              </SelectTrigger>
+              <SelectContent>
+                {snap.teams.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         ) : null}
         {custom ? (
-          <Button type="button" variant="ghost" className="h-12 shrink-0 px-3" onClick={useDefaultLeague}>
+          <Button type="button" variant="ghost" className="h-12 shrink-0 px-4" onClick={useDefaultLeague}>
             Our league
           </Button>
         ) : (
           <Button
             type="button"
             variant="ghost"
-            className="h-12 shrink-0 px-3"
+            className="h-12 shrink-0 px-4"
             aria-expanded={switching}
+            aria-controls="league-connect-form"
             onClick={() => setSwitching((open) => !open)}
           >
             {switching ? "Cancel" : "Switch"}
@@ -184,14 +188,16 @@ export function LeagueHome(): React.ReactElement {
         )}
       </div>
       {switching ? (
-        <ConnectForm
-          leagueInput={leagueInput}
-          setLeagueInput={setLeagueInput}
-          loading={loading}
-          onConnect={connect}
-        />
+        <div id="league-connect-form">
+          <ConnectForm
+            leagueInput={leagueInput}
+            setLeagueInput={setLeagueInput}
+            loading={loading}
+            onConnect={connect}
+          />
+        </div>
       ) : null}
-      {error ? <p className="mb-3 text-[13px] text-danger">{error}</p> : null}
+      {error ? <p className="mb-3 text-[13px] text-danger" role="alert">{error}</p> : null}
 
       <LeagueWeek
         matchup={snap.matchup}
@@ -205,8 +211,8 @@ export function LeagueHome(): React.ReactElement {
       />
 
       <div className="mt-4 grid gap-4 lg:grid-cols-12">
-        <Card size="flush" className="p-5 sm:p-6 lg:col-span-7">
-          <h2 className="otm-kicker">{locked ? "The field" : "Table"}</h2>
+        <Card size="flush" className="p-5 sm:p-6 lg:col-span-7" role="region" aria-labelledby="standings-heading">
+          <h2 id="standings-heading" className="otm-kicker">{locked ? "The field" : "Table"}</h2>
           {locked ? (
             <ul className="mt-3">
               {snap.standings.map((row) => (
@@ -215,9 +221,9 @@ export function LeagueHome(): React.ReactElement {
                   className={`otm-row flex items-center gap-3 rounded-md px-1.5 py-2.5 text-[14px] ${row.you ? "bg-muted text-foreground" : "text-muted-foreground"}`}
                 >
                   {row.logoUrl ? (
-                    <ImageWithFallback src={row.logoUrl} alt="" className="h-6 w-6 rounded-md object-cover ring-1 ring-border" fallback="/favicon.svg" />
+                    <img src={row.logoUrl} alt="" className="h-6 w-6 rounded-md object-cover ring-1 ring-border" />
                   ) : (
-                    <span className="h-6 w-6 rounded-md border border-border" />
+                    <span className="h-6 w-6 rounded-md border border-border" aria-hidden="true" />
                   )}
                   <span className={`truncate ${row.you ? "font-medium text-foreground" : ""}`}>{row.teamName}</span>
                 </li>
@@ -237,6 +243,7 @@ export function LeagueHome(): React.ReactElement {
                       className={`flex h-6 w-6 items-center justify-center rounded-md font-mono text-[11px] ${
                         row.you ? "bg-foreground text-background" : "bg-muted text-muted-foreground"
                       }`}
+                      aria-label={`Rank ${row.rank}`}
                     >
                       {row.rank}
                     </span>
@@ -252,8 +259,8 @@ export function LeagueHome(): React.ReactElement {
           )}
         </Card>
 
-        <Card size="flush" className="p-5 sm:p-6 lg:col-span-5">
-          <h2 className="otm-kicker">Waivers</h2>
+        <Card size="flush" className="p-5 sm:p-6 lg:col-span-5" role="region" aria-labelledby="waivers-heading">
+          <h2 id="waivers-heading" className="otm-kicker">Waivers</h2>
           {snap.waivers.length ? (
             <ul className="mt-3">
               {snap.waivers.map((p) => (
@@ -269,17 +276,17 @@ export function LeagueHome(): React.ReactElement {
         </Card>
       </div>
 
-      <Card size="flush" className="mt-4">
+      <Card size="flush" className="mt-4" role="region" aria-labelledby="season-heading">
       <details>
-        <summary className="tap cursor-pointer px-5 py-3 text-[14px] text-muted-foreground">
+        <summary id="season-heading" className="tap cursor-pointer px-5 py-3 text-[14px] text-muted-foreground">
           Season
           {snap.draftType ? ` · ${snap.draftType}` : ""}
           {snap.salaryCap ? ` · cap ${snap.salaryCap}` : ""}
         </summary>
         <div className="space-y-6 border-t border-border px-5 py-5">
           {snap.scoringChips.length ? (
-            <div>
-              <h3 className="otm-kicker">How it scores</h3>
+            <section aria-labelledby="scoring-heading">
+              <h3 id="scoring-heading" className="otm-kicker">How it scores</h3>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 font-mono text-[13px]">
                 {snap.scoringChips.map((chip) => (
                   <span key={chip.code}>
@@ -287,16 +294,16 @@ export function LeagueHome(): React.ReactElement {
                   </span>
                 ))}
               </div>
-            </div>
+            </section>
           ) : null}
 
           {snap.draftPicks.length ? (
-            <div>
-              <h3 className="otm-kicker">Round 1</h3>
+            <section aria-labelledby="draft-heading">
+              <h3 id="draft-heading" className="otm-kicker">Round 1</h3>
               <ol className="mt-2">
                 {snap.draftPicks.map((pick) => (
                   <li key={pick.pick} className="flex items-baseline gap-3 border-b border-border py-1.5 text-[13px]">
-                    <span className="w-5 font-mono text-[11px] text-muted-foreground">{pick.pick}</span>
+                    <span className="w-5 font-mono text-[11px] text-muted-foreground" aria-label={`Pick ${pick.pick}`}>{pick.pick}</span>
                     <span className="min-w-0 truncate">
                       {pick.playerName}
                       <span className="ml-2 text-[11px] uppercase tracking-wider text-muted-foreground">
@@ -306,12 +313,12 @@ export function LeagueHome(): React.ReactElement {
                   </li>
                 ))}
               </ol>
-            </div>
+            </section>
           ) : null}
 
           {snap.transactions.length ? (
-            <div>
-              <h3 className="otm-kicker">Recent moves</h3>
+            <section aria-labelledby="transactions-heading">
+              <h3 id="transactions-heading" className="otm-kicker">Recent moves</h3>
               <ul className="mt-2 space-y-2">
                 {snap.transactions.map((tx, i) => (
                   <li key={`${tx.id}-${i}`} className="flex items-baseline justify-between gap-3 text-[13px]">
@@ -323,7 +330,7 @@ export function LeagueHome(): React.ReactElement {
                   </li>
                 ))}
               </ul>
-            </div>
+            </section>
           ) : null}
         </div>
       </details>
@@ -348,17 +355,22 @@ function ConnectForm({
   return (
     <Card size="flush" className="mb-3 p-3">
     <form onSubmit={onConnect} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-      <label className="min-w-0 flex-1">
+      <label htmlFor="league-input" className="min-w-0 flex-1">
         <span className="otm-kicker">Another Fantrax league</span>
         <Input
+          id="league-input"
           value={leagueInput}
           onChange={(e) => setLeagueInput(e.target.value)}
           placeholder="League ID or fantrax.com/fantasy/league/…"
           className="mt-1 h-11 text-[16px]"
+          aria-describedby="league-input-hint"
         />
+        <span id="league-input-hint" className="sr-only">
+          Enter a Fantrax league ID or full league URL to connect to another league
+        </span>
       </label>
       <div className="flex gap-2">
-        <Button type="submit" className="h-11">
+        <Button type="submit" className="h-11" disabled={loading}>
           {loading ? "Loading…" : "Connect"}
         </Button>
         {onReset ? (

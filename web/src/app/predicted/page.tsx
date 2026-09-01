@@ -37,16 +37,17 @@ export default function PredictedPage() {
     return Array.from(s).sort()
   }, [bundle])
 
-  const selected = new Set(selectedTeams)
-
-  const teams = React.useMemo(() => Array.from(grouped.entries())
-    .map(([teamId, players]) => ({ teamId, teamName: players[0]?.team.name ?? String(teamId), players }))
-    .sort((a, b) => a.teamName.localeCompare(b.teamName))
-    .filter((t) => {
-      if (selected.size === 0) return true
-      const code = t.players[0]?.team.shortName
-      return code ? selected.has(code) : true
-    }), [grouped, selectedTeams])
+  const teams = React.useMemo(() => {
+    const selected = new Set(selectedTeams)
+    return Array.from(grouped.entries())
+      .map(([teamId, players]) => ({ teamId, teamName: players[0]?.team.name ?? String(teamId), players }))
+      .sort((a, b) => a.teamName.localeCompare(b.teamName))
+      .filter((t) => {
+        if (selected.size === 0) return true
+        const code = t.players[0]?.team.shortName
+        return code ? selected.has(code) : true
+      })
+  }, [grouped, selectedTeams])
 
   return (
     <PageShell>

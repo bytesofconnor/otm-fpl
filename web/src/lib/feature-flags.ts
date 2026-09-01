@@ -56,7 +56,7 @@ export function useFeatureFlags(): FlagMap {
       if (enabled) {
         setFlags((prev) => {
           const next = { ...prev }
-          for (const key of KNOWN_FLAGS) next[key] = enabled!.includes(key)
+          for (const key of KNOWN_FLAGS) (next as Record<string, boolean>)[key] = enabled!.includes(key)
           return next
         })
       }

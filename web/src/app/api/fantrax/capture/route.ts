@@ -100,10 +100,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "invalid_period" }, { status: 400 })
     }
     const results = await capturePeriods(leagueId, [period])
+    const first = results[0]
     return NextResponse.json({
-      success: results[0]?.success ?? false,
       leagueId,
-      ...results[0],
+      success: first?.success ?? false,
+      period: first?.period ?? period,
+      inserted: first?.inserted ?? 0,
+      skipped: first?.skipped ?? 0,
+      skippedStarted: first?.skippedStarted ?? 0,
+      skippedNoProj: first?.skippedNoProj ?? 0,
+      total: first?.total ?? 0,
+      error: first?.error,
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : "capture_failed"

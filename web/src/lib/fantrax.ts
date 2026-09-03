@@ -468,21 +468,21 @@ function parseProjectedRoster(data: Json | null): FantraxRosterPlayer[] {
 
 function parseFantasyTeams(data: Json | null): FantraxTeam[] {
   if (!data) return []
-  return asArray(data.fantasyTeams)
-    .map((row) => {
-      const rec = asRecord(row)
-      if (!rec) return null
-      const id = str(rec.id)
-      const name = str(rec.name)
-      if (!id || !name) return null
-      return {
-        id,
-        name,
-        shortName: str(rec.shortName) || undefined,
-        logoUrl: str(rec.logoUrl128 ?? rec.logoUrl256) || undefined,
-      } satisfies FantraxTeam
-    })
-    .filter((t): t is FantraxTeam => t != null)
+  const result: FantraxTeam[] = []
+  for (const row of asArray(data.fantasyTeams)) {
+    const rec = asRecord(row)
+    if (!rec) continue
+    const id = str(rec.id)
+    const name = str(rec.name)
+    if (!id || !name) continue
+    const team: FantraxTeam = { id, name }
+    const shortName = str(rec.shortName)
+    if (shortName) team.shortName = shortName
+    const logoUrl = str(rec.logoUrl128 ?? rec.logoUrl256)
+    if (logoUrl) team.logoUrl = logoUrl
+    result.push(team)
+  }
+  return result
 }
 
 function parseOwner(data: Json | null): string | undefined {
@@ -943,10 +943,11 @@ export async function loadFantraxLeague(
   const yours = slate.find((g) => g.yours)
 
   if (matchup) {
-    const homeTeam = teams.find((t) => t.id === matchup.homeId)
-    const awayTeam = teams.find((t) => t.id === matchup.awayId)
+    const currentMatchup = matchup
+    const homeTeam = teams.find((t) => t.id === currentMatchup.homeId)
+    const awayTeam = teams.find((t) => t.id === currentMatchup.awayId)
     const aligned = yours
-      ? yours.homeId === matchup.homeId
+      ? yours.homeId === currentMatchup.homeId
         ? yours
         : {
             ...yours,
@@ -959,11 +960,11 @@ export async function loadFantraxLeague(
           }
       : null
     matchup = {
-      ...matchup,
-      homeProjected: aligned?.homeProjected ?? matchup.homeProjected,
-      awayProjected: aligned?.awayProjected ?? matchup.awayProjected,
-      homeScore: aligned?.homeScore ?? matchup.homeScore,
-      awayScore: aligned?.awayScore ?? matchup.awayScore,
+      ...currentMatchup,
+      homeProjected: aligned?.homeProjected ?? currentMatchup.homeProjected,
+      awayProjected: aligned?.awayProjected ?? currentMatchup.awayProjected,
+      homeScore: aligned?.homeScore ?? currentMatchup.homeScore,
+      awayScore: aligned?.awayScore ?? currentMatchup.awayScore,
       homeOptimal: aligned?.homeOptimal ?? null,
       awayOptimal: aligned?.awayOptimal ?? null,
       homeOwner: homeTeam?.owner,
@@ -976,8 +977,8 @@ export async function loadFantraxLeague(
       awayBench: benchOf(awayPlayers),
       lines: zipMatchupLines(homePlayers, awayPlayers),
     }
-    if (teamId === matchup.homeId && homePlayers.length) roster = homePlayers
-    if (teamId === matchup.awayId && awayPlayers.length) roster = awayPlayers
+    if (teamId === currentMatchup.homeId && homePlayers.length) roster = homePlayers
+    if (teamId === currentMatchup.awayId && awayPlayers.length) roster = awayPlayers
   }
 
   const teamById = new Map(teams.map((t) => [t.id, t]))

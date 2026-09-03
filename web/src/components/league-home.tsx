@@ -348,9 +348,10 @@ function ConnectForm({
   return (
     <Card size="flush" className="mb-3 p-3">
     <form onSubmit={onConnect} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-      <label className="min-w-0 flex-1">
+      <label htmlFor="league-input" className="min-w-0 flex-1">
         <span className="otm-kicker">Another Fantrax league</span>
         <Input
+          id="league-input"
           value={leagueInput}
           onChange={(e) => setLeagueInput(e.target.value)}
           placeholder="League ID or fantrax.com/fantasy/league/…"

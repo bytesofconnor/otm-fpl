@@ -907,7 +907,7 @@ export async function loadFantraxLeague(
   let matchup = matchupSeed
   const homePlayers = homeRoster?.players ?? []
   const awayPlayers = awayRoster?.players ?? []
-  let rosterMeta: RosterBundle | null =
+  const rosterMeta: RosterBundle | null =
     (teamId && matchupSeed?.homeId === teamId ? homeRoster : null) ??
     (teamId && matchupSeed?.awayId === teamId ? awayRoster : null) ??
     selfRoster ??
@@ -1257,7 +1257,7 @@ export async function loadFantraxForm(leagueId: string, teamId?: string | null):
   }
 
   let players: FantraxPlayerSeries[] = []
-  let news: FantraxFormNews[] = []
+  const news: FantraxFormNews[] = []
   let teamName: string | null = teams.find((t) => t.id === teamId)?.name ?? null
   const fpl = fplResult.status === "fulfilled" ? fplResult.value : { byKey: new Map(), elements: [] }
 

@@ -26,20 +26,20 @@ export type ChartSeries = {
 
 /** Distinct, high-contrast series colors — sportsboard, not pastel. */
 export const CHART_PALETTE = [
-  "#111111",
-  "#1d4ed8",
+  "#e8f0e4",
+  "#3dcf7a",
   "#e11d48",
-  "#0f766e",
+  "#5b8def",
   "#ea580c",
-  "#7c3aed",
-  "#16a34a",
-  "#ca8a04",
+  "#c084fc",
+  "#f0c14b",
+  "#22d3ee",
   "#db2777",
-  "#0369a1",
-  "#b45309",
-  "#4338ca",
-  "#15803d",
-  "#334155",
+  "#86efac",
+  "#fb923c",
+  "#93c5fd",
+  "#fde68a",
+  "#94a3b8",
 ]
 
 function useDesktopPlot(): boolean {

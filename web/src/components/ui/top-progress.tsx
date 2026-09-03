@@ -26,7 +26,7 @@ export function TopProgress(): React.ReactElement {
   return (
     <div className="fixed inset-x-0 top-0 z-[999] pointer-events-none">
       <div
-        className="h-[2px] bg-primary transition-all duration-150"
+        className="h-[2px] bg-live transition-all duration-150"
         style={{ width: `${width}%`, opacity: active ? 0.85 : 0 }}
       />
     </div>

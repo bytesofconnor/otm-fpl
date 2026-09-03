@@ -27,7 +27,7 @@ const plexMono = IBM_Plex_Mono({
 })
 
 export const viewport: Viewport = {
-  themeColor: "#161616",
+  themeColor: "#0a120e",
   viewportFit: "cover",
   width: "device-width",
   initialScale: 1,
@@ -83,8 +83,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body className={`${sans.variable} ${display.variable} ${plexMono.variable} antialiased bg-background text-foreground`}>
+        <div className="otm-stadium" aria-hidden />
         <LeagueStatusProvider>
           <TooltipProvider>
           <TopProgress />
@@ -97,7 +98,7 @@ export default function RootLayout({
         `,
             }}
           />
-          <div className="min-h-screen flex flex-col">
+          <div className="relative z-10 min-h-screen flex flex-col">
             <AppHeader />
             <div className="flex-1">{children}</div>
             <Footer />

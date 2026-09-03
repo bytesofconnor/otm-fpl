@@ -18,7 +18,7 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20",
         link: "text-link underline-offset-4 hover:underline",
-        live: "bg-live text-white shadow-sm hover:bg-live/90",
+        live: "bg-live text-[#04140c] shadow-sm hover:bg-live/90",
       },
       size: {
         default: "h-9 gap-1.5 px-3",

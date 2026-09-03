@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/fantrax/capture",
+      "schedule": "0 8 * * *"
+    }
+  ]
+}

@@ -45,6 +45,14 @@ Optional:
 
 - `NEXT_PUBLIC_FLAG_PAID_VERSION=1` – enable paid gating
 
+### Frozen weekly projections (Supabase + Vercel Cron)
+
+Fantrax overwrites weekly projected FPts with scored FPts after a fixture. Daily capture freezes the pre-kickoff number (first snapshot wins) so Form can show leftover.
+
+- `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` — apply `supabase/migrations/20260828000000_create_projection_snapshots.sql`
+- `CRON_SECRET` — Vercel Cron sends `Authorization: Bearer ${CRON_SECRET}` to `GET /api/fantrax/capture` at 08:00 UTC (`web/vercel.json`). Hobby plans allow one daily cron.
+- Capture skips finished and in-progress fixtures. It does not backfill GW1 after those games have scored.
+
 ### Security & robustness
 
 - Tokens are HMAC-signed; server verifies signature and expiry.

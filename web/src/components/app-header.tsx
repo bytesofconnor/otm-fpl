@@ -28,10 +28,10 @@ export function AppHeader(): ReactElement {
   const { periodLabel, live } = useLeagueStatus()
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-card pt-[env(safe-area-inset-top)]">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/75 pt-[env(safe-area-inset-top)] backdrop-blur-md">
       <div className={`${pageWidth} flex h-[var(--header-h)] items-stretch gap-3 sm:gap-8`}>
-        <Link href="/" className="tap flex shrink-0 items-center" aria-label="Over the Moon, home">
-          <BrandLockup wordmarkClassName="hidden sm:inline" />
+        <Link href="/" className="tap flex shrink-0 items-center" aria-label="OTM FPL, home">
+          <BrandLockup />
         </Link>
 
         <nav className="flex flex-1 items-stretch justify-center" aria-label="Primary">
@@ -45,14 +45,14 @@ export function AppHeader(): ReactElement {
                 render={<Link href={item.href} prefetch aria-current={active ? "page" : undefined} />}
                 nativeButton={false}
                 className={cn(
-                  "relative h-full min-w-[4.5rem] rounded-none px-3 text-[12px] font-semibold uppercase tracking-[0.16em] hover:bg-transparent",
+                  "relative h-full min-w-[4.5rem] rounded-none px-3 text-[12px] font-semibold uppercase tracking-[0.18em] hover:bg-transparent",
                   active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {item.label}
                 <span
                   className={cn(
-                    "absolute inset-x-3 bottom-0 h-0.5 bg-foreground transition-opacity",
+                    "absolute inset-x-3 bottom-0 h-0.5 bg-live transition-opacity",
                     active ? "opacity-100" : "opacity-0",
                   )}
                   aria-hidden

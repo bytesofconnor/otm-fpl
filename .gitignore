@@ -1,0 +1,4 @@
+node_modules/
+supabase/.temp/
+web/supabase/
+.DS_Store

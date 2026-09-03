@@ -4,41 +4,46 @@ Companion for Over the Moon FPL. League is this-week HQ. Form is scored vs lefto
 
 ## Now
 
-- [ ] **Snapshot weekly projections** (see below). Fantrax overwrites `PROJECTION_0_926_EVENT_PROJECTED_WEEKLY` with actual FPts once a fixture is done. The Form dumbbell and “left” column go flat. We need our own copy of the pre-game / in-week expected total.
-- [ ] Keep League about **what’s still to play**, not a clone of the Fantrax scoreboard.
+- [x] **Snapshot weekly projections** (see below). Fantrax overwrites `PROJECTION_0_926_EVENT_PROJECTED_WEEKLY` with actual FPts once a fixture is done. The Form dumbbell and "left" column go flat. We need our own copy of the pre-game / in-week expected total.
+- [ ] Keep League about **what's still to play**, not a clone of the Fantrax scoreboard.
 - [ ] Chart tooltips must stay fully visible (no clip at the plot edge).
 
 ## Snapshot projections in a database
 
-Fantrax’s weekly proj view is not a frozen forecast. After kickoff it converges to scored. To keep “scored vs projected” honest we should persist the projection ourselves.
+✅ **Implemented** — Supabase integration added to freeze Fantrax weekly projections before fixtures start.
 
-**What to store**
+Fantrax's weekly proj view is not a frozen forecast. After kickoff it converges to scored. To keep "scored vs projected" honest we persist the projection ourselves.
+
+**What we store**
 
 - League id, period (GW), player id, team id (owner), captured-at
 - `projected` — Fantrax weekly expected total at capture time
 - Optional: manager-level projected totals from the `proj: true` schedule view
-- Do not overwrite a row once the player’s fixture has started, unless we are filling a missing first snapshot
+- First successful non-zero weekly proj for that `(leagueId, period, playerId)` wins (unique constraint)
 
 **When to capture**
 
-- Cron or on-demand before the GW deadline, then once more early in the GW
+- Manual or cron before the GW deadline, then once more early in the GW
 - First successful non-zero weekly proj for that `(leagueId, period, playerId)` wins
 - Live scored always comes from Fantrax; only the projection is frozen
 
-**How we would use it**
+**How we use it**
 
-- Form rings / “proj” = snapshot (or live Fantrax proj if no snapshot yet)
-- Form fill / “scored” = live Fantrax
-- “Left” = `max(0, snapshot − scored)`
+- Form rings / "proj" = snapshot (or live Fantrax proj if no snapshot yet)
+- Form fill / "scored" = live Fantrax
+- "Left" = `max(0, snapshot − scored)`
 - League player `+N` leftover uses the same snapshot when present
 
-**Likely shape**
+**Implementation**
 
-- Postgres (Vercel or similar) with a unique key on `(league_id, period, player_id)`
-- Write path: server job calling the existing `fxpa` player-stats / roster proj endpoints
-- Read path: merge snapshot onto `loadFantraxForm` / `loadRosterBundle` so the UI does not care where proj came from
-
-Until this ships, leftover is inferred from live vs current Fantrax proj, which is why finished players show scored = proj.
+- ✅ Postgres on Supabase with unique key on `(league_id, period, player_id)`
+- ✅ SQL migration in `supabase/migrations/` with RLS enabled
+- ✅ Writes from Next.js server only (service role key, never exposed to client)
+- ✅ Capture path: `POST /api/fantrax/capture` fetches Fantrax rosters and upserts snapshots
+- ✅ Read path: `loadFantraxForm` merges snapshots into player/manager series
+- ✅ Environment variables: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+- ✅ Graceful fallback: app works without Supabase (uses live Fantrax projections)
+- ✅ Documentation in README with setup instructions
 
 ## Next
 

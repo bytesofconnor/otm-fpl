@@ -100,7 +100,7 @@ export default function RootLayout({
           />
           <div className="relative z-10 min-h-screen flex flex-col">
             <AppHeader />
-            <div className="flex-1">{children}</div>
+            <main id="main-content" className="flex-1">{children}</main>
             <Footer />
           </div>
           <Analytics />

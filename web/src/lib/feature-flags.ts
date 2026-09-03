@@ -4,16 +4,11 @@
 import * as React from 'react'
 
 export const KNOWN_FLAGS = [
-  // Gate advanced functionality behind a paywall when enabled
-  'PAID_VERSION',
+  // Reserved for future feature flags
 ] as const
 
 export type FeatureFlag = typeof KNOWN_FLAGS[number]
 export type FlagMap = Record<FeatureFlag, boolean>
-
-function upperSnake(s: string): string {
-  return s.replace(/([a-z])([A-Z])/g, '$1_$2').replace(/[^a-zA-Z0-9]+/g, '_').toUpperCase()
-}
 
 function readCookie(name: string): string | null {
   if (typeof document === 'undefined') return null
@@ -31,11 +26,7 @@ function writeCookie(name: string, val: string, days = 7) {
 function defaultsFromEnv(): Partial<FlagMap> {
   // IMPORTANT: Next.js only inlines env vars that are statically referenced.
   // Avoid dynamic access like process.env[key] on the client.
-  return {
-    PAID_VERSION:
-      process.env.NEXT_PUBLIC_FLAG_PAID_VERSION === '1' ||
-      process.env.NEXT_PUBLIC_FLAG_PAID_VERSION === 'true',
-  }
+  return {}
 }
 
 /**
@@ -47,7 +38,6 @@ function defaultsFromEnv(): Partial<FlagMap> {
  */
 export function useFeatureFlags(): FlagMap {
   const [flags, setFlags] = React.useState<FlagMap>(() => ({
-    PAID_VERSION: false,
     ...defaultsFromEnv(),
   }))
 
@@ -66,7 +56,7 @@ export function useFeatureFlags(): FlagMap {
       if (enabled) {
         setFlags((prev) => {
           const next = { ...prev }
-          for (const key of KNOWN_FLAGS) next[key] = enabled!.includes(key)
+          for (const key of KNOWN_FLAGS) (next as Record<string, boolean>)[key] = enabled!.includes(key)
           return next
         })
       }
@@ -80,5 +70,3 @@ export function useFeature(flag: FeatureFlag): boolean {
   const map = useFeatureFlags()
   return map[flag]
 }
-
-

@@ -18,16 +18,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { RestoreLicense } from '@/components/ui/restore-license'
-import { CopyLicenseButton } from '@/components/ui/copy-license'
-import { PaywallDialog } from '@/components/ui/paywall-dialog'
 import { FormationMini } from '@/components/ui/formation-mini'
 import type { AppBundle, AppPlayer } from '@/lib/types'
 import { getBundle } from '@/lib/bundle-store'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { useFeature } from '@/lib/feature-flags'
-// brand removed per request – simple wordmark instead
 import LZString from 'lz-string'
 
 function readBundleFromWindow(): AppBundle | null {
@@ -200,32 +195,6 @@ function updateRanking(current: number[], winner: number, loser: number): number
   return arr
 }
 
-// initials helper no longer used after header change
-
-// Approximate primary colors for clubs. Keyed by team.shortName.
-const TEAM_COLORS: Record<string, string> = {
-  ARS: '#EF0107',
-  MUN: '#DA020E',
-  CHE: '#034694',
-  LIV: '#C8102E',
-  MCI: '#6CABDD',
-  NEW: '#241F20',
-  CRY: '#1B458F',
-  AVL: '#670E36',
-  BOU: '#DA291C',
-  BRE: '#E30613',
-  WHU: '#7A263A',
-  BHA: '#0057B8',
-  EVE: '#003399',
-  NFO: '#DD0000',
-  TOT: '#132257',
-  FUL: '#000000',
-  WOL: '#FDB913',
-  LEE: '#FFCD00',
-  BRN: '#6C1D45', // Burnley
-  SUN: '#E2231A',
-}
-
 function TeamChip({ code }: { code: string }) {
   return (
     <Badge variant="outline" className="uppercase tracking-[0.14em]" title={code}>
@@ -257,48 +226,6 @@ export default function ComparePage() {
   const [choosingId, setChoosingId] = useState<number | null>(null)
   const [mobileVideoOpenId, setMobileVideoOpenId] = useState<number | null>(null)
   const [mobileVideoById, setMobileVideoById] = useState<Record<number, string>>({})
-  const paidMode = useFeature('PAID_VERSION')
-  const [picksCount, setPicksCount] = useState<number>(() => {
-    const v = typeof window !== 'undefined' ? window.localStorage.getItem('otm_picks_count') : null
-    return v ? Number(v) || 0 : 0
-  })
-  const paidAllowedHost = process.env.NEXT_PUBLIC_PAID_HOST || ''
-  function hostMatches(allowed: string, host: string): boolean {
-    if (!allowed) return true
-    const list = allowed.split(',').map((s) => s.trim()).filter(Boolean)
-    const candidates = new Set<string>()
-    for (const h of list) {
-      candidates.add(h)
-      candidates.add(h.replace(/^www\./, ''))
-      candidates.add(h.startsWith('www.') ? h.slice(4) : `www.${h}`)
-    }
-    return candidates.has(host)
-  }
-  const [isPaid, setIsPaid] = useState<boolean>(false)
-  const isPaidEnv = React.useMemo(() => {
-    const host = typeof window !== 'undefined' ? window.location.hostname : ''
-    const hostOk = paidAllowedHost ? hostMatches(paidAllowedHost, host) : true
-    return paidMode && hostOk
-  }, [paidMode, paidAllowedHost])
-
-  useEffect(() => {
-    fetch('/api/me').then((r) => r.json()).then((d) => setIsPaid(Boolean(d?.paid))).catch(() => {})
-  }, [])
-  const [paywallOpen, setPaywallOpen] = useState(false)
-
-  // Debug logs for paywall state
-  useEffect(() => {
-    try {
-      console.log('[Paywall]', {
-        paidMode,
-        paidAllowedHost,
-        hostname: typeof window !== 'undefined' ? window.location.hostname : 'n/a',
-        isPaidEnv,
-        isPaid,
-        picksCount,
-      })
-    } catch {}
-  }, [paidMode, paidAllowedHost, isPaidEnv, isPaid, picksCount])
 
   useEffect(() => {
     getBundle().then(setBundle).catch(console.error)
@@ -390,21 +317,8 @@ export default function ComparePage() {
   }
 
   const onPick = (winner: AppPlayer, loser: AppPlayer) => {
-    // If paid mode is enabled and we are on the designated host, limit free picks to 5
-    if (isPaidEnv && !isPaid && picksCount >= 5) {
-      console.log('[Paywall] Triggering paywall at picksCount=', picksCount)
-      setPaywallOpen(true)
-      return
-    }
     const nextOrder = updateRanking(ranking.order, winner.id, loser.id)
     setRankCookie(JSON.stringify({ order: nextOrder }))
-    // Increment pick counter for paid gating
-    if (isPaidEnv && !isPaid) {
-      const next = picksCount + 1
-      setPicksCount(next)
-      try { localStorage.setItem('otm_picks_count', String(next)) } catch {}
-      console.log('[Paywall] Increment picksCount →', next)
-    }
     // advance pair
     if (bundle) {
       // rotate focus round to ensure coverage across first 10 rounds
@@ -531,33 +445,29 @@ export default function ComparePage() {
 
   return (
     <PageShell>
-      <div className="mb-4 flex items-end justify-between gap-2 relative z-30">
+      <header className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between relative z-30">
         <div>
           <h1 className="otm-title text-2xl">Compare</h1>
           <p className="mt-1 text-[13px] text-muted-foreground">A tool for the wire and the board — not the whole product.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button className="md:hidden h-8 px-3" variant="ghost" onClick={() => setFiltersOpen(true)}>Filter</Button>
-          {isPaidEnv ? (
-            <div className="hidden md:flex items-center gap-3 ml-2">
-              <RestoreLicense />
-              <span className="text-muted-foreground">·</span>
-              <CopyLicenseButton />
-            </div>
-          ) : null}
+          <Button className="md:hidden h-11 px-4" variant="ghost" onClick={() => setFiltersOpen(true)} aria-label="Open filters">
+            Filter
+          </Button>
         </div>
-      </div>
+      </header>
       {/* Desktop filters row (full width, larger chips, not under nav) */}
-      <div className="hidden md:flex items-center gap-3 mt-3 relative z-20">
+      <div className="hidden md:flex items-center gap-3 mt-3 relative z-20" role="search" aria-label="Filter players">
         <ToggleGroup
           multiple
           value={Array.from(selectedPositions)}
           onValueChange={(next) => setSelectedPositions(new Set(Array.isArray(next) ? next : []))}
           variant="outline"
           size="sm"
+          aria-label="Filter by position"
         >
           {allPositions.map((pos) => (
-            <ToggleGroupItem key={pos} value={pos} className="uppercase tracking-[0.12em]">
+            <ToggleGroupItem key={pos} value={pos} className="uppercase tracking-[0.12em]" aria-label={`Filter to ${pos} position`}>
               {pos}
             </ToggleGroupItem>
           ))}
@@ -565,6 +475,8 @@ export default function ComparePage() {
         <div
           className="flex items-center gap-2 overflow-x-auto scrollbar-thin pr-24 whitespace-nowrap flex-1 py-1"
           style={{ overscrollBehaviorX: 'contain', WebkitOverflowScrolling: 'touch' }}
+          role="group"
+          aria-label="Filter by team"
         >
           {allTeams.map((t) => (
             <FilterChip
@@ -577,18 +489,27 @@ export default function ComparePage() {
           ))}
         </div>
         {(selectedPositions.size || selectedTeams.size) ? (
-          <Button variant="ghost" size="sm" className="shrink-0" onClick={clearFilters}>Clear</Button>
+          <Button variant="ghost" size="sm" className="shrink-0" onClick={clearFilters} aria-label="Clear all filters">
+            Clear
+          </Button>
         ) : null}
       </div>
       <p className="mb-6 text-[13px] text-muted-foreground">
         Rankings stay on this device. Share/Sync from Rankings if you need them elsewhere.
       </p>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+      <section aria-label="Player comparison" className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
         {[a, b].map((p) => (
           <motion.div
             key={p.id}
             role="button"
+            tabIndex={0}
             onClick={() => handleSelect(p, p.id === a.id ? b : a)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                handleSelect(p, p.id === a.id ? b : a)
+              }
+            }}
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.995 }}
             animate={choosingId == null
@@ -598,6 +519,7 @@ export default function ComparePage() {
                 : { opacity: 0.35 })}
             transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             className="h-full"
+            aria-label={`Select ${p.name} as preferred player`}
           >
             <Card
               size="flush"
@@ -716,29 +638,17 @@ export default function ComparePage() {
             </Card>
           </motion.div>
         ))}
-      </div>
-      <PaywallDialog
-        open={paywallOpen}
-        onClose={() => setPaywallOpen(false)}
-        onUnlock={async () => {
-          const res = await fetch('/api/checkout', { method: 'POST' })
-          const data = await res.json()
-          if (!res.ok || !data?.url) {
-            throw new Error(data?.error || 'Checkout unavailable')
-          }
-          window.location.href = data.url as string
-        }}
-      />
+      </section>
       <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
-        <DialogContent className="max-h-[80vh] overflow-auto sm:max-w-lg">
+        <DialogContent className="max-h-[80vh] overflow-auto sm:max-w-lg" aria-labelledby="filter-dialog-title">
           <DialogHeader>
             <div className="flex items-center justify-between gap-3 pr-8">
-              <DialogTitle>Filters</DialogTitle>
-              <Button variant="ghost" size="sm" onClick={clearFilters}>Clear</Button>
+              <DialogTitle id="filter-dialog-title">Filters</DialogTitle>
+              <Button variant="ghost" size="sm" onClick={clearFilters} aria-label="Clear all filters">Clear</Button>
             </div>
           </DialogHeader>
             <div className="mb-3">
-              <div className="otm-kicker mb-1">Positions</div>
+              <div id="position-filter-label" className="otm-kicker mb-1 block">Positions</div>
               <ToggleGroup
                 multiple
                 value={Array.from(selectedPositions)}
@@ -746,6 +656,7 @@ export default function ComparePage() {
                 variant="outline"
                 size="sm"
                 className="flex-wrap"
+                aria-labelledby="position-filter-label"
               >
                 {allPositions.map((pos) => (
                   <ToggleGroupItem key={pos} value={pos} className="uppercase tracking-[0.12em]">
@@ -755,8 +666,8 @@ export default function ComparePage() {
               </ToggleGroup>
             </div>
             <div>
-              <div className="otm-kicker mb-1">Teams</div>
-              <div className="flex flex-wrap gap-2">
+              <div id="team-filter-label" className="otm-kicker mb-1">Teams</div>
+              <div className="flex flex-wrap gap-2" role="group" aria-labelledby="team-filter-label">
                 {allTeams.map((t) => (
                   <FilterChip
                     key={t}

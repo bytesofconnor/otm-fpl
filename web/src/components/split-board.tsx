@@ -127,10 +127,10 @@ export function SplitBoard({
       {toolbar ? <div className="shrink-0">{toolbar}</div> : null}
       <div ref={boardRef} className="flex min-h-0 flex-1 flex-col md:flex-row">
         <div className="flex min-h-[260px] min-w-0 flex-1 flex-col md:min-h-0">{chart}</div>
-        <button
-          type="button"
+        {/* eslint-disable jsx-a11y/no-static-element-interactions, jsx-a11y/no-noninteractive-tabindex */}
+        <div
           data-otm-split
-          role="separator"
+          tabIndex={0}
           aria-orientation="vertical"
           aria-valuemin={MIN_PCT}
           aria-valuemax={MAX_PCT}
@@ -153,13 +153,14 @@ export function SplitBoard({
               "group-hover/handle:bg-foreground/25 group-focus-visible/handle:bg-foreground/30",
               hot && "bg-foreground/40",
             )}
-            aria-hidden
+            aria-hidden="true"
           >
             <span className="h-[3px] w-[3px] rounded-full bg-foreground/55" />
             <span className="h-[3px] w-[3px] rounded-full bg-foreground/55" />
             <span className="h-[3px] w-[3px] rounded-full bg-foreground/55" />
           </span>
-        </button>
+        </div>
+        {/* eslint-enable jsx-a11y/no-static-element-interactions, jsx-a11y/no-noninteractive-tabindex */}
         <div
           className={cn(
             "otm-split-list flex min-h-0 w-full shrink-0 flex-col overflow-hidden border-t border-border",

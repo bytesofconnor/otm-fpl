@@ -37,18 +37,37 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## Environment template
 
-Create a `.env.local` file in this `web/` folder using the template below:
+Create a `.env.local` file in this `web/` folder if you need to override defaults.
+
+Most features work without environment variables in development. For production deployment or specific configurations, you may need:
 
 ```
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
-NEXT_PUBLIC_PAID_HOST=localhost
-NEXT_PUBLIC_FLAG_PAID_VERSION=1
 
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_PRICE_ID=price_test_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-
-# License token signing (use LICENSE_SECRETS for rotation; first is active)
-LICENSE_SECRETS=replace-with-long-random-secret
+# Supabase (optional — app falls back to live Fantrax projections if not configured)
+# Required for frozen weekly projection snapshots
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 ```
+
+### Supabase Setup
+
+The app uses Supabase to store frozen Fantrax weekly projections. This allows Form charts to show "projected vs actual" even after Fantrax overwrites projections with live scores.
+
+**Without Supabase:** The app still works — it just shows live Fantrax projections, which collapse to scored points once fixtures finish.
+
+**With Supabase:**
+1. Create a Supabase project at [supabase.com](https://supabase.com)
+2. Run the migration: `supabase/migrations/20260828000000_create_projection_snapshots.sql`
+3. Add environment variables to `.env.local`:
+   - `SUPABASE_URL`: Your project URL (e.g. `https://abc123.supabase.co`)
+   - `SUPABASE_SERVICE_ROLE_KEY`: Service role key (found in Project Settings → API)
+4. Capture snapshots before each gameweek deadline:
+   ```bash
+   curl -X POST http://localhost:3000/api/fantrax/capture \
+     -H "Content-Type: application/json" \
+     -d '{"leagueId":"8rnibtdamsxcq60v","period":1}'
+   ```
+
+**First-snapshot-wins:** The capture endpoint will NOT overwrite existing snapshots for a given (league, period, player). Capture early (before fixtures start) for accurate projections.
 

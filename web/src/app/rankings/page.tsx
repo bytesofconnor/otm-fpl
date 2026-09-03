@@ -205,7 +205,7 @@ export default function RankingsPage() {
 
   return (
     <PageShell>
-      <div className="mb-6 relative z-20">
+      <header className="mb-6 relative z-20">
         <div className="mb-4">
           <h1 className="otm-title text-2xl">Rankings</h1>
           <p className="mt-1 text-[13px] text-muted-foreground">Your board. Export to Fantrax when it is locked.</p>
@@ -216,9 +216,10 @@ export default function RankingsPage() {
             <TooltipTrigger
               render={
                 <Button
-                  className="h-8 min-w-[132px] justify-center rounded-full px-3"
+                  className="h-11 min-w-[132px] justify-center rounded-full px-4"
                   variant="ghost"
                   onClick={handleExportCsv}
+                  aria-label="Export rankings as CSV"
                 >
                   Export CSV
                 </Button>
@@ -230,9 +231,9 @@ export default function RankingsPage() {
           </Tooltip>
           <Button
             variant="destructive"
-            className="h-10 w-10 min-w-0 justify-center rounded-full px-3 text-lg sm:h-8 sm:w-8 sm:px-2"
+            className="h-11 w-11 min-w-0 justify-center rounded-full px-3 text-lg"
             onClick={() => setConfirmResetOpen(true)}
-            aria-label="Reset rankings"
+            aria-label="Reset rankings to default"
           >
             ↺
           </Button>
@@ -241,8 +242,9 @@ export default function RankingsPage() {
               render={
                 <Button
                   variant="ghost"
-                  className="h-8 min-w-[132px] justify-center rounded-full px-3"
+                  className="h-11 min-w-[132px] justify-center rounded-full px-4"
                   onClick={shareLink}
+                  aria-label="Share or sync rankings"
                 >
                   Share/Sync
                 </Button>
@@ -257,7 +259,7 @@ export default function RankingsPage() {
             className="rounded-xl h-12 text-base"
             variant="ghost"
             onClick={handleExportCsv}
-            title="Export a CSV formatted for Fantrax"
+            aria-label="Export rankings as CSV"
           >
             Export CSV
           </Button>
@@ -265,7 +267,7 @@ export default function RankingsPage() {
             className="rounded-xl h-12 text-base"
             variant="ghost"
             onClick={shareLink}
-            title="Create a shareable link to sync this ranking across devices"
+            aria-label="Share or sync rankings"
           >
             Share/Sync
           </Button>
@@ -273,13 +275,12 @@ export default function RankingsPage() {
             className="rounded-xl h-12 text-base col-span-2"
             variant="destructive"
             onClick={() => setConfirmResetOpen(true)}
-            title="Reset rankings"
-            aria-label="Reset rankings"
+            aria-label="Reset rankings to default"
           >
             Reset
           </Button>
         </div>
-      </div>
+      </header>
       <Dialog open={confirmResetOpen} onOpenChange={setConfirmResetOpen}>
         <DialogContent>
           <DialogHeader>
@@ -303,18 +304,32 @@ export default function RankingsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-sm text-muted-foreground">Showing {startIdx + 1}–{endIdx} of {ranked.length}</div>
+      <nav className="flex items-center justify-between mb-2" aria-label="Rankings pagination">
+        <div className="text-sm text-muted-foreground" aria-live="polite" aria-atomic="true">
+          Showing {startIdx + 1}–{endIdx} of {ranked.length}
+        </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            disabled={page <= 1} 
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            aria-label="Previous page"
+          >
             Prev
           </Button>
-          <span className="text-sm">Page {page}/{totalPages}</span>
-          <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
+          <span className="text-sm" aria-current="page">Page {page}/{totalPages}</span>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            disabled={page >= totalPages} 
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            aria-label="Next page"
+          >
             Next
           </Button>
         </div>
-      </div>
+      </nav>
       <motion.ol layout className="mb-10 columns-1 sm:columns-2 lg:columns-3 gap-6 [column-fill:balance]">
         {rankedPage.map((p, idx0) => {
           const idx = startIdx + idx0
@@ -421,18 +436,20 @@ export default function RankingsPage() {
               <Button
                 variant="outline"
                 size="icon-sm"
-                className="size-10 sm:size-7"
-                aria-label="Move up"
+                className="size-11 sm:size-8"
+                aria-label={`Move ${p.name} up in ranking`}
                 onClick={() => moveUp(p.id)}
+                disabled={idx === 0}
               >
                 ↑
               </Button>
               <Button
                 variant="outline"
                 size="icon-sm"
-                className="size-10 sm:size-7"
-                aria-label="Move down"
+                className="size-11 sm:size-8"
+                aria-label={`Move ${p.name} down in ranking`}
                 onClick={() => moveDown(p.id)}
+                disabled={idx >= ranked.length - 1}
               >
                 ↓
               </Button>
@@ -442,20 +459,40 @@ export default function RankingsPage() {
           )
         })}
       </motion.ol>
-      <div className="flex items-center justify-center gap-3 mt-4">
-        <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</Button>
-        <span className="text-sm text-muted-foreground">Page {page}/{totalPages}</span>
-        <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Next</Button>
-      </div>
+      <nav className="flex items-center justify-center gap-3 mt-4" aria-label="Rankings pagination">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          disabled={page <= 1} 
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          aria-label="Previous page"
+        >
+          Prev
+        </Button>
+        <span className="text-sm text-muted-foreground" aria-current="page">
+          Page {page}/{totalPages}
+        </span>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          disabled={page >= totalPages} 
+          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          aria-label="Next page"
+        >
+          Next
+        </Button>
+      </nav>
 
-      <h2 className="text-lg font-medium mb-3">Unranked suggestions</h2>
-      <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {unranked.map((p) => (
-          <li key={p.id} className="text-sm">
-            {p.name} <span className="text-muted-foreground">({p.team.shortName})</span>
-          </li>
-        ))}
-      </ul>
+      <section className="mt-8" aria-labelledby="unranked-heading">
+        <h2 id="unranked-heading" className="text-lg font-medium mb-3">Unranked suggestions</h2>
+        <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {unranked.map((p) => (
+            <li key={p.id} className="text-sm">
+              {p.name} <span className="text-muted-foreground">({p.team.shortName})</span>
+            </li>
+          ))}
+        </ul>
+      </section>
     </PageShell>
   )
 }

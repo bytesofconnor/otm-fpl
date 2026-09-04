@@ -86,8 +86,9 @@ export const MIN_CURRENT_GW_PROJECTION = 6
 /**
  * Minimum form score gap to recommend a pickup over a bench player
  * Available player must score at least this much higher than bench
+ * Lowered from 10 to 5 for early-season viability when data is thin
  */
-export const MIN_FORM_SCORE_GAP = 10
+export const MIN_FORM_SCORE_GAP = 5
 
 // ============================================================================
 // Display Limits

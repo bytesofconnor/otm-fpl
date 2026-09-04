@@ -40,8 +40,20 @@ type Opportunity = {
 type OpportunitiesResponse = {
   opportunities: Opportunity[]
   timestamp: string
-  teamId: string
+  teamId: string | null
+  teamName: string | null
   leagueId: string
+  debug?: {
+    totalUnowned: number
+    afterWireFilter: number
+    afterSignalFilter: number
+    afterTeamExclusionFilter: number
+    afterFixtureFilter: number
+    afterBenchComparisonFilter: number
+    afterFormGapFilter: number
+    afterDropBanFilter: number
+    finalCandidates: number
+  }
 }
 
 export function OpportunityBoard() {
@@ -103,12 +115,37 @@ export function OpportunityBoard() {
   }
 
   if (!data || data.opportunities.length === 0) {
+    // Better empty state messaging based on context
+    let emptyMessage = "All available players are below your roster quality."
+    let emptyHint = "Check back after fixtures or adjust your roster."
+    
+    if (!data) {
+      emptyMessage = "Unable to load opportunities"
+      emptyHint = "Please try refreshing the page."
+    } else if (!data.teamName && data.teamId) {
+      emptyMessage = "Team not found"
+      emptyHint = "Please verify your team ID or contact support."
+    }
+    
     return (
       <div className="rounded-lg border border-border bg-muted/20 p-8 text-center">
         <p className="text-lg font-medium">No opportunities found</p>
         <p className="mt-2 text-sm text-muted-foreground">
-          All available players are below your roster quality. Check back after fixtures.
+          {emptyMessage}
         </p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {emptyHint}
+        </p>
+        {data.debug && (
+          <details className="mt-4 text-left">
+            <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
+              Debug info (click to expand)
+            </summary>
+            <pre className="mt-2 overflow-auto rounded-md bg-muted p-2 text-xs">
+              {JSON.stringify(data.debug, null, 2)}
+            </pre>
+          </details>
+        )}
       </div>
     )
   }

@@ -6,8 +6,8 @@ import { heatLabel, heatEmoji, heatColor, type HeatBucket } from "@/lib/form-eng
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
-// SIA default teamId (cbarrett97) — can be made configurable later
-const SIA_TEAM_ID = "fqzp0okbkaycu7v8"
+// SIA default teamId (cbarrett97 / Saints Intelligence Agency)
+const SIA_TEAM_ID = "yv00la6xmsxcq62w"
 
 type Opportunity = {
   player: {
@@ -136,7 +136,7 @@ export function OpportunityBoard() {
         <p className="mt-1 text-xs text-muted-foreground">
           {emptyHint}
         </p>
-        {data.debug && (
+        {data?.debug && (
           <details className="mt-4 text-left">
             <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
               Debug info (click to expand)

@@ -48,18 +48,30 @@ Fantrax's weekly proj view is not a frozen forecast. After kickoff it converges 
 - ✅ Graceful fallback: app works without Supabase (uses live Fantrax projections)
 - ✅ Documentation in README with setup instructions
 
-## Next
+## Next (Season 1.5)
 
-- [ ] **Scout: Matchup Prep** (PR6) — Start/sit view at `/scout/matchup` with lineup heatmap (visual grid of form chips), start/sit comparisons for close calls, and bench order suggestions. Same form scores, new context.
+**Scout Intelligence Expansion** — These features extend the core Scout model with context and priority logic:
+
+- [ ] **Fixture Context Layer** — Blend fixture difficulty ratings (1-10) into form scoring. Show "Next 5" fixture runs on player cards. Boost/penalty for easy/tough schedules. Fixes form-only blindspot.
+- [ ] **Waiver Claim Helper** — Ranked waiver priority order at `/scout/waivers`. Logic: form score + roster gap urgency + ownership pressure. Flag "likely to clear waivers" players. Helps managers avoid wasting high claims.
 - [ ] **Scout: Pricing & Auth** — Stripe integration + Convex auth. Scout is paid-brain tier ($5-10/mo or per-league). Freemium option: Opportunity Board free, Matchup Prep paid (TBD).
 - [ ] **League-wide Scout rollout** — Expand beyond SIA (cbarrett97) to all Over the Moon managers. Each team gets personalized Opportunity Board based on their roster holes.
 - [ ] **Share cards** that look like a scorebug, not a URL dump (League + Scout recs)
 - [ ] Dark matchday theme as an option, not a second product
 
-## Later
+## Season 2 Features
 
-- [ ] **Scout: Decision Log** (PR7) — Freeze recommendations when shown, log outcomes post-GW. Retrospective view shows hit rate (e.g., "Scout was right 78% of the time"). Builds trust through validation, not just vibes.
-- [ ] **Scout: Commissioner Tools** — League-wide Opportunity Board (who's hot on wire?), pickup activity heatmap, position scarcity insights. For admins who care about league balance + engagement.
+**Scout Platform Evolution** — These features transform Scout from a decision aid into a league intelligence platform:
+
+- [ ] **Trade Desk** — Trade suggestion engine based on form + roster gaps. Show "win-win" bundles with fair-value checks. Input: "Which teams might trade for Player X?" Output: Suggested partners + trade proposals.
+- [ ] **Commissioner Power Map** — League-wide roster strength heatmap at `/scout/league`. Aggregate form scores per team. Show trends ("Team X gained +15 form this week"). Roster depth comparisons. For admins who care about league balance + engagement.
+- [ ] **Kill-Condition Alerts** — Real-time push notifications when kill conditions trigger (injury/red card/rotation news). Monitor Fantrax news feed or external injury APIs. Alert: "⚠️ Rec expired: Zinchenko not in predicted XI."
+- [ ] **Morning Scout Brief** — Daily email/SMS digest summarizing overnight changes. "Good morning, here's what changed in your league." Hot pickups, lineup alerts, league standings shifts.
+- [ ] **Share Cards** (Visual) — Export rec cards as shareable PNG images (Twitter/WhatsApp friendly). "Scout Rec: Garnacho (MUN) · Form: Fire (71) · Powered by Over the Moon." Tracks shares for virality.
+- [ ] **Decision Log & Retrospective** — Freeze recommendations when shown, log outcomes post-GW. Retrospective view at `/scout/history` shows hit rate (e.g., "Scout was right 72% of the time"). Model learning: Use logged outcomes to tune form weights. Builds trust through validation.
 - [ ] **Scout: Model Refinements** — Incorporate opponent defensive strength, home/away splits, fixture congestion. Backtest on historical GW data. Move from rule-based (Season 1) to hybrid ML (Season 2+).
-- [ ] Multi-league support without making Switch the homepage (Scout works across Fantrax leagues)
+
+## Season 3+
+
+- [ ] **Multi-League Support** — Aggregate Scout across all user's leagues. Cross-league opportunity board: "This player is hot in 2 of your leagues." Unified form scoring, different rosters.
 - [ ] Push / email when a remaining projection actually moves the matchup

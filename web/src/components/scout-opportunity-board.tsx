@@ -20,7 +20,14 @@ type Opportunity = {
   whyNow: string
   formChip: HeatBucket
   formScore: number
+  formScoreWithFixtures: number
   minutesContext: string
+  fixtureContext: {
+    bar: string
+    summary: string
+    avgDifficulty: number
+    adjustment: number
+  } | null
   beatsWho: {
     name: string
     position: string
@@ -127,7 +134,7 @@ export function OpportunityBoard() {
 }
 
 function OpportunityCard({ opportunity, rank }: { opportunity: Opportunity; rank: number }) {
-  const { player, whyNow, formChip, formScore, minutesContext, beatsWho, confidence, killConditions } = opportunity
+  const { player, whyNow, formChip, formScore, formScoreWithFixtures, minutesContext, fixtureContext, beatsWho, confidence, killConditions } = opportunity
   const chipColor = heatColor(formChip)
   const chipLabel = heatLabel(formChip)
   const chipEmoji = heatEmoji(formChip)
@@ -168,9 +175,34 @@ function OpportunityCard({ opportunity, rank }: { opportunity: Opportunity; rank
           {chipLabel}
         </span>
         <span className="text-sm font-medium text-white/90">
-          {formScore.toFixed(1)}
+          {formScoreWithFixtures.toFixed(1)}
+          {fixtureContext && fixtureContext.adjustment !== 0 && (
+            <span className="ml-1 text-xs opacity-75">
+              ({formScore.toFixed(1)} {fixtureContext.adjustment > 0 ? '+' : ''}{fixtureContext.adjustment})
+            </span>
+          )}
         </span>
       </div>
+
+      {/* Fixture context */}
+      {fixtureContext && (
+        <div className="mb-4 rounded-md border border-border bg-muted/20 p-3">
+          <h3 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Next 5 Fixtures
+          </h3>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl tracking-wider" aria-label="Fixture difficulty: green is easy, white is medium, black is hard">
+              {fixtureContext.bar}
+            </span>
+            <div className="flex-1">
+              <p className="text-sm leading-tight">{fixtureContext.summary}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Avg difficulty: {fixtureContext.avgDifficulty.toFixed(1)}/5.0
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Why now */}
       <div className="mb-4">

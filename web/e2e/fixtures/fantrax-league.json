@@ -1,0 +1,55 @@
+{
+  "leagueId": "test-league-123",
+  "leagueName": "Test Fantasy League",
+  "scoringType": "H2H points",
+  "teamCount": 10,
+  "currentPeriod": 15,
+  "viewedPeriod": 15,
+  "periodCount": 38,
+  "periodLabel": "GW15 · 15 Dec–22 Dec",
+  "salaryCap": null,
+  "draftType": "SERPENTINE",
+  "draftState": "COMPLETED",
+  "liveStarted": true,
+  "teams": [
+    {
+      "id": "team1",
+      "name": "Test Team One",
+      "shortName": "TT1"
+    },
+    {
+      "id": "team2",
+      "name": "Test Team Two",
+      "shortName": "TT2"
+    }
+  ],
+  "standings": [
+    {
+      "rank": 1,
+      "teamId": "team1",
+      "teamName": "Test Team One",
+      "record": "8–3–0",
+      "points": "125.4",
+      "you": false
+    },
+    {
+      "rank": 2,
+      "teamId": "team2",
+      "teamName": "Test Team Two",
+      "record": "7–4–0",
+      "points": "118.2",
+      "you": false
+    }
+  ],
+  "matchup": null,
+  "roster": [],
+  "waivers": [],
+  "slate": [],
+  "transactions": [],
+  "draftPicks": [],
+  "scoringChips": [
+    { "code": "G", "value": "+8" },
+    { "code": "AT", "value": "+5" },
+    { "code": "CS", "value": "+3" }
+  ]
+}

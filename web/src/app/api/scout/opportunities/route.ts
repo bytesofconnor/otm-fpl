@@ -1,0 +1,399 @@
+/**
+ * Scout Opportunities API — Personalized pickup recommendations
+ * 
+ * GET /api/scout/opportunities?leagueId=X&teamId=Y
+ * 
+ * Returns ranked opportunity candidates with rec-card fields:
+ * - Form scoring (Warm/Hot/Fire/Burning)
+ * - "Why now" reasoning
+ * - Recent GW summary
+ * - Beats who on roster (mandatory)
+ * - Confidence + kill conditions
+ * - Fantrax projection (footnote only)
+ * 
+ * Hard filters:
+ * - FA/waiver only (no owned players)
+ * - Position matches roster hole or worse owned player
+ * - Enough signal (recent FPts, starts, or projection)
+ * - Respect drop bans (Garner, Truffert, Havertz for SIA)
+ * - No Arsenal inbound for SIA
+ */
+
+import { NextResponse } from "next/server"
+import { loadFantraxForm } from "@/lib/fantrax"
+import { parseLeagueId } from "@/lib/fantrax-shared"
+import type { FantraxPlayerSeries, FantraxPoolPlayer } from "@/lib/fantrax-shared"
+import {
+  computeFormScore,
+  gameweeksSinceLastReturn,
+  computeMinutesStability,
+  type HeatBucket,
+  type FormScore,
+} from "@/lib/form-engine"
+import {
+  SCOUT_DEFAULT_LEAGUE_ID,
+  isSIADropBanned,
+  isSIATeamExcluded,
+  MIN_CURRENT_GW_PROJECTION,
+  MIN_FORM_SCORE_GAP,
+  MAX_OPPORTUNITIES_TOTAL,
+  determineConfidence,
+  generateKillConditions,
+  type ConfidenceLevel,
+} from "@/lib/scout-config"
+
+// ============================================================================
+// Types
+// ============================================================================
+
+interface OpportunityCandidate {
+  player: {
+    id: string
+    name: string
+    club: string
+    position: string
+    availability: "FA" | "WW"
+  }
+  whyNow: string
+  formChip: HeatBucket
+  formScore: number
+  recentGW: Array<number | null>
+  minutesContext: string | null
+  beatsWho: {
+    benchPlayer: string
+    benchFormChip: HeatBucket
+    benchFormScore: number
+  } | null
+  confidence: ConfidenceLevel
+  killConditions: string[]
+  fantraxProj: number | null
+}
+
+interface OpportunitiesResponse {
+  leagueId: string
+  teamId: string | null
+  teamName: string | null
+  currentPeriod: number
+  opportunities: OpportunityCandidate[]
+}
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+/**
+ * Compute form score for a FantraxPlayerSeries (roster player)
+ */
+function computeFormForRosterPlayer(player: FantraxPlayerSeries): FormScore {
+  const recentGWs = player.points.slice(0, 3).map((pt) => pt.value)
+  const recentMinutes = player.minutes.slice(0, 3)
+
+  return computeFormScore({
+    lastGW: recentGWs[0] ?? null,
+    priorGW: recentGWs[1] ?? null,
+    prior2GW: recentGWs[2] ?? null,
+    minutesStability: computeMinutesStability(recentMinutes),
+    startRate: 0.5, // Default, no start data in FantraxPlayerSeries
+    projBeat: false, // We don't have snapshot comparison here yet
+    gameweeksSinceLastReturn: gameweeksSinceLastReturn(recentGWs),
+  })
+}
+
+/**
+ * Compute form score for a FantraxPoolPlayer (available/owned by others)
+ */
+function computeFormForPoolPlayer(player: FantraxPoolPlayer, hasRecentStarts: boolean): FormScore {
+  // Pool players only have current GW projection, not historical series
+  // Use projection as proxy for "last GW" and assume moderate form
+  const projectedPts = player.points ?? 0
+
+  return computeFormScore({
+    lastGW: projectedPts > 0 ? projectedPts : null,
+    priorGW: null, // Not available from pool
+    prior2GW: null,
+    minutesStability: player.playedMinutes && player.playedMinutes >= 60 ? 1.0 : 0.5,
+    startRate: hasRecentStarts ? 0.8 : 0.5,
+    projBeat: false,
+    gameweeksSinceLastReturn: projectedPts > 0 ? 0 : 2,
+  })
+}
+
+/**
+ * Check if player has enough signal to be recommended
+ */
+function hasEnoughSignal(player: FantraxPoolPlayer): boolean {
+  // Signal 1: Recent projection
+  if (player.points != null && player.points >= MIN_CURRENT_GW_PROJECTION) {
+    return true
+  }
+
+  // Signal 2: Recent minutes (proxy for being in the team)
+  if (player.playedMinutes != null && player.playedMinutes >= 60) {
+    return true
+  }
+
+  // Signal 3: Stats suggest activity (goals, assists, etc.)
+  if (player.stats && player.stats.length > 0) {
+    const hasReturns = player.stats.some((s) => ["G", "AT", "CS"].includes(s.code) && s.value > 0)
+    if (hasReturns) return true
+  }
+
+  return false
+}
+
+/**
+ * Generate "why now" reasoning for a recommendation
+ */
+function generateWhyNow(
+  player: FantraxPoolPlayer,
+  formScore: number,
+): string {
+  const reasons: string[] = []
+
+  // Form-based reasoning
+  if (formScore >= 61) {
+    reasons.push("Elite form")
+  } else if (formScore >= 36) {
+    reasons.push("Hot form")
+  } else if (formScore >= 16) {
+    reasons.push("Recent returns")
+  }
+
+  // Stats-based reasoning
+  if (player.stats) {
+    const goals = player.stats.find((s) => s.code === "G")?.value ?? 0
+    const assists = player.stats.find((s) => s.code === "AT")?.value ?? 0
+    const cleanSheets = player.stats.find((s) => s.code === "CS")?.value ?? 0
+
+    if (goals >= 2) reasons.push(`${goals}G`)
+    if (assists >= 2) reasons.push(`${assists}A`)
+    if (cleanSheets >= 1 && player.position.startsWith("D")) {
+      reasons.push(`${cleanSheets}CS`)
+    }
+  }
+
+  // Availability reasoning
+  if (player.availability === "starting") {
+    reasons.push("nailed starter")
+  } else if (player.availability === "expected") {
+    reasons.push("expected to start")
+  }
+
+  // Projection reasoning (if high)
+  if (player.points != null && player.points >= 8) {
+    reasons.push(`${player.points.toFixed(1)} proj`)
+  }
+
+  // Fallback
+  if (reasons.length === 0) {
+    reasons.push("Available pickup")
+  }
+
+  return reasons.slice(0, 3).join(", ")
+}
+
+/**
+ * Generate minutes context string from played minutes
+ */
+function generateMinutesContext(player: FantraxPoolPlayer): string | null {
+  if (player.playedMinutes != null && player.playedMinutes > 0) {
+    return `${player.playedMinutes}′ played`
+  }
+  if (player.availability === "starting") {
+    return "Expected starter"
+  }
+  return null
+}
+
+/**
+ * Find best bench player to compare against (same position, lowest form)
+ */
+function findBenchPlayerToReplace(
+  availablePlayer: FantraxPoolPlayer,
+  roster: FantraxPlayerSeries[],
+  rosterFormScores: Map<string, FormScore>,
+): { player: FantraxPlayerSeries; form: FormScore } | null {
+  // Filter to same position
+  const samePosition = roster.filter((p) => {
+    const availPos = availablePlayer.position.charAt(0).toUpperCase()
+    const rosterPos = p.position.charAt(0).toUpperCase()
+    return availPos === rosterPos
+  })
+
+  if (samePosition.length === 0) return null
+
+  // Find bench players (status RESERVE or lowest form starters)
+  const benchCandidates = samePosition
+    .map((p) => ({
+      player: p,
+      form: rosterFormScores.get(p.id) ?? computeFormForRosterPlayer(p),
+      isBench: p.status === "RESERVE" || p.status === "IR",
+    }))
+    .sort((a, b) => {
+      // Bench players first, then by form score
+      if (a.isBench && !b.isBench) return -1
+      if (!a.isBench && b.isBench) return 1
+      return a.form.score - b.form.score
+    })
+
+  return benchCandidates[0] ?? null
+}
+
+// ============================================================================
+// Main Handler
+// ============================================================================
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const leagueId = parseLeagueId(searchParams.get("leagueId") ?? "") || SCOUT_DEFAULT_LEAGUE_ID
+  const teamId = searchParams.get("teamId")?.trim() || null
+
+  if (!leagueId) {
+    return NextResponse.json(
+      { error: "missing_league_id", message: "League ID required" },
+      { status: 400 },
+    )
+  }
+
+  if (!teamId) {
+    return NextResponse.json(
+      { error: "missing_team_id", message: "Team ID required for personalized recommendations" },
+      { status: 400 },
+    )
+  }
+
+  try {
+    // Load Form snapshot (includes roster + available players)
+    const form = await loadFantraxForm(leagueId, teamId)
+
+    // Compute form scores for roster
+    const rosterFormScores = new Map<string, FormScore>()
+    for (const player of form.players) {
+      const formScore = computeFormForRosterPlayer(player)
+      rosterFormScores.set(player.id, formScore)
+    }
+
+    // Process available players (FA/WW)
+    const candidates: OpportunityCandidate[] = []
+
+    for (const player of form.unowned) {
+      // Hard Filter 1: Must be FA or WW
+      if (!player.wire || (player.wire !== "FA" && player.wire !== "WW")) {
+        continue
+      }
+
+      // Hard Filter 2: Enough signal
+      if (!hasEnoughSignal(player)) {
+        continue
+      }
+
+      // Hard Filter 3: SIA team exclusions (no Arsenal)
+      if (isSIATeamExcluded(player.team)) {
+        continue
+      }
+
+      // Compute form score
+      const hasRecentStarts = player.playedMinutes != null && player.playedMinutes >= 60
+      const formScore = computeFormForPoolPlayer(player, hasRecentStarts)
+
+      // Hard Filter 4: Must beat a bench player (or fill roster hole)
+      const benchComparison = findBenchPlayerToReplace(player, form.players, rosterFormScores)
+
+      if (!benchComparison) {
+        // No bench player in this position (roster hole) — include anyway
+        // OR position is full with strong players
+        // For now, skip if no bench comparison possible
+        continue
+      }
+
+      // Hard Filter 5: Must beat bench player by minimum gap
+      const formGap = formScore.score - benchComparison.form.score
+      if (formGap < MIN_FORM_SCORE_GAP) {
+        continue
+      }
+
+      // Hard Filter 6: SIA drop bans (never suggest dropping these players)
+      if (isSIADropBanned(benchComparison.player.name)) {
+        continue
+      }
+
+      // Generate rec card fields
+      const whyNow = generateWhyNow(player, formScore.score)
+      const minutesContext = generateMinutesContext(player)
+      const hasInjuryNews = Boolean(
+        player.availability === "injured" ||
+          player.availability === "out" ||
+          player.news,
+      )
+
+      const confidence = determineConfidence(
+        formGap,
+        hasRecentStarts ? 3 : 1,
+        hasInjuryNews,
+      )
+
+      const killConditions = generateKillConditions(hasInjuryNews, player.availabilityLabel)
+
+      candidates.push({
+        player: {
+          id: player.id,
+          name: player.name,
+          club: player.team,
+          position: player.position,
+          availability: player.wire as "FA" | "WW",
+        },
+        whyNow,
+        formChip: formScore.heat,
+        formScore: formScore.score,
+        recentGW: [player.points], // Only current proj available for pool players
+        minutesContext,
+        beatsWho: {
+          benchPlayer: benchComparison.player.name,
+          benchFormChip: benchComparison.form.heat,
+          benchFormScore: benchComparison.form.score,
+        },
+        confidence,
+        killConditions,
+        fantraxProj: player.points,
+      })
+    }
+
+    // Rank by form score gap (desc), then availability (FA > WW)
+    candidates.sort((a, b) => {
+      const gapA = a.formScore - (a.beatsWho?.benchFormScore ?? 0)
+      const gapB = b.formScore - (b.beatsWho?.benchFormScore ?? 0)
+      if (Math.abs(gapA - gapB) > 5) return gapB - gapA
+
+      // Tiebreaker: FA > WW
+      if (a.player.availability === "FA" && b.player.availability === "WW") return -1
+      if (a.player.availability === "WW" && b.player.availability === "FA") return 1
+
+      // Final tiebreaker: alphabetical
+      return a.player.name.localeCompare(b.player.name)
+    })
+
+    // Limit total opportunities
+    const limitedCandidates = candidates.slice(0, MAX_OPPORTUNITIES_TOTAL)
+
+    const response: OpportunitiesResponse = {
+      leagueId: form.leagueId,
+      teamId: form.teamId,
+      teamName: form.teamName,
+      currentPeriod: form.currentPeriod,
+      opportunities: limitedCandidates,
+    }
+
+    return NextResponse.json(response, {
+      headers: {
+        "cache-control": "s-maxage=300, stale-while-revalidate=600",
+      },
+    })
+  } catch (err) {
+    console.error("Scout opportunities error:", err)
+    const message = err instanceof Error ? err.message : "Failed to load opportunities"
+    return NextResponse.json(
+      { error: "scout_failed", message },
+      { status: 502 },
+    )
+  }
+}

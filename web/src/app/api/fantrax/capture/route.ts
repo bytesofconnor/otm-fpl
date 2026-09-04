@@ -4,7 +4,15 @@ import {
   collectWeeklyProjectionCandidates,
   resolveCurrentPeriod,
 } from "@/lib/fantrax"
-import { upsertProjectionSnapshots } from "@/lib/supabase"
+import { 
+  collectPlayerWeekStats, 
+  collectOwnershipSnapshots 
+} from "@/lib/fantrax-history"
+import { 
+  upsertProjectionSnapshots,
+  insertPlayerWeekStats,
+  insertOwnershipSnapshots 
+} from "@/lib/supabase"
 
 export const maxDuration = 60
 
@@ -26,29 +34,38 @@ function parsePeriod(value: string | null | undefined): number | null {
 async function capturePeriods(leagueId: string, periods: number[]) {
   const results = []
   for (const period of periods) {
+    // 1. Capture projections (first-wins)
     const collected = await collectWeeklyProjectionCandidates(leagueId, period)
-    if (!collected.candidates.length) {
-      results.push({
-        period,
-        success: true,
-        inserted: 0,
-        skipped: 0,
-        skippedStarted: collected.skippedStarted,
-        skippedNoProj: collected.skippedNoProj,
-        total: 0,
-      })
-      continue
-    }
-    const result = await upsertProjectionSnapshots(collected.candidates)
+    const projResult = await upsertProjectionSnapshots(collected.candidates)
+    
+    // 2. Capture player week stats (scored FPts, minutes, started)
+    const statsCollected = await collectPlayerWeekStats(leagueId, period)
+    const statsResult = await insertPlayerWeekStats(statsCollected.stats)
+    
+    // 3. Capture ownership snapshots (FA/WW/owned) using same captureId
+    const ownershipCollected = await collectOwnershipSnapshots(leagueId, period, statsCollected.captureId)
+    const ownershipResult = await insertOwnershipSnapshots(ownershipCollected.snapshots)
+    
     results.push({
       period,
-      success: result.success,
-      inserted: result.inserted,
-      skipped: collected.candidates.length - result.inserted,
-      skippedStarted: collected.skippedStarted,
-      skippedNoProj: collected.skippedNoProj,
-      total: collected.candidates.length,
-      error: result.error,
+      success: projResult.success && statsResult.success && ownershipResult.success,
+      projections: {
+        inserted: projResult.inserted,
+        skipped: collected.candidates.length - projResult.inserted,
+        skippedStarted: collected.skippedStarted,
+        skippedNoProj: collected.skippedNoProj,
+        total: collected.candidates.length,
+      },
+      stats: {
+        inserted: statsResult.inserted,
+        total: statsCollected.stats.length,
+      },
+      ownership: {
+        inserted: ownershipResult.inserted,
+        total: ownershipCollected.snapshots.length,
+      },
+      captureId: statsCollected.captureId,
+      error: projResult.error || statsResult.error || ownershipResult.error,
     })
   }
   return results
@@ -105,11 +122,10 @@ export async function POST(request: Request) {
       leagueId,
       success: first?.success ?? false,
       period: first?.period ?? period,
-      inserted: first?.inserted ?? 0,
-      skipped: first?.skipped ?? 0,
-      skippedStarted: first?.skippedStarted ?? 0,
-      skippedNoProj: first?.skippedNoProj ?? 0,
-      total: first?.total ?? 0,
+      projections: first?.projections ?? { inserted: 0, skipped: 0, skippedStarted: 0, skippedNoProj: 0, total: 0 },
+      stats: first?.stats ?? { inserted: 0, total: 0 },
+      ownership: first?.ownership ?? { inserted: 0, total: 0 },
+      captureId: first?.captureId,
       error: first?.error,
     })
   } catch (err) {

@@ -5,9 +5,10 @@ Companion for Over the Moon FPL. **Scout is the paid intelligence layer**—the 
 ## Now
 
 - [x] **Snapshot weekly projections** (✅ Implemented). Fantrax overwrites `PROJECTION_0_926_EVENT_PROJECTED_WEEKLY` with actual FPts once a fixture is done. We freeze pre-game projections in Supabase so "scored vs projected" stays honest.
-- [ ] **Scout: Form Engine** (PR2) — Pure TS lib computing continuous form scores (0-100) + heat buckets (Cold/Warm/Hot/Fire/Burning) from recent FPts, minutes, starts, and surprise bumps when players beat projections. Unit tested, no UI yet.
-- [ ] **Scout: API** (PR3) — Server route `/api/scout/opportunities` returning ranked pickup candidates with rec-card fields (why now, form chip, beats who, confidence, kill conditions). Respects hard filters: availability (FA/WW only), roster holes, signal threshold, SIA drop bans (Garner/Truffert/Havertz), no Arsenal inbound.
-- [ ] **Scout: Opportunity Board UI** (PR4) — New `/scout` page with mobile-friendly, WCAG AA rec cards. SIA-first (cbarrett97), shows top 10-15 opportunities per position. Fantrax projections as tiny footnote only—never ground truth.
+- [x] **Scout: Form Engine** (PR2, ✅ Merged) — Pure TS lib computing continuous form scores (0-100) + heat buckets (Cold/Warm/Hot/Fire/Burning) from recent FPts, minutes, starts, and surprise bumps when players beat projections. Unit tested.
+- [x] **Scout: API** (PR3, ✅ Merged) — Server route `/api/scout/opportunities` returning ranked pickup candidates with rec-card fields (why now, form chip, beats who, confidence, kill conditions). Respects hard filters: availability (FA/WW only), roster holes, signal threshold, SIA drop bans (Garner/Truffert/Havertz), no Arsenal inbound.
+- [x] **History Capture** (PR4, ✅ Merged) — Extended `/api/fantrax/capture` to persist actual scored FPts, minutes, started signal, and ownership snapshots (FA/WW/owner) in new `player_week_stats` and `ownership_snapshots` tables. Enables Scout form history over time.
+- [ ] **Scout: Opportunity Board UI** (PR5) — New `/scout` page with mobile-friendly, WCAG AA rec cards. SIA-first (cbarrett97), shows top 10-15 opportunities per position. Fantrax projections as tiny footnote only—never ground truth.
 - [ ] **Form page heat chips** (PR5) — Wire existing Form page to form engine. Replace proj-only vibes with heat buckets (Warm/Hot/Fire/Burning/Cold) next to player names. Existing charts preserved, just enhanced with color-coded form intelligence.
 
 ## Snapshot projections in a database

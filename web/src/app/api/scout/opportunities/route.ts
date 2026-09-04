@@ -41,6 +41,11 @@ import {
   generateKillConditions,
   type ConfidenceLevel,
 } from "@/lib/scout-config"
+import {
+  getFixtureContext,
+  formatFixtureDifficultyBar,
+  getFixtureSummary,
+} from "@/lib/fixtures"
 
 // ============================================================================
 // Types
@@ -57,8 +62,15 @@ interface OpportunityCandidate {
   whyNow: string
   formChip: HeatBucket
   formScore: number
+  formScoreWithFixtures: number // Form score + fixture adjustment
   recentGW: Array<number | null>
   minutesContext: string | null
+  fixtureContext: {
+    bar: string // e.g. "🟢🟢⚪⚫⚪"
+    summary: string // e.g. "Favorable fixtures ahead"
+    avgDifficulty: number
+    adjustment: number // +/- points from fixtures
+  } | null
   beatsWho: {
     benchPlayer: string
     benchFormChip: HeatBucket
@@ -296,6 +308,11 @@ export async function GET(request: Request) {
       const hasRecentStarts = player.playedMinutes != null && player.playedMinutes >= 60
       const formScore = computeFormForPoolPlayer(player, hasRecentStarts)
 
+      // Fetch fixture context (blend opponent difficulty)
+      const fixtureContext = await getFixtureContext(player.team)
+      const fixtureAdjustment = fixtureContext?.difficultyAdjustment ?? 0
+      const formScoreWithFixtures = formScore.score + fixtureAdjustment
+
       // Hard Filter 4: Must beat a bench player (or fill roster hole)
       const benchComparison = findBenchPlayerToReplace(player, form.players, rosterFormScores)
 
@@ -306,8 +323,8 @@ export async function GET(request: Request) {
         continue
       }
 
-      // Hard Filter 5: Must beat bench player by minimum gap
-      const formGap = formScore.score - benchComparison.form.score
+      // Hard Filter 5: Must beat bench player by minimum gap (use adjusted form score)
+      const formGap = formScoreWithFixtures - benchComparison.form.score
       if (formGap < MIN_FORM_SCORE_GAP) {
         continue
       }
@@ -345,8 +362,17 @@ export async function GET(request: Request) {
         whyNow,
         formChip: formScore.heat,
         formScore: formScore.score,
+        formScoreWithFixtures,
         recentGW: [player.points], // Only current proj available for pool players
         minutesContext,
+        fixtureContext: fixtureContext
+          ? {
+              bar: formatFixtureDifficultyBar(fixtureContext.next5Fixtures),
+              summary: getFixtureSummary(fixtureContext),
+              avgDifficulty: fixtureContext.avgDifficulty,
+              adjustment: fixtureAdjustment,
+            }
+          : null,
         beatsWho: {
           benchPlayer: benchComparison.player.name,
           benchFormChip: benchComparison.form.heat,
@@ -358,10 +384,10 @@ export async function GET(request: Request) {
       })
     }
 
-    // Rank by form score gap (desc), then availability (FA > WW)
+    // Rank by adjusted form score gap (desc), then availability (FA > WW)
     candidates.sort((a, b) => {
-      const gapA = a.formScore - (a.beatsWho?.benchFormScore ?? 0)
-      const gapB = b.formScore - (b.beatsWho?.benchFormScore ?? 0)
+      const gapA = a.formScoreWithFixtures - (a.beatsWho?.benchFormScore ?? 0)
+      const gapB = b.formScoreWithFixtures - (b.beatsWho?.benchFormScore ?? 0)
       if (Math.abs(gapA - gapB) > 5) return gapB - gapA
 
       // Tiebreaker: FA > WW

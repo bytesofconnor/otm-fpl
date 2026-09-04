@@ -1042,14 +1042,221 @@ GET /api/scout/matchup?leagueId=X&teamId=Y&period=Z
 
 ---
 
+## Next Steps (Post-MVP)
+
+After the Scout core launches (Opportunity Board, Matchup Prep, Form heat chips), these features expand the intelligence layer:
+
+### **Fixture Context Layer**
+
+**Problem:** Form-only scoring misses fixture difficulty. A hot player with 5 tough matches ahead may underperform a warm player with easy fixtures.
+
+**Solution:** Fixture difficulty ratings (1-10) blended into form scores or shown as context notes.
+
+**Implementation:**
+- Data source: FPL-style fixture difficulty ratings (crowd-sourced or model-based)
+- API endpoint: `/api/scout/fixtures?leagueId=X` returns upcoming fixtures per club
+- UI: Show "Next 5" difficulty bars next to player cards
+- Confidence boost/penalty: Adjust recommendations based on fixture run
+
+**Example:**
+```
+🔥 Saka (Arsenal)
+Form: Fire (68)
+Next 5: ⚫⚫⚪⚪⚪ (2 tough, 3 easy)
+→ "Hot form, but tricky fixtures ahead. Monitor closely."
+```
+
+**Scope:** Medium (1-2 weeks). Requires fixture data source + blending logic.
+
+---
+
+### **Waiver Claim Helper**
+
+**Problem:** Multiple hot players on waivers → priority order unclear. Managers waste high claims on players that could've been free agents.
+
+**Solution:** Recommend waiver claim priority order based on form + ownership pressure (% roster gap in league).
+
+**Implementation:**
+- UI: `/scout/waivers` page showing ranked waiver targets
+- API: `/api/scout/waivers?leagueId=X&teamId=Y&period=Z`
+- Logic:
+  - Filter to players on waivers (not FA yet)
+  - Sort by form score + roster gap urgency
+  - Flag "likely to clear waivers" (low % rostered, multiple alternatives)
+  - Show claim priority: "Use #1 claim on Player X, wait for Player Y"
+
+**Example:**
+```
+🔥 Garnacho (MUN) — Claim Priority: #1
+  Form: Fire (71), 12% league rostered, fills your MID hole
+  → "High form, low ownership, top claim"
+
+🔥 Rogers (AVL) — Claim Priority: #3
+  Form: Fire (69), 18% league rostered
+  → "Hot, but likely to clear waivers. Wait and see."
+```
+
+**Scope:** Medium (1-2 weeks). Extends Opportunity Board logic.
+
+---
+
+## Season 2 Features
+
+These features transform Scout from a decision aid into a **league intelligence platform**:
+
+### **Trade Desk**
+
+**Problem:** Manual trade proposals are guesswork. Hard to know fair value or what opponents need.
+
+**Solution:** Trade suggestion engine based on form + roster gaps for both teams. Show "win-win" trades.
+
+**Features:**
+- Input: "Which teams might trade for Player X?"
+- Output: Suggested trade partners + fair-value bundles
+- Context: Form differential, position needs, team standings
+
+**Example:**
+```
+Trade Analyzer: Trippier (your team)
+
+Suggested Partners:
+1. Team B (needs DEF, has surplus MID)
+   → Offer: Trippier for Gibbs-White
+   Fair Value: ✅ (form parity + position swap)
+   
+2. Team C (needs premium DEF)
+   → Offer: Trippier + bench MID for Saliba + bench FWD
+   Fair Value: ⚠️ (slight overpay, but fills gap)
+```
+
+---
+
+### **Commissioner Power Map**
+
+**Problem:** In competitive leagues, who's dominant? Who's rebuilding? Unclear.
+
+**Solution:** League-wide roster strength heatmap based on aggregated form scores per team.
+
+**Features:**
+- Team rankings by total form score (all starters)
+- Trend: "Team X gained +15 form this week"
+- Roster depth comparison: "Team Y has fire bench, Team Z is thin"
+
+**UI:**
+- `/scout/league` power rankings
+- Color-coded heatmap (teams as rows, positions as columns)
+- Alerts: "Team B added 3 fire players this week — watch out!"
+
+---
+
+### **Kill-Condition Alerts**
+
+**Problem:** Recommendations go stale. A player's injury/red card/team news invalidates the rec.
+
+**Solution:** Real-time alerts when kill conditions trigger. Push notification or in-app banner.
+
+**Implementation:**
+- Monitor Fantrax news feed or external injury APIs
+- Match news keywords to kill conditions (e.g., "rotation risk" → flag when player benched)
+- Push alert: "⚠️ Rec expired: Zinchenko not in predicted XI"
+
+**Scope:** High complexity (requires external APIs + push infra). Post-launch.
+
+---
+
+### **Morning Scout Brief**
+
+**Problem:** Managers want a daily summary, not manual dashboard checks.
+
+**Solution:** Email/SMS digest summarizing overnight changes. "Good morning, here's what changed in your league."
+
+**Example:**
+```
+Over the Moon Morning Brief — Oct 15, 2024
+
+🔥 Hot Pickups:
+- Garnacho (MUN) went Fire (+12 form)
+- 3 managers added him overnight
+
+⚠️ Lineup Alerts:
+- Your starter Zinchenko may be rotated (kill condition triggered)
+
+📊 League Update:
+- Team B climbed to #2 after adding 2 fire players
+```
+
+**Scope:** Medium (1-2 weeks). Requires email integration (Resend, SendGrid).
+
+---
+
+### **Share Cards**
+
+**Problem:** Recommendations are valuable → managers want to share wins with friends.
+
+**Solution:** Export rec cards as shareable images (Twitter/WhatsApp friendly).
+
+**Features:**
+- "Share this rec" button on Opportunity Board cards
+- Generates PNG with branding: "Over the Moon Scout · Rec by cbarrett97"
+- Tracks shares for virality metrics
+
+**Example:**
+```
+[Shareable Image]
+🔥 Scout Rec: Garnacho (MUN)
+Form: Fire (71) | Beats: Sterling (36)
+Why Now: 3-game hot streak, easy fixtures
+Kill Conditions: If not in predicted XI
+
+Powered by Over the Moon Scout
+```
+
+---
+
+### **Decision Log & Retrospective**
+
+**Problem:** Did Scout recs work? No feedback loop → managers lose trust.
+
+**Solution:** Log all recs + outcomes. Show accuracy % per rec type. "Scout hit 72% last month."
+
+**Features:**
+- Auto-log recs when shown to user
+- After GW completes: compare rec to actual FPts
+- Retrospective view: "Your accepted recs scored +18 FPts vs. your declined ones"
+- Model learning: Use logged outcomes to tune form weights
+
+**UI:**
+- `/scout/history` page with win/loss timeline
+- Accuracy badges: "Scout Opportunity Board: 68% hit rate"
+
+**Scope:** High (2-3 weeks). Requires Supabase tables + outcome tracking.
+
+---
+
+### **Multi-League Support**
+
+**Problem:** Managers in multiple leagues must context-switch. No unified Scout.
+
+**Solution:** Aggregate Scout across all user's leagues. "Here are top pickups across your 3 leagues."
+
+**Features:**
+- League switcher dropdown on Scout pages
+- Cross-league opportunity board: "This player is hot in 2 of your leagues"
+- Unified form scoring (same model, different rosters)
+
+**Scope:** Medium (1-2 weeks). Extends existing API with league iteration.
+
+---
+
 ## Summary
 
 Scout transforms Over the Moon from a league companion into a **competitive advantage tool**. By unifying pickups and start/sit decisions with a transparent form-scoring model, Scout saves managers time while improving decision quality.
 
 **Launch Strategy:**
-1. **Season 1 (v1)**: SIA-first, Opportunity Board + Matchup Prep, rule-based model
-2. **Season 2 (v2)**: League-wide rollout, decision log, model refinements
-3. **Season 3+**: Commissioner tools, trade recommendations, multi-league support
+1. **Season 1 (v1)**: SIA-first, Opportunity Board + Matchup Prep + Form heat chips (✅ Complete)
+2. **Season 1.5 (Next)**: Fixture context layer + Waiver claim helper
+3. **Season 2**: Trade desk, Commissioner power map, Kill-condition alerts, Morning Scout brief, Share cards, Decision log
+4. **Season 3+**: Multi-league support, Model refinements, Premium tier
 
 Scout earns trust through **transparency** (explicit reasoning, kill conditions) and **validation** (retrospective accuracy). This product brief serves as the north star for implementation.
 

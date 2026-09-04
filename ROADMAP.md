@@ -52,7 +52,7 @@ Fantrax's weekly proj view is not a frozen forecast. After kickoff it converges 
 
 **Scout Intelligence Expansion** — These features extend the core Scout model with context and priority logic:
 
-- [ ] **Fixture Context Layer** — Blend fixture difficulty ratings (1-10) into form scoring. Show "Next 5" fixture runs on player cards. Boost/penalty for easy/tough schedules. Fixes form-only blindspot.
+- [x] **Fixture Context Layer** — Blend fixture difficulty ratings (1-10) into form scoring. Show "Next 5" fixture runs on player cards. Boost/penalty for easy/tough schedules. Fixes form-only blindspot. **(Merged PR #15)**
 - [ ] **Waiver Claim Helper** — Ranked waiver priority order at `/scout/waivers`. Logic: form score + roster gap urgency + ownership pressure. Flag "likely to clear waivers" players. Helps managers avoid wasting high claims.
 - [ ] **Scout: Pricing & Auth** — Stripe integration + Convex auth. Scout is paid-brain tier ($5-10/mo or per-league). Freemium option: Opportunity Board free, Matchup Prep paid (TBD).
 - [ ] **League-wide Scout rollout** — Expand beyond SIA (cbarrett97) to all Over the Moon managers. Each team gets personalized Opportunity Board based on their roster holes.

@@ -1,12 +1,14 @@
 # Over the Moon — roadmap
 
-Companion for Over the Moon FPL. League is this-week HQ. Form is scored vs leftover. Fantrax remains the source of live data; we should not become a second Fantrax.
+Companion for Over the Moon FPL. **Scout is the paid intelligence layer**—the spine of the product. League is this-week HQ. Form is heat (Warm/Hot/Fire/Burning), not dead charts. Fantrax remains the source of live data; we are the decision layer, not a data replicator.
 
 ## Now
 
-- [x] **Snapshot weekly projections** (see below). Fantrax overwrites `PROJECTION_0_926_EVENT_PROJECTED_WEEKLY` with actual FPts once a fixture is done. The Form dumbbell and "left" column go flat. We need our own copy of the pre-game / in-week expected total.
-- [ ] Keep League about **what's still to play**, not a clone of the Fantrax scoreboard.
-- [ ] Chart tooltips must stay fully visible (no clip at the plot edge).
+- [x] **Snapshot weekly projections** (✅ Implemented). Fantrax overwrites `PROJECTION_0_926_EVENT_PROJECTED_WEEKLY` with actual FPts once a fixture is done. We freeze pre-game projections in Supabase so "scored vs projected" stays honest.
+- [ ] **Scout: Form Engine** (PR2) — Pure TS lib computing continuous form scores (0-100) + heat buckets (Cold/Warm/Hot/Fire/Burning) from recent FPts, minutes, starts, and surprise bumps when players beat projections. Unit tested, no UI yet.
+- [ ] **Scout: API** (PR3) — Server route `/api/scout/opportunities` returning ranked pickup candidates with rec-card fields (why now, form chip, beats who, confidence, kill conditions). Respects hard filters: availability (FA/WW only), roster holes, signal threshold, SIA drop bans (Garner/Truffert/Havertz), no Arsenal inbound.
+- [ ] **Scout: Opportunity Board UI** (PR4) — New `/scout` page with mobile-friendly, WCAG AA rec cards. SIA-first (cbarrett97), shows top 10-15 opportunities per position. Fantrax projections as tiny footnote only—never ground truth.
+- [ ] **Form page heat chips** (PR5) — Wire existing Form page to form engine. Replace proj-only vibes with heat buckets (Warm/Hot/Fire/Burning/Cold) next to player names. Existing charts preserved, just enhanced with color-coded form intelligence.
 
 ## Snapshot projections in a database
 
@@ -47,11 +49,16 @@ Fantrax's weekly proj view is not a frozen forecast. After kickoff it converges 
 
 ## Next
 
-- [ ] Wire pickups that stay useful after GW1 (true remaining, not collapsed proj)
-- [ ] Share cards that look like a scorebug, not a URL dump
+- [ ] **Scout: Matchup Prep** (PR6) — Start/sit view at `/scout/matchup` with lineup heatmap (visual grid of form chips), start/sit comparisons for close calls, and bench order suggestions. Same form scores, new context.
+- [ ] **Scout: Pricing & Auth** — Stripe integration + Convex auth. Scout is paid-brain tier ($5-10/mo or per-league). Freemium option: Opportunity Board free, Matchup Prep paid (TBD).
+- [ ] **League-wide Scout rollout** — Expand beyond SIA (cbarrett97) to all Over the Moon managers. Each team gets personalized Opportunity Board based on their roster holes.
+- [ ] **Share cards** that look like a scorebug, not a URL dump (League + Scout recs)
 - [ ] Dark matchday theme as an option, not a second product
 
 ## Later
 
-- [ ] Multi-league without making Switch the homepage
+- [ ] **Scout: Decision Log** (PR7) — Freeze recommendations when shown, log outcomes post-GW. Retrospective view shows hit rate (e.g., "Scout was right 78% of the time"). Builds trust through validation, not just vibes.
+- [ ] **Scout: Commissioner Tools** — League-wide Opportunity Board (who's hot on wire?), pickup activity heatmap, position scarcity insights. For admins who care about league balance + engagement.
+- [ ] **Scout: Model Refinements** — Incorporate opponent defensive strength, home/away splits, fixture congestion. Backtest on historical GW data. Move from rule-based (Season 1) to hybrid ML (Season 2+).
+- [ ] Multi-league support without making Switch the homepage (Scout works across Fantrax leagues)
 - [ ] Push / email when a remaining projection actually moves the matchup

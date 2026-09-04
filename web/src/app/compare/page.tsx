@@ -403,6 +403,7 @@ export default function ComparePage() {
         size="sm"
         onClick={onClick}
         aria-pressed={active}
+        aria-label={`Filter to ${label} team`}
         className="uppercase tracking-[0.12em]"
         style={active ? activeStyles : undefined}
       >
@@ -674,6 +675,7 @@ export default function ComparePage() {
                     label={t}
                     active={selectedTeams.has(t)}
                     onClick={() => setSelectedTeams((s) => toggleSet(s, t))}
+                    color={TEAM_COLORS[t] ?? '#22d3ee'}
                   />
                 ))}
               </div>

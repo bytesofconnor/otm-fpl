@@ -1,0 +1,58 @@
+{
+  "leagueId": "test-league-123",
+  "teamId": "team1",
+  "teamName": "Test Team One",
+  "currentPeriod": 15,
+  "opportunities": [
+    {
+      "player": {
+        "id": "player-101",
+        "name": "Hot Prospect",
+        "club": "ARS",
+        "position": "MID",
+        "availability": "FA"
+      },
+      "whyNow": "3-game hot streak (8.2, 7.5, 9.0) with consistent starts",
+      "formChip": "Fire",
+      "formScore": 85,
+      "recentGW": [9.0, 7.5, 8.2],
+      "minutesContext": "3/3 starts, 90' trend",
+      "beatsWho": {
+        "benchPlayer": "Bench Warmer",
+        "benchFormChip": "Warm",
+        "benchFormScore": 35
+      },
+      "confidence": "High",
+      "killConditions": [
+        "Falls below 60 minutes",
+        "Team switches formation"
+      ],
+      "fantraxProj": 180
+    },
+    {
+      "player": {
+        "id": "player-102",
+        "name": "Rising Star",
+        "club": "LIV",
+        "position": "FWD",
+        "availability": "WW"
+      },
+      "whyNow": "Just secured starting role, 2 goals in last 2 games",
+      "formChip": "Hot",
+      "formScore": 72,
+      "recentGW": [8.5, 6.0, null],
+      "minutesContext": "2/3 starts, recent 90'",
+      "beatsWho": {
+        "benchPlayer": "Aging Striker",
+        "benchFormChip": "Cold",
+        "benchFormScore": 20
+      },
+      "confidence": "Medium",
+      "killConditions": [
+        "Loses starting spot",
+        "Manager rotation risk"
+      ],
+      "fantraxProj": 165
+    }
+  ]
+}

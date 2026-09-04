@@ -1,0 +1,162 @@
+{
+  "generatedAt": "2026-09-04T00:00:00.000Z",
+  "startEvent": 1,
+  "players": [
+    {
+      "id": 1,
+      "name": "Test Player One",
+      "firstName": "Test",
+      "lastName": "Player One",
+      "position": "MID",
+      "price": 8.5,
+      "team": {
+        "id": 1,
+        "name": "Arsenal",
+        "shortName": "ARS",
+        "badges": { "badge50": "https://example.com/ars50.png", "badge70": "https://example.com/ars70.png" },
+        "strengths": {
+          "attackHome": 5,
+          "attackAway": 4,
+          "defenceHome": 4,
+          "defenceAway": 3,
+          "overallHome": 5,
+          "overallAway": 4
+        }
+      },
+      "images": { "avatar": null, "card": null, "square": null },
+      "availability": { "status": "available", "chanceNext": 100, "news": null },
+      "priceTrend": {
+        "price": 8.5,
+        "form": 5.2,
+        "pointsPerGame": 5.5,
+        "costChangeToday": 0,
+        "costChangeSinceStart": 0,
+        "transfersInEvent": 1000,
+        "transfersOutEvent": 500
+      },
+      "stats": {
+        "points": 120,
+        "minutes": 1800,
+        "goals": 8,
+        "assists": 10,
+        "cleanSheets": 5,
+        "bps": 400,
+        "per90": {
+          "points": 6.0,
+          "goals": 0.4,
+          "assists": 0.5,
+          "ict": 12.0
+        }
+      },
+      "lastSeason": {
+        "season": "2023/24",
+        "totalPoints": 150,
+        "minutes": 2500,
+        "goals": 10,
+        "assists": 12,
+        "cleanSheets": 8,
+        "per90": {
+          "points": 5.4,
+          "goals": 0.36,
+          "assists": 0.43
+        }
+      },
+      "upcoming": {
+        "next3": [
+          { "event": 1, "opponent": "CHE", "isHome": true, "difficulty": 3, "kickoff": "2026-09-05T15:00:00Z" },
+          { "event": 2, "opponent": "LIV", "isHome": false, "difficulty": 4, "kickoff": "2026-09-12T15:00:00Z" },
+          { "event": 3, "opponent": "BOU", "isHome": true, "difficulty": 2, "kickoff": "2026-09-19T15:00:00Z" }
+        ],
+        "avgDifficulty": 3.0
+      },
+      "predictedGW1": true,
+      "gw1InjuryTag": null,
+      "highlight": null,
+      "draftSocietyTop50Rank": 25,
+      "fantraxProjection": {
+        "overallRank": 30,
+        "posRank": 8,
+        "points": 180,
+        "pp90": 9.0
+      }
+    },
+    {
+      "id": 2,
+      "name": "Test Player Two",
+      "firstName": "Test",
+      "lastName": "Player Two",
+      "position": "FWD",
+      "price": 10.0,
+      "team": {
+        "id": 2,
+        "name": "Liverpool",
+        "shortName": "LIV",
+        "badges": { "badge50": "https://example.com/liv50.png", "badge70": "https://example.com/liv70.png" },
+        "strengths": {
+          "attackHome": 5,
+          "attackAway": 5,
+          "defenceHome": 4,
+          "defenceAway": 4,
+          "overallHome": 5,
+          "overallAway": 5
+        }
+      },
+      "images": { "avatar": null, "card": null, "square": null },
+      "availability": { "status": "available", "chanceNext": 100, "news": null },
+      "priceTrend": {
+        "price": 10.0,
+        "form": 6.5,
+        "pointsPerGame": 6.8,
+        "costChangeToday": 0,
+        "costChangeSinceStart": 0.5,
+        "transfersInEvent": 2000,
+        "transfersOutEvent": 200
+      },
+      "stats": {
+        "points": 140,
+        "minutes": 2000,
+        "goals": 15,
+        "assists": 5,
+        "cleanSheets": 0,
+        "bps": 500,
+        "per90": {
+          "points": 6.3,
+          "goals": 0.675,
+          "assists": 0.225,
+          "ict": 15.0
+        }
+      },
+      "lastSeason": {
+        "season": "2023/24",
+        "totalPoints": 180,
+        "minutes": 3000,
+        "goals": 20,
+        "assists": 8,
+        "cleanSheets": 0,
+        "per90": {
+          "points": 5.4,
+          "goals": 0.6,
+          "assists": 0.24
+        }
+      },
+      "upcoming": {
+        "next3": [
+          { "event": 1, "opponent": "MCI", "isHome": false, "difficulty": 5, "kickoff": "2026-09-05T17:30:00Z" },
+          { "event": 2, "opponent": "ARS", "isHome": true, "difficulty": 4, "kickoff": "2026-09-12T17:30:00Z" },
+          { "event": 3, "opponent": "NEW", "isHome": false, "difficulty": 3, "kickoff": "2026-09-19T17:30:00Z" }
+        ],
+        "avgDifficulty": 4.0
+      },
+      "predictedGW1": true,
+      "gw1InjuryTag": null,
+      "highlight": null,
+      "draftSocietyTop50Rank": 15,
+      "fantraxProjection": {
+        "overallRank": 20,
+        "posRank": 5,
+        "points": 200,
+        "pp90": 10.0
+      }
+    }
+  ]
+}

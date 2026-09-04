@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils"
 const NAV = [
   { href: "/", label: "League" },
   { href: "/form", label: "Form" },
+  { href: "/scout", label: "Scout" },
 ] as const
 
 function isActive(pathname: string, href: string): boolean {

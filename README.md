@@ -22,6 +22,31 @@ The product focuses on League and Form as the core features. Rankings, Compare, 
 
 - Local dev: `cd web && npm ci && npm run dev`
 - Production build: `cd web && npm run build && npm start -p 3000`
+- E2E tests: `cd web && npm run test:e2e`
+
+## Analytics & Monitoring
+
+This app includes free Vercel Analytics and Speed Insights for tracking usage and performance:
+
+- **Web Analytics**: Track page views, visitors, and top pages (free on Hobby plan)
+- **Speed Insights**: Monitor Core Web Vitals and real user performance metrics (free)
+
+### Enabling in Vercel Dashboard
+
+The code is already instrumented with `@vercel/analytics` and `@vercel/speed-insights`. To start collecting data:
+
+1. Go to your Vercel project dashboard: https://vercel.com/your-team/otm-fpl
+2. Click the **Analytics** tab
+3. Click **Enable Web Analytics** (free on Hobby plan)
+4. Speed Insights is automatically enabled once Analytics is active
+
+No code changes or environment variables needed—it works out of the box once enabled in the dashboard.
+
+## CI/CD
+
+- **E2E tests** run automatically on every PR and push to `main` via GitHub Actions (`.github/workflows/e2e.yml`)
+- Tests include accessibility checks (axe-core), mobile viewport validation, and Scout page regression coverage
+- Tests use mocked API responses—no secrets required in CI
 
 ## Deployment (Vercel)
 

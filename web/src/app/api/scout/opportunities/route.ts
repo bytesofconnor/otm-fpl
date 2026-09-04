@@ -35,7 +35,7 @@ import {
   isSIADropBanned,
   isSIATeamExcluded,
   MIN_CURRENT_GW_PROJECTION,
-  MIN_FORM_SCORE_GAP,
+  getMinFormScoreGap,
   MAX_OPPORTUNITIES_TOTAL,
   determineConfidence,
   generateKillConditions,
@@ -81,6 +81,13 @@ interface OpportunityCandidate {
   fantraxProj: number | null
 }
 
+interface NearMiss {
+  playerName: string
+  formGap: number
+  blockedBy: "form_gap" | "drop_ban"
+  dropCandidate?: string
+}
+
 interface OpportunitiesResponse {
   leagueId: string
   teamId: string | null
@@ -97,6 +104,8 @@ interface OpportunitiesResponse {
     afterFormGapFilter: number
     afterDropBanFilter: number
     finalCandidates: number
+    minFormScoreGap: number
+    topNearMisses: NearMiss[]
   }
 }
 
@@ -307,7 +316,10 @@ export async function GET(request: Request) {
       rosterFormScores.set(player.id, formScore)
     }
 
-    // Debug counters
+    // Adaptive form gap threshold
+    const minFormScoreGap = getMinFormScoreGap(form.currentPeriod)
+
+    // Debug counters + near-miss tracking
     const debug = {
       totalUnowned: form.unowned.length,
       afterWireFilter: 0,
@@ -318,6 +330,8 @@ export async function GET(request: Request) {
       afterFormGapFilter: 0,
       afterDropBanFilter: 0,
       finalCandidates: 0,
+      minFormScoreGap,
+      topNearMisses: [] as NearMiss[],
     }
 
     // Process available players (FA/WW)
@@ -365,13 +379,27 @@ export async function GET(request: Request) {
 
       // Hard Filter 5: Must beat bench player by minimum gap (use adjusted form score)
       const formGap = formScoreWithFixtures - benchComparison.form.score
-      if (formGap < MIN_FORM_SCORE_GAP) {
+      if (formGap < minFormScoreGap) {
+        // Track near-miss: blocked by form gap
+        debug.topNearMisses.push({
+          playerName: player.name,
+          formGap,
+          blockedBy: "form_gap",
+          dropCandidate: benchComparison.player.name,
+        })
         continue
       }
       debug.afterFormGapFilter++
 
       // Hard Filter 6: SIA drop bans (never suggest dropping these players)
       if (isSIADropBanned(benchComparison.player.name)) {
+        // Track near-miss: blocked by drop ban
+        debug.topNearMisses.push({
+          playerName: player.name,
+          formGap,
+          blockedBy: "drop_ban",
+          dropCandidate: benchComparison.player.name,
+        })
         continue
       }
       debug.afterDropBanFilter++

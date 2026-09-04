@@ -37,6 +37,13 @@ type Opportunity = {
   killConditions: string[]
 }
 
+interface NearMiss {
+  playerName: string
+  formGap: number
+  blockedBy: "form_gap" | "drop_ban"
+  dropCandidate?: string
+}
+
 type OpportunitiesResponse = {
   opportunities: Opportunity[]
   timestamp: string
@@ -53,6 +60,8 @@ type OpportunitiesResponse = {
     afterFormGapFilter: number
     afterDropBanFilter: number
     finalCandidates: number
+    minFormScoreGap: number
+    topNearMisses: NearMiss[]
   }
 }
 

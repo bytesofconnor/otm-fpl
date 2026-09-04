@@ -71,3 +71,90 @@ The app uses Supabase to store frozen Fantrax weekly projections. This allows Fo
 
 **First-snapshot-wins:** The capture endpoint will NOT overwrite existing snapshots for a given (league, period, player). Capture early (before fixtures start) for accurate projections.
 
+## Testing
+
+### E2E Testing with Playwright
+
+The app includes comprehensive end-to-end tests covering:
+- ✅ All key routes (Home, Form, Predicted, Rankings, Compare, Scout)
+- ✅ Desktop and mobile viewports (iPhone 12 Pro: 390x844)
+- ✅ Accessibility testing (WCAG 2.0/2.1 Level A & AA)
+- ✅ No horizontal overflow on mobile
+- ✅ Mocked API routes for CI (no secrets required)
+
+### Running Tests Locally
+
+```bash
+# Install dependencies (if not already done)
+npm install
+
+# Run all e2e tests
+npm run test:e2e
+
+# Run tests with UI mode (interactive)
+npm run test:e2e:ui
+
+# Run tests in debug mode (step through)
+npm run test:e2e:debug
+
+# Run specific test file
+npx playwright test e2e/home.spec.ts
+
+# Run tests on specific device
+npx playwright test --project="Mobile Safari"
+```
+
+### Test Structure
+
+```
+web/
+├── e2e/
+│   ├── fixtures/           # Mock API response data
+│   │   ├── fantrax-league.json
+│   │   └── fantrax-form.json
+│   ├── helpers/            # Test utilities
+│   │   ├── accessibility.ts
+│   │   └── api-mocks.ts
+│   ├── home.spec.ts        # Home page tests
+│   ├── form.spec.ts        # Form page tests
+│   ├── predicted.spec.ts   # Predicted XI tests
+│   ├── rankings.spec.ts    # Rankings tests
+│   ├── compare.spec.ts     # Compare tests
+│   └── scout.spec.ts       # Scout tests (graceful 404 handling)
+└── playwright.config.ts    # Playwright configuration
+```
+
+### CI/CD
+
+Tests run automatically on:
+- Pull requests
+- Push to `main` branch
+
+The GitHub Actions workflow:
+1. Installs dependencies and caches them
+2. Builds the Next.js app (`npm run build`)
+3. Starts the production server (`npm run start`)
+4. Runs Playwright tests against the local server
+5. Uploads test reports and traces on failure
+
+**No environment variables required** — API routes are mocked with fixtures, so tests work without Fantrax or Supabase credentials.
+
+### Accessibility Testing
+
+All pages are tested for WCAG 2.0/2.1 Level A & AA compliance using [@axe-core/playwright](https://github.com/dequelabs/axe-core-npm/tree/develop/packages/playwright).
+
+Critical and serious violations fail the test suite. This ensures:
+- Proper heading hierarchy
+- Accessible navigation and landmarks
+- Color contrast compliance
+- Keyboard navigation support
+- Screen reader compatibility
+
+### Mobile Testing
+
+All routes are tested on mobile viewport (390x844 - iPhone 12 Pro) to ensure:
+- No horizontal overflow
+- Usable navigation
+- Touch-friendly interactive elements
+- Responsive layout
+

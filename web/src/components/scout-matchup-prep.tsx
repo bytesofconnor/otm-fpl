@@ -6,8 +6,8 @@ import { computeFormScoreSimple, heatEmoji, heatLabel, heatColor, type HeatBucke
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
-// SIA default teamId (cbarrett97)
-const SIA_TEAM_ID = "fqzp0okbkaycu7v8"
+// SIA default teamId (cbarrett97 / Saints Intelligence Agency)
+const SIA_TEAM_ID = "yv00la6xmsxcq62w"
 
 type Player = {
   id: string

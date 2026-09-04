@@ -209,15 +209,28 @@ Confidence: High | Reasoning: Zinchenko didn't train, Gibbs-White home vs NEW
    - Enables "scored vs projected" comparison
    - Already implemented, captured via `/api/fantrax/capture` cron
 
-3. **SIA Roster** (Fantrax team roster API):
+3. **Player Week Stats** (Supabase `player_week_stats` table):
+   - Actual scored FPts per player per gameweek (after fixtures)
+   - Minutes played and started signal
+   - Denormalized position and club for Scout cards
+   - Multiple captures allowed as week progresses
+   - Captured via `/api/fantrax/capture` cron
+
+4. **Ownership Snapshots** (Supabase `ownership_snapshots` table):
+   - Player availability (FA/WW/owned) at capture time
+   - Waiver day and owner team_id tracking
+   - Multiple captures allowed (e.g., daily) for wire movement intelligence
+   - Captured via `/api/fantrax/capture` cron
+
+5. **SIA Roster** (Fantrax team roster API):
    - Current starting XI + bench
    - Position holes (e.g., weak DEF depth)
    - Players to never drop (hardcoded in config)
 
 ### Future Data (v2+)
-- **Minutes/Starts**: From FPL API or scraped Fantrax (optional for v1)
 - **Predicted XI**: Community sources or FPL API (nice-to-have)
 - **Decision log**: Scout's own recommendations + outcomes (for learning loop)
+- **Opponent defensive strength**: For refined form scoring (v2)
 
 ### Data Flow
 ```

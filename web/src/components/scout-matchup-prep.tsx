@@ -57,9 +57,17 @@ export function MatchupPrep() {
         const bench: Player[] = []
         
         for (const player of json.players || []) {
+          // Extract the most recent point data (points is an array of FantraxFormPoint)
+          const latestPoint = Array.isArray(player.points) && player.points.length > 0 
+            ? player.points[0] 
+            : null
+          
+          const lastGW = latestPoint?.live ?? latestPoint?.value ?? null
+          const projected = latestPoint?.forecast ?? latestPoint?.value ?? null
+          
           const formScore = computeFormScoreSimple({
-            lastGW: player.live ?? player.points,
-            projBeat: (player.live ?? 0) > (player.points ?? 0),
+            lastGW: typeof lastGW === 'number' ? lastGW : null,
+            projBeat: (lastGW != null && projected != null) ? lastGW > projected : false,
           })
           
           const playerData: Player = {
@@ -70,7 +78,7 @@ export function MatchupPrep() {
             formHeat: formScore.heat,
             formScore: formScore.score,
             status: player.status || "ACTIVE",
-            points: player.points,
+            points: latestPoint?.value ?? null,
           }
           
           if (player.status === "ACTIVE") {
@@ -227,7 +235,7 @@ function PlayerCard({ player, rank }: { player: Player; rank?: number }) {
       <div className="flex flex-col items-end text-right">
         <p className="text-xs font-medium text-muted-foreground">{chipLabel}</p>
         <p className="font-mono text-sm font-semibold">
-          {typeof player.formScore === 'number' ? player.formScore.toFixed(1) : '—'}
+          {typeof player.formScore === 'number' && !isNaN(player.formScore) ? player.formScore.toFixed(1) : '—'}
         </p>
       </div>
     </div>

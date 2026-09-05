@@ -30,9 +30,9 @@ type Opportunity = {
     adjustment: number
   } | null
   beatsWho: {
-    name: string
-    position: string
-    formScore: number
+    benchPlayer: string
+    benchFormChip: HeatBucket
+    benchFormScore: number
   }
   confidence: string
   killConditions: string[]
@@ -431,16 +431,16 @@ function OpportunityCard({ opportunity, rank }: { opportunity: Opportunity; rank
         </h3>
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-medium">{beatsWho.name}</p>
-            <p className="text-xs text-muted-foreground">{beatsWho.position}</p>
+            <p className="font-medium">{beatsWho.benchPlayer}</p>
+            <p className="text-xs text-muted-foreground">Bench player</p>
           </div>
           <div className="text-right">
             <p className="text-sm font-semibold text-destructive">
-              Form: {typeof beatsWho.formScore === 'number' ? beatsWho.formScore.toFixed(1) : '—'}
+              Form: {typeof beatsWho.benchFormScore === 'number' ? beatsWho.benchFormScore.toFixed(1) : '—'}
             </p>
             <p className="text-xs text-muted-foreground">
-              Gap: {(typeof formScore === 'number' && typeof beatsWho.formScore === 'number') 
-                ? `+${(formScore - beatsWho.formScore).toFixed(1)}` 
+              Gap: {(typeof formScore === 'number' && typeof beatsWho.benchFormScore === 'number') 
+                ? `+${(formScore - beatsWho.benchFormScore).toFixed(1)}` 
                 : '—'}
             </p>
           </div>

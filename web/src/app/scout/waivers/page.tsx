@@ -1,4 +1,5 @@
 // Scout Waivers — League-wide waiver wire claim helper
+import { Suspense } from "react"
 import type { Metadata } from "next"
 import { WaiverBoard } from "@/components/scout-waiver-board"
 import { ScoutTeamPicker } from "@/components/scout-team-picker"
@@ -32,9 +33,13 @@ export default async function ScoutWaiversPage({
           </p>
         </header>
 
-        <ScoutTeamPicker currentTeamId={teamId} basePath="/scout/waivers" />
+        <Suspense fallback={<div className="text-sm text-muted-foreground">Loading team picker...</div>}>
+          <ScoutTeamPicker currentTeamId={teamId} basePath="/scout/waivers" />
+        </Suspense>
 
-        <WaiverBoard />
+        <Suspense fallback={<div className="text-sm text-muted-foreground">Loading waiver board...</div>}>
+          <WaiverBoard />
+        </Suspense>
       </div>
     </PageShell>
   )

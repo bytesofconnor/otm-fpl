@@ -1,4 +1,5 @@
 // Scout Matchup Prep — League-wide start/sit intelligence
+import { Suspense } from "react"
 import type { Metadata } from "next"
 import { MatchupPrep } from "@/components/scout-matchup-prep"
 import { ScoutTeamPicker } from "@/components/scout-team-picker"
@@ -32,9 +33,13 @@ export default async function MatchupPrepPage({
           </p>
         </header>
 
-        <ScoutTeamPicker currentTeamId={teamId} basePath="/scout/matchup" />
+        <Suspense fallback={<div className="text-sm text-muted-foreground">Loading team picker...</div>}>
+          <ScoutTeamPicker currentTeamId={teamId} basePath="/scout/matchup" />
+        </Suspense>
 
-        <MatchupPrep />
+        <Suspense fallback={<div className="text-sm text-muted-foreground">Loading matchup prep...</div>}>
+          <MatchupPrep />
+        </Suspense>
       </div>
     </PageShell>
   )

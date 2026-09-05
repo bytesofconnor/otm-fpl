@@ -1,4 +1,5 @@
 // Scout Opportunity Board — League-wide pickup intelligence
+import { Suspense } from "react"
 import type { Metadata } from "next"
 import { OpportunityBoard } from "@/components/scout-opportunity-board"
 import { ScoutTeamPicker } from "@/components/scout-team-picker"
@@ -32,9 +33,13 @@ export default async function ScoutPage({
           </p>
         </header>
 
-        <ScoutTeamPicker currentTeamId={teamId} basePath="/scout" />
+        <Suspense fallback={<div className="text-sm text-muted-foreground">Loading team picker...</div>}>
+          <ScoutTeamPicker currentTeamId={teamId} basePath="/scout" />
+        </Suspense>
 
-        <OpportunityBoard />
+        <Suspense fallback={<div className="text-sm text-muted-foreground">Loading opportunities...</div>}>
+          <OpportunityBoard />
+        </Suspense>
       </div>
     </PageShell>
   )

@@ -126,13 +126,13 @@ function FocusStats({
   return (
     <div className="flex items-end gap-4 sm:gap-5">
       <div className="text-right">
-        <p className="otm-kicker">Scored</p>
+        <p className="otm-kicker">Banked</p>
         <p className="otm-score mt-0.5 text-[1.85rem] leading-none sm:text-[1.65rem]" style={{ color }}>
           {scored != null ? scored.toFixed(1) : "—"}
         </p>
       </div>
       <div className="text-right">
-        <p className="otm-kicker">Left</p>
+        <p className="otm-kicker">Still to play</p>
         <p className="otm-score mt-0.5 text-[1.85rem] leading-none text-foreground/45 sm:text-[1.65rem]">
           {left >= 0.05 ? left.toFixed(1) : "—"}
         </p>
@@ -143,6 +143,21 @@ function FocusStats({
 
 function lastValue(values: Array<number | null>): number | null {
   return values.filter((v): v is number => v != null).slice(-1)[0] ?? null
+}
+
+function WeekIndicator({ label, isLive }: { label: string; isLive?: boolean }): ReactElement {
+  return (
+    <div className="flex items-center justify-center gap-2 border-b border-border bg-muted/30 px-4 py-3">
+      <span className="font-mono text-[15px] font-semibold tracking-tight text-foreground sm:text-[16px]">
+        {label}
+      </span>
+      {isLive ? (
+        <span className="rounded-full bg-green-500/20 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wider text-green-600 dark:text-green-400">
+          Live
+        </span>
+      ) : null}
+    </div>
+  )
 }
 
 function formatTick(tick: number): string {
@@ -228,6 +243,8 @@ export function FormChart({
   onFilterClub,
   headline,
   rankByRemaining,
+  weekLabel,
+  isLive,
 }: {
   title: string
   caption: string
@@ -248,6 +265,10 @@ export function FormChart({
   headline?: string
   /** Rank the list by remaining projection, not by scored/projected total. */
   rankByRemaining?: boolean
+  /** Week label to display at top of chart (e.g. "GW3" or "through GW3") */
+  weekLabel?: string
+  /** Whether the current period is live */
+  isLive?: boolean
 }): ReactElement {
   const wrapRef = React.useRef<HTMLDivElement>(null)
   const listRef = React.useRef<HTMLOListElement>(null)
@@ -361,6 +382,7 @@ export function FormChart({
       ) : undefined}
       chart={
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      {weekLabel && xLabels.length <= 1 ? <WeekIndicator label={weekLabel} isLive={isLive} /> : null}
       <div ref={wrapRef} className="relative min-h-[280px] flex-1 overflow-visible md:min-h-0" onPointerLeave={hide}>
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full touch-pan-y md:absolute md:inset-0 md:h-full" role="img" aria-label={title}>
           {yTicks.map((tick) => (
@@ -541,8 +563,8 @@ export function FormChart({
       <div className="flex min-h-0 flex-1 flex-col">
       {split ? (
         <div className="flex justify-end gap-3 border-b border-border px-4 py-2.5 otm-kicker sm:py-2">
-          <span className="w-16 text-right sm:w-14">Scored</span>
-          <span className="w-16 text-right sm:w-14">Left</span>
+          <span className="w-16 text-right sm:w-14">Banked</span>
+          <span className="w-16 text-right sm:w-14">Still to play</span>
         </div>
       ) : null}
       <ol
@@ -978,8 +1000,8 @@ export function PoolChart({
         <span className="min-w-0 flex-1">Player</span>
         {onFilterOwner ? <span className="hidden max-w-[28%] sm:block">Manager</span> : null}
         {onFilterClub ? <span className="hidden shrink-0 sm:block">Club</span> : null}
-        <span className="w-16 text-right sm:w-14">Scored</span>
-        <span className="w-16 text-right sm:w-14">Left</span>
+        <span className="w-16 text-right sm:w-14">Banked</span>
+        <span className="w-16 text-right sm:w-14">Still to play</span>
       </div>
       <ol className="min-h-0 flex-1 md:max-h-none md:overflow-auto">
         {listPlayers.map((p, rank) => {

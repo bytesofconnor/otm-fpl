@@ -141,6 +141,64 @@ function FocusStats({
   )
 }
 
+function HorizontalBar({
+  scored,
+  projected,
+  color,
+  maxValue,
+}: {
+  scored: number | null
+  projected: number | null
+  color: string
+  maxValue: number
+}): ReactElement {
+  const scoredVal = scored ?? 0
+  const projVal = projected ?? 0
+  const remaining = Math.max(0, projVal - scoredVal)
+  
+  const scoredPercent = maxValue > 0 ? (scoredVal / maxValue) * 100 : 0
+  const remainingPercent = maxValue > 0 ? (remaining / maxValue) * 100 : 0
+  
+  return (
+    <div className="relative h-8 w-full overflow-hidden rounded-md bg-muted/50 ring-1 ring-border/50">
+      {/* Banked segment */}
+      {scoredPercent > 0 ? (
+        <div 
+          className="absolute inset-y-0 left-0 transition-all"
+          style={{ 
+            width: `${scoredPercent}%`,
+            backgroundColor: color,
+            opacity: 0.85
+          }}
+          aria-label={`Banked: ${scoredVal.toFixed(1)}`}
+        />
+      ) : null}
+      {/* Still to play segment */}
+      {remainingPercent > 0 ? (
+        <div 
+          className="absolute inset-y-0 transition-all"
+          style={{ 
+            left: `${scoredPercent}%`,
+            width: `${remainingPercent}%`,
+            backgroundColor: color,
+            opacity: 0.3
+          }}
+          aria-label={`Still to play: ${remaining.toFixed(1)}`}
+        />
+      ) : null}
+      {/* Values overlay */}
+      <div className="absolute inset-0 flex items-center justify-between px-2 text-[11px] font-medium">
+        <span style={{ color: scoredPercent > 5 ? 'white' : 'inherit' }}>
+          {scoredVal > 0 ? scoredVal.toFixed(1) : ''}
+        </span>
+        <span className="text-muted-foreground">
+          {remaining > 0 ? `+${remaining.toFixed(1)}` : ''}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 function lastValue(values: Array<number | null>): number | null {
   return values.filter((v): v is number => v != null).slice(-1)[0] ?? null
 }
@@ -576,65 +634,78 @@ export function FormChart({
           const color = colors.get(s.id) ?? CHART_PALETTE[0]
           const value = lastValue(s.values)
           const scored = lastValue(s.live ?? [])
+          const maxInList = Math.max(...ranked.map(x => lastValue(x.values) ?? 0))
           return (
             <li key={s.id} data-id={s.id}>
               <div
-                className={`otm-row flex w-full items-center gap-2.5 px-4 py-2 text-[15px] sm:gap-3 sm:px-4 sm:text-[14px] md:px-6 ${
+                className={`otm-row flex w-full flex-col gap-2 px-4 py-3 text-[15px] sm:px-4 sm:text-[14px] md:px-6 ${
                   on ? "bg-muted text-foreground" : "text-foreground"
                 }`}
               >
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => onSelect?.(s.id)}
-                  className="tap h-auto min-h-11 min-w-0 flex-1 justify-start gap-2.5 rounded-none px-0 py-2.5 text-left font-normal sm:min-h-10 sm:gap-3 sm:py-2"
-                >
-                  <span className="w-7 font-mono text-[13px] text-muted-foreground sm:w-5 sm:text-[11px]">{rank + 1}</span>
-                  {split ? (
-                    <span
-                      className="h-3 w-3 shrink-0 rounded-sm border sm:h-2 sm:w-2"
-                      style={{ borderColor: color, background: scored != null && scored > 0 ? color : "transparent" }}
-                    />
-                  ) : (
-                    <span className="h-3 w-3 shrink-0 rounded-sm sm:h-2 sm:w-2" style={{ background: color }} />
-                  )}
-                  <span className="min-w-0 flex-1 whitespace-normal break-words line-clamp-2 text-left" title={s.label}>{s.label}</span>
-                  {s.hint === "You" ? <Badge variant="you" className="hidden sm:inline-flex">You</Badge> : null}
-                </Button>
-                {s.owner && s.ownerId && onFilterOwner ? (
+                <div className="flex w-full items-center gap-2.5 sm:gap-3">
                   <Button
                     type="button"
                     variant="ghost"
-                    onClick={() => onFilterOwner(s.ownerId!)}
-                    className="tap hidden h-auto min-h-11 max-w-[28%] min-w-0 whitespace-normal break-words px-2 py-2.5 text-left text-[14px] font-normal text-muted-foreground sm:inline-flex sm:min-h-10 sm:px-1.5 sm:py-2 sm:text-[12px] line-clamp-2"
-                    title={s.owner}
+                    onClick={() => onSelect?.(s.id)}
+                    className="tap h-auto min-h-11 min-w-0 flex-1 justify-start gap-2.5 rounded-none px-0 py-0 text-left font-normal sm:min-h-10 sm:gap-3"
                   >
-                    {s.owner}
+                    <span className="w-7 font-mono text-[13px] text-muted-foreground sm:w-5 sm:text-[11px]">{rank + 1}</span>
+                    {split ? (
+                      <span
+                        className="h-3 w-3 shrink-0 rounded-sm border sm:h-2 sm:w-2"
+                        style={{ borderColor: color, background: scored != null && scored > 0 ? color : "transparent" }}
+                      />
+                    ) : (
+                      <span className="h-3 w-3 shrink-0 rounded-sm sm:h-2 sm:w-2" style={{ background: color }} />
+                    )}
+                    <span className="min-w-0 flex-1 whitespace-normal break-words line-clamp-2 text-left" title={s.label}>{s.label}</span>
+                    {s.hint === "You" ? <Badge variant="you" className="hidden sm:inline-flex">You</Badge> : null}
                   </Button>
-                ) : s.hint && s.hint !== "You" ? (
-                  <span className="hidden min-w-0 max-w-[45%] whitespace-normal break-words text-[13px] text-muted-foreground sm:inline sm:text-[12px] line-clamp-2" title={s.hint}>{s.hint}</span>
-                ) : null}
-                {s.club && onFilterClub ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => onFilterClub(s.club!)}
-                    className="tap hidden h-auto min-h-11 shrink-0 px-2.5 py-2.5 text-[14px] font-normal text-muted-foreground sm:inline-flex sm:min-h-10 sm:px-1.5 sm:py-2 sm:text-[12px]"
-                  >
-                    {s.club}
-                  </Button>
-                ) : null}
+                  {s.owner && s.ownerId && onFilterOwner ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => onFilterOwner(s.ownerId!)}
+                      className="tap hidden h-auto min-h-11 max-w-[28%] min-w-0 whitespace-normal break-words px-2 py-2.5 text-left text-[14px] font-normal text-muted-foreground sm:inline-flex sm:min-h-10 sm:px-1.5 sm:py-2 sm:text-[12px] line-clamp-2"
+                      title={s.owner}
+                    >
+                      {s.owner}
+                    </Button>
+                  ) : s.hint && s.hint !== "You" ? (
+                    <span className="hidden min-w-0 max-w-[45%] whitespace-normal break-words text-[13px] text-muted-foreground sm:inline sm:text-[12px] line-clamp-2" title={s.hint}>{s.hint}</span>
+                  ) : null}
+                  {s.club && onFilterClub ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => onFilterClub(s.club!)}
+                      className="tap hidden h-auto min-h-11 shrink-0 px-2.5 py-2.5 text-[14px] font-normal text-muted-foreground sm:inline-flex sm:min-h-10 sm:px-1.5 sm:py-2 sm:text-[12px]"
+                    >
+                      {s.club}
+                    </Button>
+                  ) : null}
+                </div>
                 {split ? (
-                  <span className="flex items-baseline gap-2.5 font-mono tabular-nums sm:gap-3">
-                    <span className="w-14 text-right text-[14px] sm:w-14 sm:text-[13px]" style={{ color: on ? color : undefined }}>
-                      {scored != null ? scored.toFixed(1) : "—"}
-                    </span>
-                    <span className="w-14 text-right text-[14px] text-foreground/50 sm:w-14 sm:text-[13px]">
-                      {remainingPts(value, scored) >= 0.05 ? remainingPts(value, scored).toFixed(1) : "—"}
-                    </span>
-                  </span>
+                  <div className="flex items-center gap-2 pl-10 sm:pl-8">
+                    <div className="min-w-0 flex-1">
+                      <HorizontalBar
+                        scored={scored}
+                        projected={value}
+                        color={color}
+                        maxValue={maxInList}
+                      />
+                    </div>
+                    <div className="flex shrink-0 items-baseline gap-2.5 font-mono tabular-nums sm:gap-3">
+                      <span className="w-14 text-right text-[14px] sm:w-14 sm:text-[13px]" style={{ color: on ? color : undefined }}>
+                        {scored != null ? scored.toFixed(1) : "—"}
+                      </span>
+                      <span className="w-14 text-right text-[14px] text-foreground/50 sm:w-14 sm:text-[13px]">
+                        {remainingPts(value, scored) >= 0.05 ? remainingPts(value, scored).toFixed(1) : "—"}
+                      </span>
+                    </div>
+                  </div>
                 ) : (
-                  <span className="font-mono text-[14px] tabular-nums sm:text-[13px]" style={{ color: on ? color : undefined }}>
+                  <span className="pl-10 font-mono text-[14px] tabular-nums sm:pl-8 sm:text-[13px]" style={{ color: on ? color : undefined }}>
                     {value != null ? value.toFixed(1) : "—"}
                   </span>
                 )}
@@ -1010,59 +1081,72 @@ export function PoolChart({
           const groupId = listed.groupId ?? highlighted?.id ?? ""
           const color = playerColor(p, groupId)
           const scored = p.scored ?? null
+          const maxInList = Math.max(...listPlayers.map(x => x.value))
           return (
             <li key={p.id}>
               <div
-                className={`flex w-full items-center gap-2.5 px-4 py-2 text-[15px] transition-colors hover:bg-accent/70 sm:gap-3 sm:px-4 sm:text-[14px] md:px-6 md:text-[15px] ${
+                className={`flex w-full flex-col gap-2 px-4 py-3 text-[15px] transition-colors hover:bg-accent/70 sm:px-4 sm:text-[14px] md:px-6 md:text-[15px] ${
                   on ? "bg-muted text-foreground" : "text-foreground"
                 }`}
               >
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => onSelectPlayer?.(p.id, p.ownerId ?? groupId)}
-                  className="tap h-auto min-h-11 min-w-0 flex-1 justify-start gap-2.5 rounded-none px-0 py-2.5 text-left font-normal sm:min-h-10 sm:gap-3 sm:py-2 md:text-[15px]"
-                >
-                  <span className="w-7 font-mono text-[13px] text-muted-foreground sm:w-5 sm:text-[11px]">{rank + 1}</span>
-                  <span
-                    className="h-3 w-3 shrink-0 border sm:h-2 sm:w-2"
-                    style={{ borderColor: color, background: scored != null && scored > 0 ? color : "transparent" }}
-                  />
-                  <span className="min-w-0 flex-1 whitespace-normal break-words line-clamp-2 text-left" title={p.name}>{p.name}</span>
-                </Button>
-                {p.owner && p.ownerId && onFilterOwner ? (
+                <div className="flex w-full items-center gap-2.5 sm:gap-3">
                   <Button
                     type="button"
-                    variant="link"
-                    onClick={() => onFilterOwner(p.ownerId!)}
-                    className="tap hidden h-auto min-h-11 max-w-[28%] min-w-0 whitespace-normal break-words px-2 py-2.5 text-left text-[14px] font-normal text-muted-foreground sm:inline-flex sm:min-h-10 sm:px-1.5 sm:py-2 sm:text-[12px] line-clamp-2"
-                    title={p.owner}
+                    variant="ghost"
+                    onClick={() => onSelectPlayer?.(p.id, p.ownerId ?? groupId)}
+                    className="tap h-auto min-h-11 min-w-0 flex-1 justify-start gap-2.5 rounded-none px-0 py-0 text-left font-normal sm:min-h-10 sm:gap-3 md:text-[15px]"
                   >
-                    {p.owner}
+                    <span className="w-7 font-mono text-[13px] text-muted-foreground sm:w-5 sm:text-[11px]">{rank + 1}</span>
+                    <span
+                      className="h-3 w-3 shrink-0 border sm:h-2 sm:w-2"
+                      style={{ borderColor: color, background: scored != null && scored > 0 ? color : "transparent" }}
+                    />
+                    <span className="min-w-0 flex-1 whitespace-normal break-words line-clamp-2 text-left" title={p.name}>{p.name}</span>
                   </Button>
-                ) : null}
-                {p.club && onFilterClub ? (
-                  <Button
-                    type="button"
-                    variant="link"
-                    onClick={() => onFilterClub(p.club!)}
-                    className="tap hidden h-auto min-h-11 shrink-0 px-2.5 py-2.5 text-[14px] font-normal text-muted-foreground sm:inline-flex sm:min-h-10 sm:px-1.5 sm:py-2 sm:text-[12px]"
-                  >
-                    {p.club}
-                  </Button>
-                ) : p.club || p.position ? (
-                  <span className="hidden text-[13px] text-muted-foreground sm:inline sm:text-[12px]">
-                    {[p.club, p.position].filter(Boolean).join(" · ")}
-                  </span>
-                ) : null}
-                <span className="flex items-baseline gap-2.5 font-mono tabular-nums sm:gap-3">
-                  <span className="w-14 text-right text-[14px] sm:w-14 sm:text-[13px]" style={{ color: on ? color : undefined }}>
-                    {scored != null ? scored.toFixed(1) : "—"}
-                  </span>
-                  <span className="w-14 text-right text-[14px] text-foreground/50 sm:w-14 sm:text-[13px]">
-                    {remainingPts(p.value, scored) >= 0.05 ? remainingPts(p.value, scored).toFixed(1) : "—"}
-                  </span>
-                </span>
+                  {p.owner && p.ownerId && onFilterOwner ? (
+                    <Button
+                      type="button"
+                      variant="link"
+                      onClick={() => onFilterOwner(p.ownerId!)}
+                      className="tap hidden h-auto min-h-11 max-w-[28%] min-w-0 whitespace-normal break-words px-2 py-2.5 text-left text-[14px] font-normal text-muted-foreground sm:inline-flex sm:min-h-10 sm:px-1.5 sm:py-2 sm:text-[12px] line-clamp-2"
+                      title={p.owner}
+                    >
+                      {p.owner}
+                    </Button>
+                  ) : null}
+                  {p.club && onFilterClub ? (
+                    <Button
+                      type="button"
+                      variant="link"
+                      onClick={() => onFilterClub(p.club!)}
+                      className="tap hidden h-auto min-h-11 shrink-0 px-2.5 py-2.5 text-[14px] font-normal text-muted-foreground sm:inline-flex sm:min-h-10 sm:px-1.5 sm:py-2 sm:text-[12px]"
+                    >
+                      {p.club}
+                    </Button>
+                  ) : p.club || p.position ? (
+                    <span className="hidden text-[13px] text-muted-foreground sm:inline sm:text-[12px]">
+                      {[p.club, p.position].filter(Boolean).join(" · ")}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="flex items-center gap-2 pl-10 sm:pl-8">
+                  <div className="min-w-0 flex-1">
+                    <HorizontalBar
+                      scored={scored}
+                      projected={p.value}
+                      color={color}
+                      maxValue={maxInList}
+                    />
+                  </div>
+                  <div className="flex shrink-0 items-baseline gap-2.5 font-mono tabular-nums sm:gap-3">
+                    <span className="w-14 text-right text-[14px] sm:w-14 sm:text-[13px]" style={{ color: on ? color : undefined }}>
+                      {scored != null ? scored.toFixed(1) : "—"}
+                    </span>
+                    <span className="w-14 text-right text-[14px] text-foreground/50 sm:w-14 sm:text-[13px]">
+                      {remainingPts(p.value, scored) >= 0.05 ? remainingPts(p.value, scored).toFixed(1) : "—"}
+                    </span>
+                  </div>
+                </div>
               </div>
             </li>
           )

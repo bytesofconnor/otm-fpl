@@ -21,12 +21,12 @@ import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-m
 
 const LEAGUE_KEY = "otm_fantrax_league_id"
 const TEAM_KEY = "otm_fantrax_team_id"
-const POSITIONS = ["GKP", "DEF", "MID", "FWD"] as const
+const POSITIONS = ["G", "D", "M", "F"] as const
 const POS_COLS = [
-  { id: "GKP", code: "GK", name: "Keepers" },
-  { id: "DEF", code: "DEF", name: "Defenders" },
-  { id: "MID", code: "MID", name: "Mids" },
-  { id: "FWD", code: "FWD", name: "Forwards" },
+  { id: "G", code: "GK", name: "Keepers" },
+  { id: "D", code: "DEF", name: "Defenders" },
+  { id: "M", code: "MID", name: "Mids" },
+  { id: "F", code: "FWD", name: "Forwards" },
 ] as const
 const PANES = ["teams", "league", "players", "wire"] as const
 type FormPane = (typeof PANES)[number]
@@ -90,7 +90,7 @@ export function LeagueForm(): React.ReactElement {
   const [weekFocus, setWeekFocus] = React.useState<number | "season" | null>(null)
   const [copied, setCopied] = React.useState(false)
   const [dir, setDir] = React.useState<1 | -1>(1)
-  const [isMobile, setIsMobile] = React.useState(false)
+  const [searchExpanded, setSearchExpanded] = React.useState(false)
   const hydrated = React.useRef(false)
   const paneRef = React.useRef(pane)
   const swipe = React.useRef<{ x: number; y: number; id: number } | null>(null)
@@ -178,15 +178,6 @@ export function LeagueForm(): React.ReactElement {
   React.useEffect(() => {
     if (positions.length === POSITIONS.length) setPositions([])
   }, [positions])
-
-  React.useEffect(() => {
-    function checkMobile() {
-      setIsMobile(window.innerWidth < 640)
-    }
-    checkMobile()
-    window.addEventListener("resize", checkMobile)
-    return () => window.removeEventListener("resize", checkMobile)
-  }, [])
 
   const go = React.useCallback((target: FormPane, hint?: 1 | -1) => {
     const from = PANES.indexOf(paneRef.current)
@@ -461,23 +452,40 @@ export function LeagueForm(): React.ReactElement {
           </div>
 
           {pane !== "teams" ? (
-            <div className="min-h-[4.5rem] mb-2 flex flex-col gap-1.5 rounded-md bg-muted/70 p-1.5 ring-1 ring-border/70 focus-within:ring-foreground/20 sm:mb-3 sm:min-h-[3.5rem] sm:flex-row sm:items-center sm:gap-1.5 sm:p-1.5 md:gap-0 md:p-0 md:pr-1.5 overflow-x-clip" role="search">
-              <div className="flex min-w-0 flex-1 items-center overflow-hidden">
-                <label htmlFor="form-search" className="sr-only">Search players, managers, or clubs</label>
-                <Search className="ml-2.5 size-4 shrink-0 text-muted-foreground sm:ml-3 sm:size-4" aria-hidden="true" />
-                <Input
-                  id="form-search"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder={isMobile ? "Player or club" : "Player, manager, or club"}
-                  spellCheck={false}
-                  autoComplete="off"
-                  autoCorrect="off"
-                  className="h-11 min-w-0 flex-1 border-0 bg-transparent text-[15px] shadow-none ring-0 focus-visible:border-transparent focus-visible:ring-0 sm:h-11 md:text-[15px]"
-                  aria-label="Search players, managers, or clubs"
-                />
-              </div>
-              <div className="flex items-center justify-end gap-1 shrink-0">
+            <div className="mb-2 sm:mb-3" role="search">
+              {/* Mobile: Compact search - expands when tapped */}
+              <div className="flex gap-1.5 md:hidden overflow-x-clip">
+                {!searchExpanded && !query ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="tap h-11 flex-1"
+                    onClick={() => setSearchExpanded(true)}
+                    aria-label="Open search"
+                  >
+                    <Search className="size-4 text-muted-foreground" aria-hidden="true" />
+                    <span className="text-[14px] text-muted-foreground">Search</span>
+                  </Button>
+                ) : (
+                  <div className="flex min-w-0 flex-1 items-center gap-1.5 rounded-md bg-muted/70 p-1.5 ring-1 ring-border/70 focus-within:ring-foreground/20 overflow-hidden">
+                    <Search className="ml-1 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                    <Input
+                      id="form-search"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      onBlur={() => {
+                        if (!query.trim()) setSearchExpanded(false)
+                      }}
+                      placeholder="Player or club"
+                      spellCheck={false}
+                      autoComplete="off"
+                      autoCorrect="off"
+                      className="h-9 min-w-0 flex-1 border-0 bg-transparent text-[15px] shadow-none ring-0 focus-visible:border-transparent focus-visible:ring-0"
+                      aria-label="Search players, managers, or clubs"
+                    />
+                  </div>
+                )}
                 <ToggleGroup
                   multiple
                   value={positions}
@@ -490,7 +498,7 @@ export function LeagueForm(): React.ReactElement {
                   variant="outline"
                   size="sm"
                   spacing={0}
-                  className="tap rounded-lg bg-card p-0.5 ring-1 ring-border/80 shrink-0"
+                  className="shrink-0 rounded-lg bg-card p-0.5 ring-1 ring-border/80"
                   aria-label="Filter by position"
                 >
                   {POS_COLS.map((col) => (
@@ -499,28 +507,91 @@ export function LeagueForm(): React.ReactElement {
                       value={col.id} 
                       aria-label={`Filter to ${col.name}`} 
                       title={col.name}
-                      className="tap h-9 min-w-[2.75rem] px-2"
+                      className="tap h-10 min-w-[2.875rem] px-2.5 text-[13px]"
                     >
                       {col.code}
                     </ToggleGroupItem>
                   ))}
                 </ToggleGroup>
-              {positions.length || query || clubFilter ? (
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="tap h-9 shrink-0"
+                  className="tap h-11 min-w-[4.5rem] shrink-0 px-3"
                   onClick={() => {
                     setPositions([])
                     setQuery("")
                     setClubFilter(null)
+                    setSearchExpanded(false)
                   }}
+                  disabled={!positions.length && !query && !clubFilter}
                   aria-label="Clear all filters"
                 >
                   Clear
                 </Button>
-              ) : null}
+              </div>
+
+              {/* Desktop: Full search bar */}
+              <div className="hidden min-h-[3.5rem] flex-row items-center gap-1.5 rounded-md bg-muted/70 p-1.5 ring-1 ring-border/70 focus-within:ring-foreground/20 md:flex md:gap-0 md:p-0 md:pr-1.5 overflow-x-clip">
+                <div className="flex min-w-0 flex-1 items-center overflow-hidden">
+                  <label htmlFor="form-search-desktop" className="sr-only">Search players, managers, or clubs</label>
+                  <Search className="ml-3 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <Input
+                    id="form-search-desktop"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Player, manager, or club"
+                    spellCheck={false}
+                    autoComplete="off"
+                    autoCorrect="off"
+                    className="h-11 min-w-0 flex-1 border-0 bg-transparent text-[15px] shadow-none ring-0 focus-visible:border-transparent focus-visible:ring-0"
+                    aria-label="Search players, managers, or clubs"
+                  />
+                </div>
+                <div className="flex items-center justify-end gap-1 shrink-0">
+                  <ToggleGroup
+                    multiple
+                    value={positions}
+                    onValueChange={(next) => {
+                      const list = (Array.isArray(next) ? next : []).filter((id): id is (typeof POSITIONS)[number] =>
+                        POSITIONS.includes(id as (typeof POSITIONS)[number]),
+                      )
+                      setPositions(list.length === POSITIONS.length ? [] : list)
+                    }}
+                    variant="outline"
+                    size="sm"
+                    spacing={0}
+                    className="tap rounded-lg bg-card p-0.5 ring-1 ring-border/80 shrink-0"
+                    aria-label="Filter by position"
+                  >
+                    {POS_COLS.map((col) => (
+                      <ToggleGroupItem 
+                        key={col.id} 
+                        value={col.id} 
+                        aria-label={`Filter to ${col.name}`} 
+                        title={col.name}
+                        className="tap h-9 min-w-[2.75rem] px-2"
+                      >
+                        {col.code}
+                      </ToggleGroupItem>
+                    ))}
+                  </ToggleGroup>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="tap h-9 min-w-[4rem] shrink-0"
+                    onClick={() => {
+                      setPositions([])
+                      setQuery("")
+                      setClubFilter(null)
+                    }}
+                    disabled={!positions.length && !query && !clubFilter}
+                    aria-label="Clear all filters"
+                  >
+                    Clear
+                  </Button>
+                </div>
               </div>
             </div>
           ) : null}

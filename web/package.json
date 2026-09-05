@@ -16,7 +16,8 @@
     "data:apply:gw1-manual": "tsx scripts/apply-gw1-manual.ts",
     "data:enrich:highlights": "tsx scripts/enrich-highlights.ts",
     "data:apply:top50": "tsx scripts/apply-draftsociety-top50.ts",
-    "data:apply:fantrax": "tsx scripts/apply-fantrax-projections.ts"
+    "data:apply:fantrax": "tsx scripts/apply-fantrax-projections.ts",
+    "generate:icons": "tsx scripts/generate-pwa-icons.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -39,6 +40,7 @@
   "devDependencies": {
     "@axe-core/cli": "^4.13.0",
     "@axe-core/playwright": "^4.13.0",
+    "@ducanh2912/next-pwa": "^10.2.9",
     "@eslint/eslintrc": "^3",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
@@ -49,6 +51,7 @@
     "eslint": "^9",
     "eslint-config-next": "^15.5.25",
     "eslint-plugin-jsx-a11y": "^6.10.2",
+    "sharp": "^0.35.4",
     "tailwindcss": "^4",
     "tsx": "^4.20.3",
     "typescript": "^5",

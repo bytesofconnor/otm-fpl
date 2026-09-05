@@ -576,7 +576,7 @@ export function FormChart({
                   ) : (
                     <span className="h-3 w-3 shrink-0 rounded-sm sm:h-2 sm:w-2" style={{ background: color }} />
                   )}
-                  <span className="min-w-0 flex-1 [overflow-wrap:break-word] [word-break:normal] line-clamp-2 text-left" title={s.label}>{s.label}</span>
+                  <span className="min-w-0 flex-1 whitespace-normal break-words line-clamp-2 text-left" title={s.label}>{s.label}</span>
                   {s.hint === "You" ? <Badge variant="you" className="hidden sm:inline-flex">You</Badge> : null}
                 </Button>
                 {s.owner && s.ownerId && onFilterOwner ? (
@@ -1006,7 +1006,7 @@ export function PoolChart({
                     className="h-3 w-3 shrink-0 border sm:h-2 sm:w-2"
                     style={{ borderColor: color, background: scored != null && scored > 0 ? color : "transparent" }}
                   />
-                  <span className="min-w-0 flex-1 [overflow-wrap:break-word] [word-break:normal] line-clamp-2 text-left" title={p.name}>{p.name}</span>
+                  <span className="min-w-0 flex-1 whitespace-normal break-words line-clamp-2 text-left" title={p.name}>{p.name}</span>
                 </Button>
                 {p.owner && p.ownerId && onFilterOwner ? (
                   <Button

@@ -508,12 +508,12 @@ export function FormChart({
         <ChartTooltip tip={tip} />
       </div>
       {strip ? (
-        <div className="overflow-x-auto border-t border-border sm:overflow-x-visible">
+        <div className="overflow-x-auto border-t border-border">
           <div
             className="grid"
             style={{
               gridTemplateColumns: `${pad.left}px repeat(${Math.max(1, plotted.length)}, minmax(0, 1fr)) ${pad.right}px`,
-              minWidth: desktop ? undefined : `${pad.left + plotted.length * 44 + pad.right}px`,
+              minWidth: `${pad.left + plotted.length * 44 + pad.right}px`,
             }}
           >
             <div />
@@ -911,12 +911,12 @@ export function PoolChart({
         </svg>
         <ChartTooltip tip={tip} />
       </div>
-      <div className="overflow-x-auto border-t border-border sm:overflow-x-visible">
+      <div className="overflow-x-auto border-t border-border">
         <div
           className="grid"
           style={{
             gridTemplateColumns: `${pad.left}px repeat(${Math.max(1, visible.length)}, minmax(0, 1fr)) ${pad.right}px`,
-            minWidth: desktop ? undefined : `${pad.left + visible.length * 44 + pad.right}px`,
+            minWidth: `${pad.left + visible.length * 44 + pad.right}px`,
           }}
         >
           <div />

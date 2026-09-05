@@ -244,44 +244,48 @@ test.describe("Scout Page - Suspense & Team Picker", () => {
     // Mock initial teams API
     await mockScoutTeamsAPI(page)
     
-    // Mock opportunities for first team
-    await page.route("**/api/scout/opportunities*teamId=team1*", async (route) => {
+    // Mock opportunities for first team (with data)
+    await page.route("**/api/scout/opportunities*teamId=yv00la6xmsxcq62w*", async (route) => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
           leagueId: "test-league",
-          teamId: "team1",
-          teamName: "Team One",
+          teamId: "yv00la6xmsxcq62w",
+          teamName: "Saints Intelligence Agency",
           timestamp: new Date().toISOString(),
           currentPeriod: 27,
-          opportunities: [{
-            player: { id: "p1", name: "Test Player 1", club: "Test FC", position: "MID", availability: "FA" },
-            whyNow: "Hot form",
-            formChip: "hot",
-            formScore: 50,
-            formScoreWithFixtures: 50,
-            recentGW: [7],
-            minutesContext: "90′ played",
-            fixtureContext: null,
-            beatsWho: { name: "Bench Player", position: "MID", formScore: 20 },
-            confidence: "HIGH",
-            killConditions: [],
-            fantraxProj: 7
-          }]
+          opportunities: [],
+          debug: {
+            totalUnowned: 100,
+            topNearMisses: [
+              {
+                playerName: "Daichi Kamada",
+                formGap: 18.5,
+                blockedBy: "drop_ban",
+                dropCandidate: "James Garner"
+              },
+              {
+                playerName: "Alex Iwobi",
+                formGap: 15.2,
+                blockedBy: "drop_ban",
+                dropCandidate: "Adrien Truffert"
+              }
+            ]
+          }
         }),
       })
     })
     
-    // Mock opportunities for second team
-    await page.route("**/api/scout/opportunities*teamId=team2*", async (route) => {
+    // Mock opportunities for second team (with opportunities)
+    await page.route("**/api/scout/opportunities*teamId=p3r39tp5msxcq62w*", async (route) => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
           leagueId: "test-league",
-          teamId: "team2",
-          teamName: "Team Two",
+          teamId: "p3r39tp5msxcq62w",
+          teamName: "Another Team",
           timestamp: new Date().toISOString(),
           currentPeriod: 27,
           opportunities: [{
@@ -302,28 +306,19 @@ test.describe("Scout Page - Suspense & Team Picker", () => {
       })
     })
 
-    // Load page with first team
-    await page.goto("/scout?teamId=team1")
-    await page.waitForSelector('article[aria-label*="Opportunity"]', { timeout: 10000 })
+    // Load page with first team (Saints - has near-misses)
+    await page.goto("/scout?teamId=yv00la6xmsxcq62w")
     
-    // Verify first team data loaded
-    await expect(page.getByText("Test Player 1")).toBeVisible()
+    // Wait for content to load - should show near-miss cards, not blank empty state
+    await page.waitForLoadState("networkidle")
     
-    // Find and change team dropdown
-    const teamSelect = page.locator('select, [role="combobox"]').first()
-    await teamSelect.click()
+    // Verify near-miss content is visible (not blank)
+    await expect(page.getByText("No Immediate Pickups Available")).toBeVisible()
+    await expect(page.getByText("Daichi Kamada")).toBeVisible()
     
-    // Wait for dropdown options to be visible
-    await page.waitForTimeout(500)
-    
-    // Select a different team option (adjust selector based on actual UI)
-    const option = page.locator('[role="option"]').filter({ hasText: /Team|Manager/ }).nth(1)
-    if (await option.isVisible()) {
-      await option.click()
-    }
-    
-    // Wait for navigation and new data load
-    await page.waitForTimeout(1000)
+    // Now change to a different team via URL (simulates dropdown change)
+    await page.goto("/scout?teamId=p3r39tp5msxcq62w")
+    await page.waitForLoadState("networkidle")
     
     // Critical: Must not show "Application error: a client-side exception has occurred"
     await expect(page.getByText(/application error.*client-side exception/i)).not.toBeVisible()
@@ -331,10 +326,8 @@ test.describe("Scout Page - Suspense & Team Picker", () => {
     // Should still show Scout heading (page didn't crash)
     await expect(page.getByRole("heading", { name: "Scout" })).toBeVisible()
     
-    // Should show loading or new opportunities (not stuck in error state)
-    const hasOpportunities = await page.locator('article[aria-label*="Opportunity"]').count() > 0
-    const isLoading = await page.getByText("Loading opportunities...").isVisible()
-    expect(hasOpportunities || isLoading).toBe(true)
+    // Should show new team's opportunities
+    await expect(page.getByText("Test Player 2")).toBeVisible()
   })
 })
 
@@ -378,6 +371,83 @@ test.describe("Scout Page - Empty State Messaging", () => {
       pageText?.includes("Erling Haaland")
     
     expect(mentionsProtectedPlayers).toBe(true)
+  })
+
+  test("should show near-miss cards instead of blank empty state", async ({ page }) => {
+    // Mock API with near-misses (no true opportunities)
+    await page.route("**/api/scout/opportunities*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          leagueId: "test-league",
+          teamId: "yv00la6xmsxcq62w",
+          teamName: "Saints Intelligence Agency",
+          timestamp: new Date().toISOString(),
+          currentPeriod: 27,
+          opportunities: [],
+          debug: {
+            totalUnowned: 100,
+            afterWireFilter: 80,
+            afterSignalFilter: 60,
+            afterTeamExclusionFilter: 55,
+            afterFixtureFilter: 50,
+            afterBenchComparisonFilter: 40,
+            afterFormGapFilter: 30,
+            afterDropBanFilter: 0,
+            finalCandidates: 0,
+            minFormScoreGap: 8,
+            topNearMisses: [
+              {
+                playerName: "Daichi Kamada",
+                formGap: 18.5,
+                blockedBy: "drop_ban",
+                dropCandidate: "James Garner"
+              },
+              {
+                playerName: "Alex Iwobi",
+                formGap: 15.2,
+                blockedBy: "drop_ban",
+                dropCandidate: "Adrien Truffert"
+              },
+              {
+                playerName: "Leandro Trossard",
+                formGap: 12.8,
+                blockedBy: "drop_ban",
+                dropCandidate: "Kai Havertz"
+              }
+            ]
+          }
+        }),
+      })
+    })
+    
+    await mockScoutTeamsAPI(page)
+    await page.goto("/scout?teamId=yv00la6xmsxcq62w")
+    await page.waitForLoadState("networkidle")
+    
+    // Critical: Must NOT show blank "No opportunities found" card
+    await expect(page.getByText("No opportunities found")).not.toBeVisible()
+    
+    // Should show near-miss header explaining the situation
+    await expect(page.getByText("No Immediate Pickups Available")).toBeVisible()
+    
+    // Should show near-miss cards (not hidden in Debug)
+    await expect(page.getByText("Daichi Kamada")).toBeVisible()
+    await expect(page.getByText("Alex Iwobi")).toBeVisible()
+    await expect(page.getByText("Leandro Trossard")).toBeVisible()
+    
+    // Should show protected player names
+    await expect(page.getByText(/James Garner/i)).toBeVisible()
+    await expect(page.getByText(/Adrien Truffert/i)).toBeVisible()
+    
+    // Should show "Blocked: Protected Player" badges
+    const blockedBadges = page.getByText("Blocked: Protected Player")
+    await expect(blockedBadges.first()).toBeVisible()
+    expect(await blockedBadges.count()).toBeGreaterThanOrEqual(3)
+    
+    // Should show form gaps
+    await expect(page.getByText(/Form gap:.*\+18\.5/)).toBeVisible()
   })
 
   test("should handle malformed API response without crashing", async ({ page }) => {

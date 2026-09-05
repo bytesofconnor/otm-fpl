@@ -7,6 +7,16 @@ test.describe("Scout Page", () => {
     await mockScoutAPI(page)
   })
 
+  test("should load without client-side crash (smoke test)", async ({ page }) => {
+    await page.goto("/scout")
+    
+    // Critical: Must not show "Application error: a client-side exception has occurred"
+    await expect(page.getByText(/application error.*client-side exception/i)).not.toBeVisible()
+    
+    // Must show Scout heading
+    await expect(page.getByRole("heading", { name: "Scout" })).toBeVisible()
+  })
+
   test("should render opportunity board with valid data", async ({ page }) => {
     await page.goto("/scout")
     
@@ -118,6 +128,59 @@ test.describe("Scout Page", () => {
     // Check for FA and WW badges
     await expect(page.getByText("FA").first()).toBeVisible()
     await expect(page.getByText("WW")).toBeVisible()
+  })
+})
+
+test.describe("Scout Matchup Page", () => {
+  test("should load without client-side crash (smoke test)", async ({ page }) => {
+    await page.route("**/api/fantrax/form*", (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          leagueId: "test-league",
+          teamId: "test-team",
+          teamName: "Test Team",
+          currentPeriod: 27,
+          players: [],
+        }),
+      })
+    })
+
+    await page.goto("/scout/matchup")
+    
+    // Critical: Must not show "Application error: a client-side exception has occurred"
+    await expect(page.getByText(/application error.*client-side exception/i)).not.toBeVisible()
+    
+    // Must show Matchup Prep heading
+    await expect(page.getByRole("heading", { name: "Matchup Prep" })).toBeVisible()
+  })
+})
+
+test.describe("Scout Waivers Page", () => {
+  test("should load without client-side crash (smoke test)", async ({ page }) => {
+    await page.route("**/api/scout/waivers*", (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          leagueId: "test-league",
+          teamId: "test-team",
+          teamName: "Test Team",
+          timestamp: new Date().toISOString(),
+          currentPeriod: 27,
+          waivers: [],
+        }),
+      })
+    })
+
+    await page.goto("/scout/waivers")
+    
+    // Critical: Must not show "Application error: a client-side exception has occurred"
+    await expect(page.getByText(/application error.*client-side exception/i)).not.toBeVisible()
+    
+    // Must show Scout Waivers heading
+    await expect(page.getByRole("heading", { name: "Scout Waivers" })).toBeVisible()
   })
 })
 

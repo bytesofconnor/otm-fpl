@@ -508,33 +508,36 @@ export function FormChart({
         <ChartTooltip tip={tip} />
       </div>
       {strip ? (
-        <div
-          className="grid border-t border-border"
-          style={{
-            gridTemplateColumns: `${pad.left}px repeat(${Math.max(1, plotted.length)}, minmax(0, 1fr)) ${pad.right}px`,
-          }}
-        >
-          <div />
-          {plotted.map((s) => (
-            <Button
-              key={s.id}
-              type="button"
-              variant="ghost"
-              size="sm"
-              title={s.label}
-              aria-label={s.label}
-              onClick={() => onSelect?.(s.id)}
-              className={`tap h-auto min-h-[48px] min-w-0 justify-center rounded-none px-0.5 py-2.5 text-center text-[11px] font-semibold leading-tight tracking-wide sm:text-[11px] md:text-[12px] ${
-                s.id === activeId ? "text-foreground" : "text-muted-foreground"
-              }`}
-            >
-              <span className="block max-w-full break-words hyphens-auto" lang="en">
-                <span className="sm:hidden">{mobileLabel(s.label, s.code)}</span>
-                <span className="hidden sm:inline">{s.code ?? shortLabel(s.label)}</span>
-              </span>
-            </Button>
-          ))}
-          <div />
+        <div className="overflow-x-auto border-t border-border sm:overflow-x-visible">
+          <div
+            className="grid"
+            style={{
+              gridTemplateColumns: `${pad.left}px repeat(${Math.max(1, plotted.length)}, minmax(0, 1fr)) ${pad.right}px`,
+              minWidth: desktop ? undefined : `${pad.left + plotted.length * 44 + pad.right}px`,
+            }}
+          >
+            <div />
+            {plotted.map((s) => (
+              <Button
+                key={s.id}
+                type="button"
+                variant="ghost"
+                size="sm"
+                title={s.label}
+                aria-label={s.label}
+                onClick={() => onSelect?.(s.id)}
+                className={`tap h-auto min-h-[48px] min-w-0 justify-center rounded-none px-0.5 py-2.5 text-center text-[11px] font-semibold leading-tight tracking-wide sm:text-[11px] md:text-[12px] ${
+                  s.id === activeId ? "text-foreground" : "text-muted-foreground"
+                }`}
+              >
+                <span className="block max-w-full break-words hyphens-auto" lang="en">
+                  <span className="sm:hidden">{mobileLabel(s.label, s.code)}</span>
+                  <span className="hidden sm:inline">{s.code ?? shortLabel(s.label)}</span>
+                </span>
+              </Button>
+            ))}
+            <div />
+          </div>
         </div>
       ) : null}
       </div>
@@ -908,33 +911,36 @@ export function PoolChart({
         </svg>
         <ChartTooltip tip={tip} />
       </div>
-      <div
-        className="grid border-t border-border"
-        style={{
-          gridTemplateColumns: `${pad.left}px repeat(${Math.max(1, visible.length)}, minmax(0, 1fr)) ${pad.right}px`,
-        }}
-      >
-        <div />
-        {visible.map((g, gi) => {
-          const on = g.id === highlighted?.id
-          return (
-            <Button
-              key={g.id}
-              type="button"
-              variant="ghost"
-              aria-pressed={on}
-              title={`${g.code} · ${g.name}`}
-              onClick={() => onSelect?.(g.id)}
-              className={`h-10 min-w-0 flex-col gap-0.5 rounded-none px-0.5 ${
-                gi > 0 ? "border-l border-border" : ""
-              } ${on ? "bg-background font-semibold text-foreground" : "text-muted-foreground"}`}
-            >
-              <span className="max-w-full truncate px-0.5 text-[10px] font-medium tracking-wide sm:text-[11px]">{g.code}</span>
-              <span className="font-mono text-[10px] tabular-nums text-muted-foreground">{g.players.length}</span>
-            </Button>
-          )
-        })}
-        <div />
+      <div className="overflow-x-auto border-t border-border sm:overflow-x-visible">
+        <div
+          className="grid"
+          style={{
+            gridTemplateColumns: `${pad.left}px repeat(${Math.max(1, visible.length)}, minmax(0, 1fr)) ${pad.right}px`,
+            minWidth: desktop ? undefined : `${pad.left + visible.length * 44 + pad.right}px`,
+          }}
+        >
+          <div />
+          {visible.map((g, gi) => {
+            const on = g.id === highlighted?.id
+            return (
+              <Button
+                key={g.id}
+                type="button"
+                variant="ghost"
+                aria-pressed={on}
+                title={`${g.code} · ${g.name}`}
+                onClick={() => onSelect?.(g.id)}
+                className={`h-10 min-w-0 flex-col gap-0.5 rounded-none px-0.5 ${
+                  gi > 0 ? "border-l border-border" : ""
+                } ${on ? "bg-background font-semibold text-foreground" : "text-muted-foreground"}`}
+              >
+                <span className="max-w-full truncate px-0.5 text-[10px] font-medium tracking-wide sm:text-[11px]">{g.code}</span>
+                <span className="font-mono text-[10px] tabular-nums text-muted-foreground">{g.players.length}</span>
+              </Button>
+            )
+          })}
+          <div />
+        </div>
       </div>
       {swatches || !listAll ? (
       <div className="border-t border-border px-3 py-2 lg:hidden sm:px-4">

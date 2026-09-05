@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { OTM_LEAGUE_ID } from "@/lib/fantrax-shared"
 import { heatLabel, heatEmoji, heatColor, type HeatBucket } from "@/lib/form-engine"
 import { cn } from "@/lib/utils"
@@ -66,16 +67,20 @@ type OpportunitiesResponse = {
 }
 
 export function OpportunityBoard() {
+  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<OpportunitiesResponse | null>(null)
+
+  // Get teamId from query params, default to SIA
+  const teamId = searchParams.get("teamId") || SIA_TEAM_ID
 
   useEffect(() => {
     async function fetchOpportunities() {
       try {
         setLoading(true)
         setError(null)
-        const url = `/api/scout/opportunities?teamId=${SIA_TEAM_ID}&leagueId=${OTM_LEAGUE_ID}`
+        const url = `/api/scout/opportunities?teamId=${teamId}&leagueId=${OTM_LEAGUE_ID}`
         const res = await fetch(url)
         
         if (!res.ok) {
@@ -93,7 +98,7 @@ export function OpportunityBoard() {
     }
 
     fetchOpportunities()
-  }, [])
+  }, [teamId])
 
   if (loading) {
     return (

@@ -8,8 +8,8 @@ Companion for Over the Moon FPL. **Scout is the paid intelligence layer**—the 
 - [x] **Scout: Form Engine** (PR2, ✅ Merged) — Pure TS lib computing continuous form scores (0-100) + heat buckets (Cold/Warm/Hot/Fire/Burning) from recent FPts, minutes, starts, and surprise bumps when players beat projections. Unit tested.
 - [x] **Scout: API** (PR3, ✅ Merged) — Server route `/api/scout/opportunities` returning ranked pickup candidates with rec-card fields (why now, form chip, beats who, confidence, kill conditions). Respects hard filters: availability (FA/WW only), roster holes, signal threshold, SIA drop bans (Garner/Truffert/Havertz), no Arsenal inbound.
 - [x] **History Capture** (PR4, ✅ Merged) — Extended `/api/fantrax/capture` to persist actual scored FPts, minutes, started signal, and ownership snapshots (FA/WW/owner) in new `player_week_stats` and `ownership_snapshots` tables. Enables Scout form history over time.
-- [ ] **Scout: Opportunity Board UI** (PR5) — New `/scout` page with mobile-friendly, WCAG AA rec cards. SIA-first (cbarrett97), shows top 10-15 opportunities per position. Fantrax projections as tiny footnote only—never ground truth.
-- [ ] **Form page heat chips** (PR5) — Wire existing Form page to form engine. Replace proj-only vibes with heat buckets (Warm/Hot/Fire/Burning/Cold) next to player names. Existing charts preserved, just enhanced with color-coded form intelligence.
+- [x] **Scout: Opportunity Board UI** (✅ Merged) — New `/scout` page with mobile-friendly, WCAG AA rec cards. League-wide with team picker. Shows top 10-15 opportunities per position. Fantrax projections as tiny footnote only—never ground truth.
+- [x] **Form page heat chips** (✅ Merged) — Wire existing Form page to form engine. Replace proj-only vibes with heat buckets (Warm/Hot/Fire/Burning/Cold) next to player names. Existing charts preserved, just enhanced with color-coded form intelligence.
 
 ## Snapshot projections in a database
 
@@ -53,9 +53,10 @@ Fantrax's weekly proj view is not a frozen forecast. After kickoff it converges 
 **Scout Intelligence Expansion** — These features extend the core Scout model with context and priority logic:
 
 - [x] **Fixture Context Layer** — Blend fixture difficulty ratings (1-10) into form scoring. Show "Next 5" fixture runs on player cards. Boost/penalty for easy/tough schedules. Fixes form-only blindspot. **(Merged PR #15)**
-- [ ] **Waiver Claim Helper** — Ranked waiver priority order at `/scout/waivers`. Logic: form score + roster gap urgency + ownership pressure. Flag "likely to clear waivers" players. Helps managers avoid wasting high claims.
+- [x] **Waiver Claim Helper** (PR #21, ✅ Merged) — Ranked waiver priority order at `/scout/waivers`. Logic: form score + roster gap urgency + ownership pressure. Flag "likely to clear waivers" players. Helps managers avoid wasting high claims.
+- [x] **Matchup Prep** (✅ Merged) — Start/sit intelligence at `/scout/matchup`. Lineup heatmap shows form scores. Bench order by form. Helps managers optimize starting lineups.
+- [x] **League-wide Scout rollout** (✅ Shipped) — Expanded Scout beyond SIA to all Over the Moon managers. Each team gets personalized Opportunity Board, Matchup Prep, and Waivers based on their roster holes. Team picker on all Scout pages. SIA-specific filters (drop bans, Arsenal exclusion) apply only to SIA.
 - [ ] **Scout: Pricing & Auth** — Stripe integration + Convex auth. Scout is paid-brain tier ($5-10/mo or per-league). Freemium option: Opportunity Board free, Matchup Prep paid (TBD).
-- [ ] **League-wide Scout rollout** — Expand beyond SIA (cbarrett97) to all Over the Moon managers. Each team gets personalized Opportunity Board based on their roster holes.
 - [ ] **Share cards** that look like a scorebug, not a URL dump (League + Scout recs)
 - [ ] Dark matchday theme as an option, not a second product
 

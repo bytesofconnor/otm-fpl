@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { OTM_LEAGUE_ID } from "@/lib/fantrax-shared"
 import { computeFormScoreSimple, heatEmoji, heatLabel, heatColor, type HeatBucket } from "@/lib/form-engine"
 import { cn } from "@/lib/utils"
@@ -27,9 +28,13 @@ type LineupData = {
 }
 
 export function MatchupPrep() {
+  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<LineupData | null>(null)
+
+  // Get teamId from query params, default to SIA
+  const teamId = searchParams.get("teamId") || SIA_TEAM_ID
 
   useEffect(() => {
     async function fetchLineup() {
@@ -38,7 +43,7 @@ export function MatchupPrep() {
         setError(null)
         
         // Fetch form data for the team's roster
-        const url = `/api/fantrax/form?leagueId=${OTM_LEAGUE_ID}&teamId=${SIA_TEAM_ID}`
+        const url = `/api/fantrax/form?leagueId=${OTM_LEAGUE_ID}&teamId=${teamId}`
         const res = await fetch(url)
         
         if (!res.ok) {
@@ -93,7 +98,7 @@ export function MatchupPrep() {
     }
 
     fetchLineup()
-  }, [])
+  }, [teamId])
 
   if (loading) {
     return (

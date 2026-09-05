@@ -46,7 +46,7 @@ export function AppHeader(): ReactElement {
                 render={<Link href={item.href} prefetch aria-current={active ? "page" : undefined} />}
                 nativeButton={false}
                 className={cn(
-                  "tap relative h-full min-w-[3.5rem] rounded-none px-2 text-[11px] font-semibold uppercase tracking-[0.18em] hover:bg-transparent sm:min-w-[4.5rem] sm:px-3 sm:text-[12px]",
+                  "tap relative h-full min-w-[3.5rem] rounded-none px-2 text-[13px] font-semibold uppercase tracking-[0.16em] hover:bg-transparent sm:min-w-[4.5rem] sm:px-3 sm:text-[12px] md:text-[13px]",
                   active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                 )}
               >

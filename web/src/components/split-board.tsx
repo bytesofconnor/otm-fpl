@@ -119,7 +119,7 @@ export function SplitBoard({
     <Card
       size="flush"
       className={cn(
-        "md:h-[calc(100dvh-var(--header-h)-env(safe-area-inset-top)-7.25rem)]",
+        "bg-card/98 backdrop-blur-md sm:bg-card/95 md:h-[calc(100dvh-var(--header-h)-env(safe-area-inset-top)-7.25rem)]",
         className,
       )}
     >

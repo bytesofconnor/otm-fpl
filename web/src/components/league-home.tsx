@@ -202,6 +202,7 @@ export function LeagueHome(): React.ReactElement {
         periodCount={snap.periodCount}
         live={snap.liveStarted}
         onPeriod={setPeriod}
+        loading={loading}
       />
 
       <div className="mt-4 grid gap-4 lg:grid-cols-12">

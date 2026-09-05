@@ -99,14 +99,14 @@ function PlayerBlock({
       type="button"
       variant="ghost"
       onClick={onToggle}
-      className={`otm-kit h-auto min-h-14 w-full min-w-0 flex-col items-stretch justify-start gap-0 px-2 py-2 text-left hover:bg-white/10 ${
+      className={`otm-kit h-auto min-h-[44px] w-full min-w-0 flex-col items-stretch justify-start gap-0 px-2 py-2 text-left hover:bg-white/10 ${
         align === "right" ? "text-right" : "text-left"
       } ${hot ? "otm-kit-hot" : ""}`}
     >
       <div className={`flex items-start gap-2.5 ${align === "right" ? "flex-row-reverse" : ""}`}>
         <Crest src={player.headshotUrl} alt={player.team} />
         <span className="min-w-0 flex-1 whitespace-normal break-words text-[15px] font-semibold leading-tight tracking-tight text-white sm:text-[16px] line-clamp-2">{player.name}</span>
-        <span className="shrink-0 text-right">
+        <span className="w-[3.5rem] shrink-0 text-right sm:w-[4rem]">
           <span className={`otm-score block text-[1.2rem] leading-none tabular-nums sm:text-[1.45rem] ${hot ? "text-white" : "text-white/90"}`}>
             {pts(player.points)}
           </span>
@@ -116,7 +116,7 @@ function PlayerBlock({
         </span>
       </div>
       {meta ? (
-        <div className={`mt-1 text-[12px] leading-snug ${availabilityClass(player.availability)} ${align === "right" ? "text-right" : ""}`}>
+        <div className={`mt-1 whitespace-normal text-[12px] leading-snug ${availabilityClass(player.availability)} ${align === "right" ? "text-right" : ""}`}>
           {meta}
         </div>
       ) : null}
@@ -222,18 +222,18 @@ function TeamMark({
   you?: boolean
 }): React.ReactElement {
   return (
-    <div className={`flex min-w-0 items-center gap-3 ${align === "right" ? "flex-row-reverse text-right" : ""}`}>
+    <div className={`flex min-w-0 items-center gap-2.5 sm:gap-3 ${align === "right" ? "flex-row-reverse text-right" : ""}`}>
       {logoUrl ? (
-        <ImageWithFallback src={logoUrl} alt="" className="h-12 w-9 shrink-0 rounded-md bg-black/20 object-cover ring-2 ring-white/40 sm:h-16 sm:w-12" fallback="/favicon.svg" />
+        <ImageWithFallback src={logoUrl} alt="" className="h-11 w-8 shrink-0 rounded-md bg-black/20 object-cover ring-2 ring-white/40 sm:h-16 sm:w-12" fallback="/favicon.svg" />
       ) : (
-        <div className="h-12 w-9 shrink-0 rounded-md bg-black/20 ring-2 ring-white/25 sm:h-16 sm:w-12" />
+        <div className="h-11 w-8 shrink-0 rounded-md bg-black/20 ring-2 ring-white/25 sm:h-16 sm:w-12" />
       )}
-      <div className="min-w-0">
-        <div className={`flex items-center gap-2 ${align === "right" ? "justify-end" : ""}`}>
-          <span className="otm-kicker text-white/70">{shortName || (align === "left" ? "Home" : "Away")}</span>
+      <div className="min-w-0 flex-1">
+        <div className={`flex flex-wrap items-center gap-2 ${align === "right" ? "justify-end" : ""}`}>
+          <span className="otm-kicker whitespace-nowrap text-white/70">{shortName || (align === "left" ? "Home" : "Away")}</span>
           {you ? <Badge variant="live">You</Badge> : null}
         </div>
-        <div className="otm-title mt-0.5 whitespace-normal break-words text-[1.05rem] leading-tight text-white sm:text-[1.45rem] line-clamp-2">{name}</div>
+        <div className="otm-title mt-0.5 whitespace-normal break-words text-[1rem] leading-tight text-white sm:text-[1.35rem] line-clamp-2">{name}</div>
         {owner ? <div className="mt-0.5 hidden whitespace-normal break-words text-[13px] text-white/70 sm:block line-clamp-2">{owner}</div> : null}
       </div>
     </div>
@@ -291,6 +291,7 @@ export function LeagueWeek({
   periodCount,
   live,
   onPeriod,
+  loading = false,
 }: {
   matchup: FantraxMatchup | null
   slate: FantraxSlateGame[]
@@ -300,6 +301,7 @@ export function LeagueWeek({
   periodCount: number
   live: boolean
   onPeriod: (next: number) => void
+  loading?: boolean
 }): React.ReactElement {
   const [expandedId, setExpandedId] = React.useState<string | null>(null)
   const [copied, setCopied] = React.useState(false)
@@ -327,14 +329,16 @@ export function LeagueWeek({
   return (
     <Card size="flush" className="otm-pitch">
       <div className="flex items-center justify-between gap-3 border-b border-white/25 px-4 py-4 sm:px-7">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h2 className="otm-title text-[1.6rem] text-white sm:text-[2rem]">{live ? "This week" : periodLabel || `GW${period}`}</h2>
-          <p className="mt-0.5 whitespace-normal break-words text-[13px] text-white/75 line-clamp-2">
-            {live ? <span className="font-semibold text-[#b8ffcf]">Live</span> : null}
-            {live ? " · " : null}
-            {periodLabel || `GW${period}`}
-            {!live && period ? ` · Week ${period} of ${periodCount}` : null}
-          </p>
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[13px]">
+            {live ? <Badge variant="live" className="text-[11px]">Live</Badge> : null}
+            <span className="font-semibold text-white">{periodLabel || `GW${period}`}</span>
+            <span className="text-white/60">·</span>
+            <span className="text-white/75">
+              {period === periodCount ? "Final week" : period === 1 ? "First week" : `Week ${period} of ${periodCount}`}
+            </span>
+          </div>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
           <Button
@@ -342,7 +346,7 @@ export function LeagueWeek({
             variant="ghost"
             size="icon"
             aria-label="Previous gameweek"
-            disabled={period <= 1}
+            disabled={period <= 1 || loading}
             className="size-11 text-white hover:bg-white/15 hover:text-white disabled:opacity-40"
             onClick={() => onPeriod(period - 1)}
           >
@@ -353,14 +357,14 @@ export function LeagueWeek({
             variant="ghost"
             size="icon"
             aria-label="Next gameweek"
-            disabled={period >= periodCount}
+            disabled={period >= periodCount || loading}
             className="size-11 text-white hover:bg-white/15 hover:text-white disabled:opacity-40"
             onClick={() => onPeriod(period + 1)}
           >
             <span className="text-[28px] leading-none">›</span>
           </Button>
           {matchup ? (
-            <Button type="button" variant="outline" size="sm" className="ml-1 h-10 min-w-[4.5rem] border-white/40 bg-black/25 px-3 text-[14px] text-white hover:bg-black/35 hover:text-white" onClick={() => void onCopy()} aria-label="Copy matchup score">
+            <Button type="button" variant="outline" size="sm" className="ml-1 h-11 min-h-[44px] min-w-[4.5rem] whitespace-nowrap border-white/40 bg-black/25 px-3 text-[14px] text-white hover:bg-black/35 hover:text-white" onClick={() => void onCopy()} aria-label="Copy matchup score">
               {copied ? "Copied" : "Copy"}
             </Button>
           ) : null}
@@ -369,16 +373,16 @@ export function LeagueWeek({
 
       {matchup ? (
         <div className="p-4 sm:p-7">
-          <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-6">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-6">
             <TeamMark name={matchup.home} shortName={matchup.homeShort} owner={matchup.homeOwner} logoUrl={matchup.homeLogo} align="left" you={matchup.homeId === teamId} />
-            <div className="min-w-[7.5rem] text-center sm:min-w-[10rem]">
+            <div className="min-w-[6rem] shrink-0 text-center sm:min-w-[10rem]">
               <div className={live ? "otm-kicker text-[#b8ffcf]" : "otm-kicker text-white/70"}>{live ? "Live" : "Projected"}</div>
-              <div className="otm-score mt-1 text-[2.4rem] leading-none text-white sm:text-[3.6rem]">
+              <div className="otm-score mt-1 text-[2.2rem] leading-none text-white sm:text-[3.6rem]">
                 {live ? matchup.homeScore ?? "0" : matchup.homeProjected ?? "—"}
-                <span className="mx-1.5 text-[0.55em] font-semibold text-white/50">–</span>
+                <span className="mx-1 text-[0.55em] font-semibold text-white/50 sm:mx-1.5">–</span>
                 {live ? matchup.awayScore ?? "0" : matchup.awayProjected ?? "—"}
               </div>
-              <span className="mx-auto mt-2 block h-0.5 w-16 bg-white/70 sm:w-20" aria-hidden />
+              <span className="mx-auto mt-2 block h-0.5 w-14 bg-white/70 sm:w-20" aria-hidden />
               {live && (matchup.homeProjected || matchup.awayProjected) ? (
                 <div className="mt-2 font-mono text-[11px] text-white/70">
                   proj {matchup.homeProjected} – {matchup.awayProjected}

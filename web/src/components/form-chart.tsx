@@ -504,7 +504,7 @@ export function FormChart({
         <ChartTooltip tip={tip} />
       </div>
       {strip ? (
-        <div className="overflow-x-clip border-t border-border">
+        <div className="overflow-x-auto border-t border-border">
           <div
             className="grid max-w-full"
           style={{
@@ -547,7 +547,7 @@ export function FormChart({
       ) : null}
       <ol
         ref={listRef}
-        className="min-h-0 max-h-64 flex-1 overflow-auto md:max-h-none"
+        className="min-h-0 flex-1 md:max-h-none md:overflow-auto"
       >
         {ranked.map((s, rank) => {
           const on = s.id === activeId
@@ -907,7 +907,7 @@ export function PoolChart({
         </svg>
         <ChartTooltip tip={tip} />
       </div>
-      <div className="overflow-x-clip border-t border-border">
+      <div className="overflow-x-auto border-t border-border">
         <div
           className="grid max-w-full"
           style={{
@@ -981,7 +981,7 @@ export function PoolChart({
         <span className="w-16 text-right sm:w-14">Scored</span>
         <span className="w-16 text-right sm:w-14">Left</span>
       </div>
-      <ol className="min-h-0 max-h-64 flex-1 overflow-auto md:max-h-none">
+      <ol className="min-h-0 flex-1 md:max-h-none md:overflow-auto">
         {listPlayers.map((p, rank) => {
           const on = p.id === activePlayerId
           const listed = p as PoolPlayer & { groupId?: string }

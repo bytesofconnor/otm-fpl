@@ -155,15 +155,80 @@ export function OpportunityBoard() {
               }
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Showing top near-misses for context. Check back after fixtures.
+              Showing closest upgrades for context. Consider these if form changes significantly.
             </p>
           </div>
 
           {/* Near-miss cards */}
-          <div className="grid gap-4">
-            {data.debug!.topNearMisses.map((nearMiss, idx) => (
-              <NearMissCard key={`${nearMiss.playerName}-${idx}`} nearMiss={nearMiss} rank={idx + 1} />
-            ))}
+          <div>
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Blocked Upgrades ({data.debug!.topNearMisses.length})
+            </h3>
+            <div className="grid gap-4">
+              {data.debug!.topNearMisses.map((nearMiss, idx) => (
+                <NearMissCard key={`${nearMiss.playerName}-${idx}`} nearMiss={nearMiss} rank={idx + 1} />
+              ))}
+            </div>
+          </div>
+
+          {/* Next actions section */}
+          <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
+            <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
+              <span className="text-lg">💡</span>
+              Potential Next Actions
+            </h3>
+            <div className="space-y-3 text-sm">
+              {dropBanBlocked.length > 0 && (
+                <div className="flex gap-3">
+                  <span className="text-xl" aria-hidden>🔒</span>
+                  <div>
+                    <p className="font-medium">Consider Adjusting Protected Players</p>
+                    <p className="mt-1 text-muted-foreground">
+                      {dropBanBlocked.slice(0, 2).map(m => m.playerName).join(' and ')} could be strong pickups, but {dropBanBlocked.slice(0, 2).map(m => m.dropCandidate).filter((v, i, a) => a.indexOf(v) === i).join(', ')} {dropBanBlocked.slice(0, 2).filter((v, i, a) => a.findIndex(t => t.dropCandidate === v.dropCandidate) === i).length === 1 ? 'is' : 'are'} protected. Only adjust if these players become essential.
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              <div className="flex gap-3">
+                <span className="text-xl" aria-hidden>📊</span>
+                <div>
+                  <p className="font-medium">Check Waiver Wire Priorities</p>
+                  <p className="mt-1 text-muted-foreground">
+                    Visit <a href="/scout/waivers" className="text-primary underline-offset-4 hover:underline">Scout Waivers</a> to see prioritized waiver wire targets. WW claims don&apos;t require drops until after the claim period.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <span className="text-xl" aria-hidden>⚡</span>
+                <div>
+                  <p className="font-medium">Review Start/Sit Decisions</p>
+                  <p className="mt-1 text-muted-foreground">
+                    Head to <a href="/scout/matchup" className="text-primary underline-offset-4 hover:underline">Matchup Prep</a> to see your lineup heatmap and identify any cold starters who could be benched for hot bench players.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <span className="text-xl" aria-hidden>📅</span>
+                <div>
+                  <p className="font-medium">Monitor After Fixtures</p>
+                  <p className="mt-1 text-muted-foreground">
+                    Form changes after each gameweek. Check back after the next round of fixtures when new returns and minutes data updates the rankings.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Info section about the scout */}
+          <div className="rounded-lg border border-border bg-muted/20 p-4">
+            <h4 className="mb-2 text-sm font-semibold">How Scout Works</h4>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              Scout recommends FA pickups when they significantly outperform your bench players by form score (goals, assists, clean sheets, minutes). 
+              Protected players are never suggested for drops. When no immediate upgrades exist, near-misses show potential moves to consider if circumstances change.
+            </p>
           </div>
 
           {/* Debug toggle (collapsed by default) */}
@@ -181,9 +246,9 @@ export function OpportunityBoard() {
       )
     }
     
-    // True empty state (no opportunities, no near-misses)
-    let emptyMessage = "All available players are below your roster quality."
-    let emptyHint = "Check back after fixtures or adjust your roster."
+    // True empty state (no opportunities, no near-misses) - very rare
+    let emptyMessage = "No players available meet upgrade criteria."
+    let emptyHint = "Check back after fixtures, or visit Waivers and Matchup Prep for other opportunities."
     
     if (!data) {
       emptyMessage = "Unable to load opportunities"
@@ -194,20 +259,52 @@ export function OpportunityBoard() {
     }
     
     return (
-      <div className="rounded-lg border border-border bg-muted/20 p-8 text-center">
-        <p className="text-lg font-medium">No opportunities found</p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {emptyMessage}
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {emptyHint}
-        </p>
+      <div className="space-y-6">
+        <div className="rounded-lg border border-border bg-muted/20 p-8 text-center">
+          <p className="text-lg font-medium">No opportunities found</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {emptyMessage}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {emptyHint}
+          </p>
+        </div>
+
+        {/* Still show next actions even in true empty state */}
+        <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
+          <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
+            <span className="text-lg">💡</span>
+            Where to Look Next
+          </h3>
+          <div className="space-y-3 text-sm">
+            <div className="flex gap-3">
+              <span className="text-xl" aria-hidden>📊</span>
+              <div>
+                <p className="font-medium">Waiver Wire</p>
+                <p className="mt-1 text-muted-foreground">
+                  Visit <a href="/scout/waivers" className="text-primary underline-offset-4 hover:underline">Scout Waivers</a> for prioritized waiver wire targets.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <span className="text-xl" aria-hidden>⚡</span>
+              <div>
+                <p className="font-medium">Matchup Prep</p>
+                <p className="mt-1 text-muted-foreground">
+                  Check <a href="/scout/matchup" className="text-primary underline-offset-4 hover:underline">Matchup Prep</a> for lineup optimization and start/sit decisions.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {data?.debug && (
-          <details className="mt-4 text-left">
-            <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
+          <details className="rounded-lg border border-border bg-muted/20 p-4">
+            <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground">
               Debug info (click to expand)
             </summary>
-            <pre className="mt-2 overflow-auto rounded-md bg-muted p-2 text-xs">
+            <pre className="mt-3 overflow-auto rounded-md bg-muted p-3 text-xs">
               {JSON.stringify(data.debug, null, 2)}
             </pre>
           </details>

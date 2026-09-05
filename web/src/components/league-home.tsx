@@ -179,7 +179,7 @@ export function LeagueHome(): React.ReactElement {
             aria-expanded={switching}
             onClick={() => setSwitching((open) => !open)}
           >
-            {switching ? "Cancel" : "Switch"}
+            {switching ? "Cancel" : "Add league"}
           </Button>
         )}
       </div>

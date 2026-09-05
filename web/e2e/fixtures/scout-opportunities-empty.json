@@ -1,0 +1,39 @@
+{
+  "leagueId": "7hjk3otbkaycu7v8",
+  "teamId": "fqzp0okbkaycu7v8",
+  "teamName": "Connor's Team",
+  "timestamp": "2026-09-04T23:30:00.000Z",
+  "currentPeriod": 27,
+  "opportunities": [],
+  "debug": {
+    "totalUnowned": 150,
+    "afterWireFilter": 120,
+    "afterSignalFilter": 85,
+    "afterTeamExclusionFilter": 80,
+    "afterFixtureFilter": 65,
+    "afterBenchComparisonFilter": 40,
+    "afterFormGapFilter": 12,
+    "afterDropBanFilter": 0,
+    "finalCandidates": 0,
+    "minFormScoreGap": 5.0,
+    "topNearMisses": [
+      {
+        "playerName": "Alexander Isak",
+        "formGap": 4.2,
+        "blockedBy": "drop_ban",
+        "dropCandidate": "Cole Palmer"
+      },
+      {
+        "playerName": "Mohamed Salah",
+        "formGap": 3.8,
+        "blockedBy": "drop_ban",
+        "dropCandidate": "Erling Haaland"
+      },
+      {
+        "playerName": "Kevin De Bruyne",
+        "formGap": 2.1,
+        "blockedBy": "form_gap"
+      }
+    ]
+  }
+}

@@ -234,7 +234,7 @@ function TeamMark({
           {you ? <Badge variant="live">You</Badge> : null}
         </div>
         <div className="otm-title mt-0.5 whitespace-normal break-words text-[1rem] leading-tight text-white sm:text-[1.35rem] line-clamp-2">{name}</div>
-        {owner ? <div className="mt-0.5 hidden whitespace-normal break-words text-[13px] text-white/70 sm:block line-clamp-1">{owner}</div> : null}
+        {owner ? <div className="mt-0.5 hidden whitespace-normal break-words text-[13px] text-white/70 sm:block line-clamp-2">{owner}</div> : null}
       </div>
     </div>
   )
@@ -330,7 +330,7 @@ export function LeagueWeek({
     <Card size="flush" className="otm-pitch">
       <div className="flex items-center justify-between gap-3 border-b border-white/25 px-4 py-4 sm:px-7">
         <div className="min-w-0 flex-1">
-          <h2 className="otm-title text-[1.6rem] text-white sm:text-[2rem]">This week</h2>
+          <h2 className="otm-title text-[1.6rem] text-white sm:text-[2rem]">{live ? "This week" : periodLabel || `GW${period}`}</h2>
           <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[13px]">
             {live ? <Badge variant="live" className="text-[11px]">Live</Badge> : null}
             <span className="font-semibold text-white">{periodLabel || `GW${period}`}</span>
@@ -424,13 +424,13 @@ export function LeagueWeek({
               }`}
             >
               <div className="flex items-baseline justify-between gap-3 text-[13px] text-white">
-                <span className={`truncate ${game.yours ? "font-semibold" : "text-white/80"}`}>{game.home}</span>
+                <span className={`min-w-0 whitespace-normal break-words line-clamp-2 ${game.yours ? "font-semibold" : "text-white/80"}`}>{game.home}</span>
                 <span className={`otm-score shrink-0 text-[1.05rem] tabular-nums ${scoreClass(Number(live ? game.homeScore : game.homeProjected))}`}>
                   {live ? game.homeScore ?? "0" : game.homeProjected ?? "—"}
                 </span>
               </div>
               <div className="mt-1 flex items-baseline justify-between gap-3 text-[13px] text-white">
-                <span className={`truncate ${game.yours ? "font-semibold" : "text-white/80"}`}>{game.away}</span>
+                <span className={`min-w-0 whitespace-normal break-words line-clamp-2 ${game.yours ? "font-semibold" : "text-white/80"}`}>{game.away}</span>
                 <span className={`otm-score shrink-0 text-[1.05rem] tabular-nums ${scoreClass(Number(live ? game.awayScore : game.awayProjected))}`}>
                   {live ? game.awayScore ?? "0" : game.awayProjected ?? "—"}
                 </span>

@@ -220,7 +220,7 @@ export function LeagueHome(): React.ReactElement {
                   ) : (
                     <span className="h-6 w-6 rounded-md border border-border" />
                   )}
-                  <span className={`truncate ${row.you ? "font-medium text-foreground" : ""}`}>{row.teamName}</span>
+                  <span className={`min-w-0 whitespace-normal break-words line-clamp-2 ${row.you ? "font-medium text-foreground" : ""}`}>{row.teamName}</span>
                 </li>
               ))}
             </ul>
@@ -235,13 +235,13 @@ export function LeagueHome(): React.ReactElement {
                 >
                   <span className="flex min-w-0 items-center gap-3">
                     <span
-                      className={`flex h-6 w-6 items-center justify-center rounded-md font-mono text-[11px] ${
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md font-mono text-[11px] ${
                         row.you ? "bg-foreground text-background" : "bg-muted text-muted-foreground"
                       }`}
                     >
                       {row.rank}
                     </span>
-                    <span className={`truncate ${row.you ? "font-medium text-foreground" : ""}`}>{row.teamName}</span>
+                    <span className={`min-w-0 whitespace-normal break-words line-clamp-2 ${row.you ? "font-medium text-foreground" : ""}`}>{row.teamName}</span>
                   </span>
                   <span className="shrink-0 font-mono text-[12px] tabular-nums">
                     {row.record}
@@ -259,7 +259,7 @@ export function LeagueHome(): React.ReactElement {
             <ul className="mt-3">
               {snap.waivers.map((p) => (
                 <li key={p.id} className="otm-row flex items-baseline justify-between gap-3 rounded-md px-1.5 py-2.5 text-[14px]">
-                  <span className="truncate text-foreground">{p.name}</span>
+                  <span className="min-w-0 whitespace-normal break-words text-foreground line-clamp-2">{p.name}</span>
                   <span className="shrink-0 text-[11px] uppercase tracking-wider text-muted-foreground">{p.team}</span>
                 </li>
               ))}
@@ -297,8 +297,8 @@ export function LeagueHome(): React.ReactElement {
               <ol className="mt-2">
                 {snap.draftPicks.map((pick) => (
                   <li key={pick.pick} className="flex items-baseline gap-3 border-b border-border py-1.5 text-[13px]">
-                    <span className="w-5 font-mono text-[11px] text-muted-foreground">{pick.pick}</span>
-                    <span className="min-w-0 truncate">
+                    <span className="w-5 shrink-0 font-mono text-[11px] text-muted-foreground">{pick.pick}</span>
+                    <span className="min-w-0 whitespace-normal break-words line-clamp-2">
                       {pick.playerName}
                       <span className="ml-2 text-[11px] uppercase tracking-wider text-muted-foreground">
                         {pick.playerTeam} · {pick.teamName}

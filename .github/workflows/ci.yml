@@ -196,18 +196,12 @@ jobs:
         env:
           CI: true
 
-      - name: Upload test results
+      - name: Upload Playwright artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-results
-          path: web/playwright-report/
-          retention-days: 7
-
-      - name: Upload test traces
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-traces
-          path: web/test-results/
-          retention-days: 7
+          name: playwright-artifacts
+          path: |
+            web/playwright-report/
+            web/test-results/
+          retention-days: 14

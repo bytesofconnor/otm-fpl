@@ -35,6 +35,86 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
+## Quality Gates
+
+This project enforces strict quality gates in CI to prevent production incidents:
+
+### CI Checks (Required on PR + Push to Main)
+
+1. **ESLint** - Code quality and best practices
+   - Run locally: `npm run lint`
+   - Catches React/Next.js App Router footguns
+   - TypeScript strict rules (no explicit `any`, unused vars)
+   - Accessibility rules (jsx-a11y)
+
+2. **Build** - Ensures the app compiles successfully
+   - Run locally: `npm run build`
+   - Fast-fail check before running slower tests
+   - Catches TypeScript errors and build-time issues
+
+3. **Git Conflict Markers** - Scans for unresolved merge conflicts
+   - Prevents `<<<<<<<`, `=======`, `>>>>>>>` from reaching main
+   - Scans all source files in `web/` (excluding node_modules, .next)
+
+4. **useSearchParams + Suspense** - Validates proper Next.js App Router patterns
+   - Client components using `useSearchParams()` must be wrapped in `<Suspense>` boundaries
+   - Prevents entire pages from becoming client-rendered
+   - Prevents runtime crashes from missing Suspense boundaries
+   - **Pattern:**
+     ```tsx
+     // page.tsx (Server Component)
+     import { Suspense } from "react"
+     import { ClientComponent } from "@/components/client-component"
+     
+     export default function Page() {
+       return (
+         <Suspense fallback={<div>Loading...</div>}>
+           <ClientComponent />
+         </Suspense>
+       )
+     }
+     
+     // client-component.tsx (Client Component)
+     "use client"
+     import { useSearchParams } from "next/navigation"
+     
+     export function ClientComponent() {
+       const searchParams = useSearchParams()
+       // ... component logic
+     }
+     ```
+
+5. **E2E Tests** - Playwright tests covering all routes
+   - Run locally: `npm run test:e2e`
+   - Desktop and mobile viewports
+   - Accessibility testing (WCAG 2.0/2.1 Level A & AA)
+   - Only runs after all other checks pass
+
+### Why These Gates?
+
+These checks prevent two classes of incidents that reached production:
+
+1. **Git conflict markers merged to main** - Broke Vercel deployments
+   - Now caught by conflict marker scanner before merge
+
+2. **useSearchParams without Suspense** - Client-side crashes in production
+   - Now caught by Suspense validation check before merge
+   - All Scout pages now properly wrap client components in Suspense
+
+### Running Checks Locally
+
+```bash
+# Run all checks (recommended before pushing)
+npm run lint
+npm run build
+npm run test:e2e
+
+# Or run individual checks
+npm run lint         # ESLint
+npm run build        # TypeScript + Next.js build
+npm run test:e2e:ui  # E2E tests with UI (interactive)
+```
+
 ## Environment template
 
 Create a `.env.local` file in this `web/` folder if you need to override defaults.

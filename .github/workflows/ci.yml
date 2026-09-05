@@ -1,0 +1,213 @@
+name: CI Quality Gates
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: web
+        run: npm run lint
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Build Next.js app
+        working-directory: web
+        run: npm run build
+
+  conflict-markers:
+    name: Check for Git Conflict Markers
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Scan for conflict markers
+        run: |
+          echo "Scanning web/ directory for git conflict markers..."
+          
+          # Search for conflict markers in web/ excluding node_modules
+          if git grep -E '^(<{7}|={7}|>{7})' -- 'web/**/*.ts' 'web/**/*.tsx' 'web/**/*.js' 'web/**/*.jsx' 'web/**/*.css' 'web/**/*.json' ':!web/node_modules/**' ':!web/.next/**'; then
+            echo "❌ ERROR: Git conflict markers found in source code!"
+            echo ""
+            echo "The following files contain conflict markers (<<<<<<<, =======, >>>>>>>):"
+            git grep -n -E '^(<{7}|={7}|>{7})' -- 'web/**/*.ts' 'web/**/*.tsx' 'web/**/*.js' 'web/**/*.jsx' 'web/**/*.css' 'web/**/*.json' ':!web/node_modules/**' ':!web/.next/**' || true
+            echo ""
+            echo "Please resolve all merge conflicts before pushing."
+            exit 1
+          else
+            echo "✅ No conflict markers found in source code."
+          fi
+
+  suspense-check:
+    name: Check useSearchParams + Suspense
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate useSearchParams usage
+        run: |
+          echo "Checking that components using useSearchParams are wrapped in Suspense..."
+          
+          # Find all client components that use useSearchParams
+          files_with_usesearchparams=$(grep -rl "useSearchParams" web/src --include="*.tsx" --include="*.ts" | grep -E "components/|app/" || true)
+          
+          if [ -z "$files_with_usesearchparams" ]; then
+            echo "✅ No files using useSearchParams found."
+            exit 0
+          fi
+          
+          echo "Found files using useSearchParams:"
+          echo "$files_with_usesearchparams"
+          echo ""
+          
+          has_error=0
+          
+          for file in $files_with_usesearchparams; do
+            # Check if it's a component file (not a page)
+            if [[ $file == *"/components/"* ]] && [[ $file == *".tsx" ]]; then
+              # Check if the file has "use client" directive
+              if grep -q "^['\"]use client['\"]" "$file"; then
+                echo "⚠️  Component $file uses useSearchParams and is a client component."
+                echo "   Ensure it's wrapped in <Suspense> in the consuming page."
+                
+                # Try to find pages that import this component
+                component_name=$(basename "$file" .tsx)
+                pages_using=$(grep -rl "from.*$component_name" web/src/app --include="page.tsx" || true)
+                
+                if [ -n "$pages_using" ]; then
+                  echo "   Pages using this component:"
+                  for page in $pages_using; do
+                    echo "   - $page"
+                    # Check if the page has Suspense import
+                    if ! grep -q "import.*Suspense.*from.*react" "$page"; then
+                      echo "     ❌ ERROR: Page does not import Suspense!"
+                      has_error=1
+                    elif ! grep -q "<Suspense" "$page"; then
+                      echo "     ❌ ERROR: Page does not use <Suspense> wrapper!"
+                      has_error=1
+                    else
+                      echo "     ✅ Page properly wraps component in Suspense"
+                    fi
+                  done
+                fi
+              fi
+            elif [[ $file == *"/app/"* ]] && [[ $file == *"page.tsx" ]]; then
+              # It's a page component using useSearchParams
+              if grep -q "^['\"]use client['\"]" "$file"; then
+                echo "❌ ERROR: Page component $file uses useSearchParams and is marked 'use client'!"
+                echo "   This will cause the entire page to be client-rendered."
+                echo "   Extract useSearchParams usage to a separate client component and wrap it in Suspense."
+                has_error=1
+              fi
+            fi
+          done
+          
+          echo ""
+          if [ $has_error -eq 1 ]; then
+            echo "❌ FAILED: useSearchParams components must be wrapped in Suspense boundaries."
+            echo ""
+            echo "Requirements:"
+            echo "1. Client components using useSearchParams must be wrapped in <Suspense> in their consuming page"
+            echo "2. Page components should NOT use useSearchParams directly with 'use client'"
+            echo "3. See web/README.md for the useSearchParams + Suspense pattern"
+            exit 1
+          else
+            echo "✅ All useSearchParams usage appears to be properly handled with Suspense."
+          fi
+
+  e2e:
+    name: E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [lint, build, conflict-markers, suspense-check]
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: web
+        run: npx playwright install --with-deps chromium
+
+      - name: Build Next.js app
+        working-directory: web
+        run: npm run build
+
+      - name: Run Playwright tests
+        working-directory: web
+        run: npm run test:e2e
+        env:
+          CI: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: web/playwright-report/
+          retention-days: 7
+
+      - name: Upload test traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: web/test-results/
+          retention-days: 7

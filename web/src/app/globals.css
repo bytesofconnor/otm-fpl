@@ -160,17 +160,23 @@ body {
   position: fixed;
   inset: 0;
   z-index: 0;
-  background:
-    radial-gradient(70% 42% at 50% -8%, rgba(255, 236, 170, 0.28), transparent 50%),
-    radial-gradient(90% 50% at 50% 100%, rgba(28, 160, 72, 0.45), transparent 62%),
-    repeating-linear-gradient(
-      90deg,
-      rgba(18, 92, 42, 0.22) 0px,
-      rgba(18, 92, 42, 0.22) 56px,
-      rgba(10, 58, 28, 0.18) 56px,
-      rgba(10, 58, 28, 0.18) 112px
-    ),
-    #07110c;
+  background: #07110c;
+}
+
+@media (min-width: 640px) {
+  .otm-stadium {
+    background:
+      radial-gradient(70% 42% at 50% -8%, rgba(255, 236, 170, 0.28), transparent 50%),
+      radial-gradient(90% 50% at 50% 100%, rgba(28, 160, 72, 0.45), transparent 62%),
+      repeating-linear-gradient(
+        90deg,
+        rgba(18, 92, 42, 0.22) 0px,
+        rgba(18, 92, 42, 0.22) 56px,
+        rgba(10, 58, 28, 0.18) 56px,
+        rgba(10, 58, 28, 0.18) 112px
+      ),
+      #07110c;
+  }
 }
 
 .otm-pitch {

@@ -13,8 +13,8 @@ test.describe("Home (League) Page", () => {
     // Wait for main content to load
     await expect(page.locator("main")).toBeVisible()
     
-    // Check for navigation (structure updated in PR #24)
-    await expect(page.locator("nav")).toBeVisible({ timeout: 10000 })
+    // Check for primary navigation (structure updated in PR #24)
+    await expect(page.locator('nav[aria-label="Primary"]')).toBeVisible({ timeout: 10000 })
   })
 
   test("should render on mobile viewport", async ({ page }) => {
@@ -24,8 +24,8 @@ test.describe("Home (League) Page", () => {
     // Wait for content
     await expect(page.locator("main")).toBeVisible()
     
-    // Check for mobile navigation
-    const nav = page.locator("nav")
+    // Check for primary navigation
+    const nav = page.locator('nav[aria-label="Primary"]')
     await expect(nav).toBeVisible()
     
     // Check no horizontal overflow
@@ -56,8 +56,8 @@ test.describe("Home (League) Page", () => {
   test("should have accessible navigation", async ({ page }) => {
     await page.goto("/")
     
-    // Check for navigation landmarks
-    const nav = page.locator("nav")
+    // Check for primary navigation landmark
+    const nav = page.locator('nav[aria-label="Primary"]')
     await expect(nav).toBeVisible()
     
     // Navigation links should be accessible

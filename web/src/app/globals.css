@@ -59,6 +59,12 @@
   }
 }
 
+@media (max-width: 639px) {
+  :root {
+    --header-h: 3rem;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

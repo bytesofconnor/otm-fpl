@@ -21,12 +21,12 @@ import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-m
 
 const LEAGUE_KEY = "otm_fantrax_league_id"
 const TEAM_KEY = "otm_fantrax_team_id"
-const POSITIONS = ["GKP", "DEF", "MID", "FWD"] as const
+const POSITIONS = ["G", "D", "M", "F"] as const
 const POS_COLS = [
-  { id: "GKP", code: "GK", name: "Keepers" },
-  { id: "DEF", code: "DEF", name: "Defenders" },
-  { id: "MID", code: "MID", name: "Mids" },
-  { id: "FWD", code: "FWD", name: "Forwards" },
+  { id: "G", code: "GK", name: "Keepers" },
+  { id: "D", code: "DEF", name: "Defenders" },
+  { id: "M", code: "MID", name: "Mids" },
+  { id: "F", code: "FWD", name: "Forwards" },
 ] as const
 const PANES = ["teams", "league", "players", "wire"] as const
 type FormPane = (typeof PANES)[number]

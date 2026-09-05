@@ -150,13 +150,6 @@ function formatTick(tick: number): string {
   return tick.toFixed(1)
 }
 
-/** Last name, owner handle, or team code so the plot axis stays readable. */
-function shortLabel(label: string, code?: string): string {
-  if (code && code.length <= 14) return code
-  const parts = label.replace(/['’]/g, "").trim().split(/\s+/)
-  if (parts.length >= 2) return parts[parts.length - 1].slice(0, 9)
-  return label.slice(0, 8)
-}
 
 /** Ultra-short code for cramped mobile x-axis. Max 5 chars to prevent overlap. */
 function mobileLabel(label: string, code?: string): string {
@@ -511,10 +504,10 @@ export function FormChart({
         <div className="overflow-x-auto border-t border-border">
           <div
             className="grid"
-            style={{
-              gridTemplateColumns: `${pad.left}px repeat(${Math.max(1, plotted.length)}, minmax(0, 1fr)) ${pad.right}px`,
-              minWidth: `${pad.left + plotted.length * 44 + pad.right}px`,
-            }}
+          style={{
+            gridTemplateColumns: `${pad.left}px repeat(${Math.max(1, plotted.length)}, minmax(44px, 1fr)) ${pad.right}px`,
+            minWidth: `${pad.left + plotted.length * 44 + pad.right}px`,
+          }}
           >
             <div />
             {plotted.map((s) => (
@@ -531,8 +524,7 @@ export function FormChart({
                 }`}
               >
                 <span className="block max-w-full break-words hyphens-auto" lang="en">
-                  <span className="sm:hidden">{mobileLabel(s.label, s.code)}</span>
-                  <span className="hidden sm:inline">{s.code ?? shortLabel(s.label)}</span>
+                  {mobileLabel(s.label, s.code)}
                 </span>
               </Button>
             ))}
@@ -915,7 +907,7 @@ export function PoolChart({
         <div
           className="grid"
           style={{
-            gridTemplateColumns: `${pad.left}px repeat(${Math.max(1, visible.length)}, minmax(0, 1fr)) ${pad.right}px`,
+            gridTemplateColumns: `${pad.left}px repeat(${Math.max(1, visible.length)}, minmax(44px, 1fr)) ${pad.right}px`,
             minWidth: `${pad.left + visible.length * 44 + pad.right}px`,
           }}
         >

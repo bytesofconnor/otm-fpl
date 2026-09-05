@@ -128,7 +128,7 @@ export function OpportunityBoard() {
     )
   }
 
-  if (!data || data.opportunities.length === 0) {
+  if (!data || !data.opportunities || data.opportunities.length === 0) {
     // Better empty state messaging based on context
     let emptyMessage = "All available players are below your roster quality."
     let emptyHint = "Check back after fixtures or adjust your roster."
@@ -193,9 +193,11 @@ export function OpportunityBoard() {
         <p className="text-sm text-muted-foreground">
           {data.opportunities.length} opportunities ranked by form
         </p>
-        <p className="text-xs text-muted-foreground">
-          Updated {new Date(data.timestamp).toLocaleTimeString()}
-        </p>
+        {data.timestamp && (
+          <p className="text-xs text-muted-foreground">
+            Updated {new Date(data.timestamp).toLocaleTimeString()}
+          </p>
+        )}
       </div>
 
       <div className="grid gap-4">

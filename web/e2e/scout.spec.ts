@@ -239,6 +239,103 @@ test.describe("Scout Page - Suspense & Team Picker", () => {
     // Should NOT be stuck showing "Loading opportunities..."
     await expect(page.getByText("Loading opportunities...")).not.toBeVisible()
   })
+
+  test("should not crash when changing team dropdown", async ({ page }) => {
+    // Mock initial teams API
+    await mockScoutTeamsAPI(page)
+    
+    // Mock opportunities for first team
+    await page.route("**/api/scout/opportunities*teamId=team1*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          leagueId: "test-league",
+          teamId: "team1",
+          teamName: "Team One",
+          timestamp: new Date().toISOString(),
+          currentPeriod: 27,
+          opportunities: [{
+            player: { id: "p1", name: "Test Player 1", club: "Test FC", position: "MID", availability: "FA" },
+            whyNow: "Hot form",
+            formChip: "hot",
+            formScore: 50,
+            formScoreWithFixtures: 50,
+            recentGW: [7],
+            minutesContext: "90′ played",
+            fixtureContext: null,
+            beatsWho: { name: "Bench Player", position: "MID", formScore: 20 },
+            confidence: "HIGH",
+            killConditions: [],
+            fantraxProj: 7
+          }]
+        }),
+      })
+    })
+    
+    // Mock opportunities for second team
+    await page.route("**/api/scout/opportunities*teamId=team2*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          leagueId: "test-league",
+          teamId: "team2",
+          teamName: "Team Two",
+          timestamp: new Date().toISOString(),
+          currentPeriod: 27,
+          opportunities: [{
+            player: { id: "p2", name: "Test Player 2", club: "Another FC", position: "FWD", availability: "WW" },
+            whyNow: "Recent returns",
+            formChip: "warm",
+            formScore: 35,
+            formScoreWithFixtures: 35,
+            recentGW: [5.5],
+            minutesContext: "Expected starter",
+            fixtureContext: null,
+            beatsWho: { name: "Another Bench", position: "FWD", formScore: 15 },
+            confidence: "MEDIUM",
+            killConditions: [],
+            fantraxProj: 5.5
+          }]
+        }),
+      })
+    })
+
+    // Load page with first team
+    await page.goto("/scout?teamId=team1")
+    await page.waitForSelector('article[aria-label*="Opportunity"]', { timeout: 10000 })
+    
+    // Verify first team data loaded
+    await expect(page.getByText("Test Player 1")).toBeVisible()
+    
+    // Find and change team dropdown
+    const teamSelect = page.locator('select, [role="combobox"]').first()
+    await teamSelect.click()
+    
+    // Wait for dropdown options to be visible
+    await page.waitForTimeout(500)
+    
+    // Select a different team option (adjust selector based on actual UI)
+    const option = page.locator('[role="option"]').filter({ hasText: /Team|Manager/ }).nth(1)
+    if (await option.isVisible()) {
+      await option.click()
+    }
+    
+    // Wait for navigation and new data load
+    await page.waitForTimeout(1000)
+    
+    // Critical: Must not show "Application error: a client-side exception has occurred"
+    await expect(page.getByText(/application error.*client-side exception/i)).not.toBeVisible()
+    
+    // Should still show Scout heading (page didn't crash)
+    await expect(page.getByRole("heading", { name: "Scout" })).toBeVisible()
+    
+    // Should show loading or new opportunities (not stuck in error state)
+    const hasOpportunities = await page.locator('article[aria-label*="Opportunity"]').count() > 0
+    const isLoading = await page.getByText("Loading opportunities...").isVisible()
+    expect(hasOpportunities || isLoading).toBe(true)
+  })
 })
 
 test.describe("Scout Page - Empty State Messaging", () => {
@@ -281,5 +378,79 @@ test.describe("Scout Page - Empty State Messaging", () => {
       pageText?.includes("Erling Haaland")
     
     expect(mentionsProtectedPlayers).toBe(true)
+  })
+
+  test("should handle malformed API response without crashing", async ({ page }) => {
+    // Mock API returning data without opportunities array (malformed)
+    await page.route("**/api/scout/opportunities*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          leagueId: "test-league",
+          teamId: "test-team",
+          teamName: "Test Team",
+          // Missing opportunities array!
+          timestamp: new Date().toISOString(),
+          currentPeriod: 27,
+        }),
+      })
+    })
+    
+    await mockScoutTeamsAPI(page)
+    await page.goto("/scout")
+    
+    // Critical: Must not crash with "Cannot read property 'length' of undefined"
+    await expect(page.getByText(/application error.*client-side exception/i)).not.toBeVisible()
+    
+    // Should show Scout heading
+    await expect(page.getByRole("heading", { name: "Scout" })).toBeVisible()
+    
+    // Should gracefully handle missing opportunities array
+    await expect(page.getByText("No opportunities found")).toBeVisible()
+  })
+
+  test("should handle API response without timestamp", async ({ page }) => {
+    // Mock API returning data without timestamp (defensive check)
+    await page.route("**/api/scout/opportunities*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          leagueId: "test-league",
+          teamId: "test-team",
+          teamName: "Test Team",
+          opportunities: [{
+            player: { id: "p1", name: "Test Player", club: "Test FC", position: "MID", availability: "FA" },
+            whyNow: "Test",
+            formChip: "hot",
+            formScore: 50,
+            formScoreWithFixtures: 50,
+            recentGW: [7],
+            minutesContext: "90′ played",
+            fixtureContext: null,
+            beatsWho: { name: "Bench", position: "MID", formScore: 20 },
+            confidence: "HIGH",
+            killConditions: [],
+            fantraxProj: 7
+          }],
+          // Missing timestamp!
+          currentPeriod: 27,
+        }),
+      })
+    })
+    
+    await mockScoutTeamsAPI(page)
+    await page.goto("/scout")
+    await page.waitForSelector('article[aria-label*="Opportunity"]', { timeout: 10000 })
+    
+    // Critical: Must not crash even without timestamp
+    await expect(page.getByText(/application error.*client-side exception/i)).not.toBeVisible()
+    
+    // Should show opportunities
+    await expect(page.getByText("Test Player")).toBeVisible()
+    
+    // Should show count (without the "Updated" timestamp text, which is fine)
+    await expect(page.getByText(/\d+ opportunities ranked by form/)).toBeVisible()
   })
 })

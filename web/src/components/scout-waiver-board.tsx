@@ -133,7 +133,7 @@ export function WaiverBoard() {
     )
   }
 
-  if (!data || data.waivers.length === 0) {
+  if (!data || !data.waivers || data.waivers.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-border bg-muted/20 p-8 text-center">
         <p className="text-sm text-muted-foreground">

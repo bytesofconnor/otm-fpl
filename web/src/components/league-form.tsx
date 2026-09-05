@@ -21,12 +21,12 @@ import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-m
 
 const LEAGUE_KEY = "otm_fantrax_league_id"
 const TEAM_KEY = "otm_fantrax_team_id"
-const POSITIONS = ["G", "D", "M", "F"] as const
+const POSITIONS = ["GKP", "DEF", "MID", "FWD"] as const
 const POS_COLS = [
-  { id: "G", code: "GK", name: "Keepers" },
-  { id: "D", code: "DEF", name: "Defenders" },
-  { id: "M", code: "MID", name: "Mids" },
-  { id: "F", code: "FWD", name: "Forwards" },
+  { id: "GKP", code: "GK", name: "Keepers" },
+  { id: "DEF", code: "DEF", name: "Defenders" },
+  { id: "MID", code: "MID", name: "Mids" },
+  { id: "FWD", code: "FWD", name: "Forwards" },
 ] as const
 const PANES = ["teams", "league", "players", "wire"] as const
 type FormPane = (typeof PANES)[number]
@@ -285,14 +285,14 @@ export function LeagueForm(): React.ReactElement {
   const managerPoints = data.managers.map((m) => (seasonView ? m.points : [m.points[Math.max(0, weekIndex)]].filter(Boolean)))
   const managerLabels = seasonView ? weekPeriods.map((p) => `GW${p}`) : [`GW${activeWeek}`]
   const unownedFiltered = data.unowned.filter((p) => {
-    if (positions.length && !positions.includes(p.position[0] ?? "")) return false
+    if (positions.length && !positions.includes(p.position)) return false
     if (!query.trim()) return true
     const q = query.trim().toLowerCase()
     return `${p.name} ${p.team} ${p.wire ?? ""}`.toLowerCase().includes(q)
   })
   const leagueOwned = data.leagueOwned.filter((p) => {
     if (p.points == null) return false
-    if (positions.length && !positions.includes(p.position[0] ?? "")) return false
+    if (positions.length && !positions.includes(p.position)) return false
     if (!query.trim()) return true
     const manager = data.managers.find((m) => m.teamId === p.ownerTeamId)
     return `${p.name} ${p.team} ${manager?.name ?? ""} ${manager?.shortName ?? ""} ${manager?.owner ?? ""}`.toLowerCase().includes(query.trim().toLowerCase())
@@ -523,7 +523,7 @@ export function LeagueForm(): React.ReactElement {
           role="tabpanel"
           aria-labelledby={`form-tab-${pane}`}
           tabIndex={-1}
-          className="overflow-x-clip outline-none max-w-full"
+          className="outline-none max-w-full"
           onPointerDown={onSwipeStart}
           onPointerUp={onSwipeEnd}
           onPointerCancel={() => {

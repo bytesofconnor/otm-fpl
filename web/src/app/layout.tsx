@@ -8,6 +8,7 @@ import { Footer } from "@/components/footer"
 import { TopProgress } from "@/components/ui/top-progress"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { LeagueStatusProvider } from "@/components/league-status"
+import { IOSInstallPrompt } from "@/components/ios-install-prompt"
 
 const sans = Barlow_Semi_Condensed({
   variable: "--font-sans-otm",
@@ -71,11 +72,21 @@ export const metadata: Metadata = {
     icon: [
       { url: "/favicon.ico" },
       { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
     ],
     shortcut: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
   manifest: "/site.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "OTM FPL",
+  },
+  applicationName: "Over the Moon",
 }
 
 export default function RootLayout({
@@ -85,6 +96,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
+      <head>
+        {/* PWA & iOS-specific meta tags */}
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="OTM FPL" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+      </head>
       <body className={`${sans.variable} ${display.variable} ${plexMono.variable} antialiased bg-background text-foreground`}>
         <div className="otm-stadium" aria-hidden />
         <LeagueStatusProvider>
@@ -104,6 +124,7 @@ export default function RootLayout({
             <main id="main-content" className="flex-1">{children}</main>
             <Footer />
           </div>
+          <IOSInstallPrompt />
           <Analytics />
           <SpeedInsights />
           </TooltipProvider>

@@ -148,6 +148,8 @@ body {
   font-family: var(--font-sans-otm), ui-sans-serif, system-ui, sans-serif;
   letter-spacing: 0;
   font-feature-settings: "ss01" 0, "kern" 1;
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 ::selection {

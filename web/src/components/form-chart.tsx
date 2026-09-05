@@ -254,8 +254,8 @@ export function FormChart({
   const { tip, show, hide } = useSvgTip(wrapRef)
   const desktop = useDesktopPlot()
   const width = desktop ? 1080 : 720
-  const height = desktop ? 380 : 500
-  const pad = { top: 12, right: 12, bottom: 10, left: 36 }
+  const height = desktop ? 380 : 420
+  const pad = { top: 16, right: 12, bottom: 12, left: 40 }
   const innerW = width - pad.left - pad.right
   const innerH = height - pad.top - pad.bottom
   const nums = series.flatMap((s) => [
@@ -361,18 +361,19 @@ export function FormChart({
       ) : undefined}
       chart={
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <div ref={wrapRef} className="relative min-h-[260px] flex-1 overflow-visible md:min-h-0" onPointerLeave={hide}>
+      <div ref={wrapRef} className="relative min-h-[280px] flex-1 overflow-visible md:min-h-0" onPointerLeave={hide}>
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full touch-pan-y md:absolute md:inset-0 md:h-full" role="img" aria-label={title}>
           {yTicks.map((tick) => (
             <g key={tick}>
               <line x1={pad.left} x2={width - pad.right} y1={y(tick)} y2={y(tick)} stroke="var(--line)" strokeWidth="1" strokeOpacity="0.7" />
               <text
-                x={pad.left - 6}
+                x={pad.left - 8}
                 y={y(tick)}
                 textAnchor="end"
                 dominantBaseline="middle"
                 fill="var(--muted-foreground)"
-                fontSize="10"
+                fontSize={desktop ? "10" : "11"}
+                fontWeight={desktop ? "normal" : "500"}
                 fontFamily="var(--font-mono-otm), ui-monospace, monospace"
               >
                 {formatTick(tick)}
@@ -486,10 +487,11 @@ export function FormChart({
                 <text
                   key={`${label}-${i}`}
                   x={xAt(i, 0)}
-                  y={height - 8}
+                  y={height - 6}
                   textAnchor="middle"
                   fill="var(--muted-foreground)"
-                  fontSize="10"
+                  fontSize={desktop ? "10" : "11"}
+                  fontWeight={desktop ? "normal" : "500"}
                   fontFamily="var(--font-mono-otm), ui-monospace, monospace"
                   className={onTick ? "cursor-pointer" : undefined}
                   onClick={() => onTick?.(i)}
@@ -506,7 +508,8 @@ export function FormChart({
           <div
             className="grid max-w-full"
           style={{
-            gridTemplateColumns: `${pad.left}px repeat(${Math.max(1, plotted.length)}, minmax(36px, 1fr)) ${pad.right}px`,
+            gridTemplateColumns: `${pad.left}px repeat(${Math.max(1, plotted.length)}, minmax(54px, 1fr)) ${pad.right}px`,
+            minWidth: `${pad.left + plotted.length * 54 + pad.right}px`,
           }}
           >
             <div />
@@ -519,7 +522,7 @@ export function FormChart({
                 title={s.label}
                 aria-label={s.label}
                 onClick={() => onSelect?.(s.id)}
-                className={`tap h-auto min-h-[52px] min-w-[52px] justify-center rounded-none px-1 py-2.5 text-center text-[12px] font-semibold leading-tight tracking-wide sm:text-[12px] md:text-[13px] ${
+                className={`tap h-auto min-h-[56px] min-w-[54px] justify-center rounded-none px-1 py-3 text-center text-[13px] font-semibold leading-tight tracking-wide sm:text-[12px] md:text-[13px] ${
                   s.id === activeId ? "text-foreground" : "text-muted-foreground"
                 }`}
               >
@@ -562,16 +565,16 @@ export function FormChart({
                   type="button"
                   variant="ghost"
                   onClick={() => onSelect?.(s.id)}
-                  className="tap h-auto min-h-0 min-w-0 flex-1 justify-start gap-2.5 rounded-none px-0 py-2 text-left font-normal sm:gap-3"
+                  className="tap h-auto min-h-11 min-w-0 flex-1 justify-start gap-2.5 rounded-none px-0 py-2.5 text-left font-normal sm:min-h-10 sm:gap-3 sm:py-2"
                 >
-                  <span className="w-6 font-mono text-[12px] text-muted-foreground sm:w-5 sm:text-[11px]">{rank + 1}</span>
+                  <span className="w-7 font-mono text-[13px] text-muted-foreground sm:w-5 sm:text-[11px]">{rank + 1}</span>
                   {split ? (
                     <span
-                      className="h-2.5 w-2.5 shrink-0 rounded-sm border sm:h-2 sm:w-2"
+                      className="h-3 w-3 shrink-0 rounded-sm border sm:h-2 sm:w-2"
                       style={{ borderColor: color, background: scored != null && scored > 0 ? color : "transparent" }}
                     />
                   ) : (
-                    <span className="h-2.5 w-2.5 shrink-0 rounded-sm sm:h-2 sm:w-2" style={{ background: color }} />
+                    <span className="h-3 w-3 shrink-0 rounded-sm sm:h-2 sm:w-2" style={{ background: color }} />
                   )}
                   <span className="min-w-0 flex-1 [overflow-wrap:break-word] [word-break:normal] line-clamp-2 text-left" title={s.label}>{s.label}</span>
                   {s.hint === "You" ? <Badge variant="you" className="hidden sm:inline-flex">You</Badge> : null}
@@ -581,7 +584,7 @@ export function FormChart({
                     type="button"
                     variant="ghost"
                     onClick={() => onFilterOwner(s.ownerId!)}
-                    className="tap hidden h-auto min-h-0 max-w-[28%] min-w-0 truncate px-0 py-0 text-left text-[13px] font-normal text-muted-foreground sm:inline-flex sm:text-[12px]"
+                    className="tap hidden h-auto min-h-11 max-w-[28%] min-w-0 truncate px-2 py-2.5 text-left text-[14px] font-normal text-muted-foreground sm:inline-flex sm:min-h-10 sm:px-1.5 sm:py-2 sm:text-[12px]"
                     title={s.owner}
                   >
                     {s.owner}
@@ -594,7 +597,7 @@ export function FormChart({
                     type="button"
                     variant="ghost"
                     onClick={() => onFilterClub(s.club!)}
-                    className="tap hidden h-auto min-h-0 shrink-0 px-0 py-0 text-[13px] font-normal text-muted-foreground sm:inline-flex sm:text-[12px]"
+                    className="tap hidden h-auto min-h-11 shrink-0 px-2.5 py-2.5 text-[14px] font-normal text-muted-foreground sm:inline-flex sm:min-h-10 sm:px-1.5 sm:py-2 sm:text-[12px]"
                   >
                     {s.club}
                   </Button>
@@ -700,8 +703,8 @@ export function PoolChart({
   const { tip, show, hide } = useSvgTip(wrapRef)
   const desktop = useDesktopPlot()
   const width = desktop ? 1080 : 720
-  const height = desktop ? 400 : 520
-  const pad = { top: 12, right: 8, bottom: 8, left: 36 }
+  const height = desktop ? 400 : 440
+  const pad = { top: 16, right: 8, bottom: 12, left: 40 }
   const innerW = width - pad.left - pad.right
   const innerH = height - pad.top - pad.bottom
   const q = (query ?? "").trim().toLowerCase()
@@ -777,18 +780,19 @@ export function PoolChart({
       }
       chart={
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <div ref={wrapRef} className="relative min-h-[260px] flex-1 overflow-visible md:min-h-0" onPointerLeave={hide}>
+      <div ref={wrapRef} className="relative min-h-[290px] flex-1 overflow-visible md:min-h-0" onPointerLeave={hide}>
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full touch-pan-y md:absolute md:inset-0 md:h-full" role="img" aria-label={title}>
           {yTicks.map((tick) => (
             <g key={tick}>
               <line x1={pad.left} x2={width - pad.right} y1={y(tick)} y2={y(tick)} stroke="var(--line)" strokeWidth="1" strokeOpacity="0.7" />
               <text
-                x={pad.left - 6}
+                x={pad.left - 8}
                 y={y(tick)}
                 textAnchor="end"
                 dominantBaseline="middle"
                 fill="var(--muted-foreground)"
-                fontSize="10"
+                fontSize={desktop ? "10" : "11"}
+                fontWeight={desktop ? "normal" : "500"}
                 fontFamily="var(--font-mono-otm), ui-monospace, monospace"
               >
                 {formatTick(tick)}
@@ -907,7 +911,8 @@ export function PoolChart({
         <div
           className="grid max-w-full"
           style={{
-            gridTemplateColumns: `${pad.left}px repeat(${Math.max(1, visible.length)}, minmax(36px, 1fr)) ${pad.right}px`,
+            gridTemplateColumns: `${pad.left}px repeat(${Math.max(1, visible.length)}, minmax(48px, 1fr)) ${pad.right}px`,
+            minWidth: `${pad.left + visible.length * 48 + pad.right}px`,
           }}
         >
           <div />
@@ -921,12 +926,12 @@ export function PoolChart({
                 aria-pressed={on}
                 title={`${g.code} · ${g.name}`}
                 onClick={() => onSelect?.(g.id)}
-                className={`h-12 min-w-0 flex-col gap-0.5 rounded-none px-1 ${
+                className={`tap h-14 min-w-[48px] flex-col gap-0.5 rounded-none px-1.5 sm:h-12 ${
                   gi > 0 ? "border-l border-border" : ""
                 } ${on ? "bg-background font-semibold text-foreground" : "text-muted-foreground"}`}
               >
-                <span className="max-w-full truncate px-0.5 text-[11px] font-medium tracking-wide sm:text-[12px]">{g.code}</span>
-                <span className="font-mono text-[10px] tabular-nums text-muted-foreground">{g.players.length}</span>
+                <span className="max-w-full truncate px-0.5 text-[12px] font-medium tracking-wide sm:text-[12px]">{g.code}</span>
+                <span className="font-mono text-[11px] tabular-nums text-muted-foreground sm:text-[10px]">{g.players.length}</span>
               </Button>
             )
           })}
@@ -934,11 +939,11 @@ export function PoolChart({
         </div>
       </div>
       {swatches || !listAll ? (
-      <div className="border-t border-border px-3 py-2 lg:hidden sm:px-4">
+      <div className="border-t border-border px-3 py-2.5 lg:hidden sm:px-4">
         <p className="otm-kicker">
           {swatches ? "Filter by manager" : "Jump to a team"}
         </p>
-        <div className="mt-2 flex flex-wrap gap-1.5">
+        <div className="mt-2.5 flex flex-wrap gap-2">
           {(swatches ?? groups).map((g) => {
             const id = g.id
             const label = "label" in g ? g.label : g.name
@@ -953,10 +958,11 @@ export function PoolChart({
                 size="sm"
                 aria-pressed={on}
                 onClick={() => (swatches ? onSwatch?.(id) : onSelect?.(id))}
+                className="tap h-11 gap-2 px-3 text-[14px] sm:h-9 sm:gap-1.5 sm:px-2.5 sm:text-[13px]"
               >
-                <span className="h-2 w-2 shrink-0 rounded-sm" style={{ background: color }} />
+                <span className="h-2.5 w-2.5 shrink-0 rounded-sm sm:h-2 sm:w-2" style={{ background: color }} />
                 <span className="truncate">{label}</span>
-                {count != null ? <span className="font-mono text-[11px] opacity-70">{count}</span> : null}
+                {count != null ? <span className="font-mono text-[12px] opacity-70 sm:text-[11px]">{count}</span> : null}
               </Button>
             )
           })}
@@ -993,11 +999,11 @@ export function PoolChart({
                   type="button"
                   variant="ghost"
                   onClick={() => onSelectPlayer?.(p.id, p.ownerId ?? groupId)}
-                  className="tap h-auto min-h-0 min-w-0 flex-1 justify-start gap-2.5 rounded-none px-0 py-2 text-left font-normal sm:gap-3 md:text-[15px]"
+                  className="tap h-auto min-h-11 min-w-0 flex-1 justify-start gap-2.5 rounded-none px-0 py-2.5 text-left font-normal sm:min-h-10 sm:gap-3 sm:py-2 md:text-[15px]"
                 >
-                  <span className="w-6 font-mono text-[12px] text-muted-foreground sm:w-5 sm:text-[11px]">{rank + 1}</span>
+                  <span className="w-7 font-mono text-[13px] text-muted-foreground sm:w-5 sm:text-[11px]">{rank + 1}</span>
                   <span
-                    className="h-2.5 w-2.5 shrink-0 border sm:h-2 sm:w-2"
+                    className="h-3 w-3 shrink-0 border sm:h-2 sm:w-2"
                     style={{ borderColor: color, background: scored != null && scored > 0 ? color : "transparent" }}
                   />
                   <span className="min-w-0 flex-1 [overflow-wrap:break-word] [word-break:normal] line-clamp-2 text-left" title={p.name}>{p.name}</span>
@@ -1007,7 +1013,7 @@ export function PoolChart({
                     type="button"
                     variant="link"
                     onClick={() => onFilterOwner(p.ownerId!)}
-                    className="tap hidden h-auto min-h-0 max-w-[28%] min-w-0 truncate px-0 py-0 text-left text-[13px] font-normal text-muted-foreground sm:inline-flex sm:text-[12px]"
+                    className="tap hidden h-auto min-h-11 max-w-[28%] min-w-0 truncate px-2 py-2.5 text-left text-[14px] font-normal text-muted-foreground sm:inline-flex sm:min-h-10 sm:px-1.5 sm:py-2 sm:text-[12px]"
                     title={p.owner}
                   >
                     {p.owner}
@@ -1018,7 +1024,7 @@ export function PoolChart({
                     type="button"
                     variant="link"
                     onClick={() => onFilterClub(p.club!)}
-                    className="tap hidden h-auto min-h-0 shrink-0 px-0 py-0 text-[13px] font-normal text-muted-foreground sm:inline-flex sm:text-[12px]"
+                    className="tap hidden h-auto min-h-11 shrink-0 px-2.5 py-2.5 text-[14px] font-normal text-muted-foreground sm:inline-flex sm:min-h-10 sm:px-1.5 sm:py-2 sm:text-[12px]"
                   >
                     {p.club}
                   </Button>

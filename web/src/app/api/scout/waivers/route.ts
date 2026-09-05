@@ -302,12 +302,13 @@ function assessRisk(
 }
 
 /**
- * Find best bench player to replace (same position, lowest form, not banned)
+ * Find best bench player to replace (same position, lowest form, not banned for this specific team)
  */
-function findBenchPlayerToReplace(
+function findBenchPlayerToReplaceForTeam(
   availablePlayer: FantraxPoolPlayer,
   roster: FantraxPlayerSeries[],
   rosterFormScores: Map<string, FormScore>,
+  teamId: string,
 ): { player: FantraxPlayerSeries; form: FormScore } | null {
   const availPos = availablePlayer.position.charAt(0).toUpperCase()
   
@@ -318,9 +319,9 @@ function findBenchPlayerToReplace(
 
   if (samePosition.length === 0) return null
 
-  // Find bench players (exclude drop-banned players)
+  // Find bench players (exclude drop-banned players for this specific team)
   const validBenchCandidates = samePosition
-    .filter((p) => !isSIADropBanned(p.name))
+    .filter((p) => !isSIADropBanned(p.name, teamId))
     .map((p) => ({
       player: p,
       form: rosterFormScores.get(p.id) ?? computeFormForRosterPlayer(p),
@@ -398,8 +399,8 @@ export async function GET(request: Request) {
       }
       debug.afterSignalFilter++
 
-      // Hard Filter 3: SIA team exclusions (no Arsenal)
-      if (isSIATeamExcluded(player.team)) {
+      // Hard Filter 3: Team exclusions (SIA-specific: no Arsenal)
+      if (isSIATeamExcluded(player.team, teamId)) {
         continue
       }
       debug.afterTeamExclusionFilter++
@@ -414,8 +415,8 @@ export async function GET(request: Request) {
       const formScoreWithFixtures = formScore.score + fixtureAdjustment
       debug.afterFixtureFilter++
 
-      // Hard Filter 4: Must have a valid drop candidate (not banned)
-      const benchComparison = findBenchPlayerToReplace(player, form.players, rosterFormScores)
+      // Hard Filter 4: Must have a valid drop candidate (not banned for this team)
+      const benchComparison = findBenchPlayerToReplaceForTeam(player, form.players, rosterFormScores, teamId)
 
       if (!benchComparison) {
         continue
@@ -429,8 +430,8 @@ export async function GET(request: Request) {
       }
       debug.afterFormGapFilter++
 
-      // Hard Filter 6: Double-check drop candidate is not banned
-      if (isSIADropBanned(benchComparison.player.name)) {
+      // Hard Filter 6: Double-check drop candidate is not banned for this team
+      if (isSIADropBanned(benchComparison.player.name, teamId)) {
         continue
       }
       debug.afterDropBanFilter++

@@ -7,38 +7,6 @@ test.describe("Scout Page", () => {
     await mockScoutAPI(page)
   })
 
-<<<<<<< HEAD
-  test("should handle scout page - render with opportunities", async ({ page }) => {
-    const response = await page.goto("/scout")
-    
-    // Either the page exists and renders, or we get a 404
-    if (response && response.status() === 404) {
-      // Page doesn't exist yet - that's okay, skip gracefully
-      expect(response.status()).toBe(404)
-    } else {
-      // Page exists - check it renders properly
-      await expect(page.locator("main")).toBeVisible()
-      
-      // With our mocked opportunities, the board should render content
-      await page.waitForLoadState("networkidle")
-      
-      // Check for opportunity cards (should have at least one)
-      const opportunityCards = page.locator("[data-testid='opportunity-card'], article, .opportunity")
-      const count = await opportunityCards.count()
-      
-      // If we provided 2 opportunities in fixtures, we should see them
-      // (or at least see non-empty state rather than loading/error)
-      if (count === 0) {
-        // Check we're not showing empty state when we provided data
-        const emptyMessage = page.locator("text=/no opportunities|empty|nothing found/i")
-        const hasEmpty = await emptyMessage.count()
-        // It's OK to show empty in some edge cases, but log it
-        if (hasEmpty > 0) {
-          console.log("Scout board showing empty state despite mocked data")
-        }
-      }
-    }
-=======
   test("should render opportunity board with valid data", async ({ page }) => {
     await page.goto("/scout")
     
@@ -69,7 +37,6 @@ test.describe("Scout Page", () => {
     // Verify "Beats Who" section
     await expect(firstCard.getByText("Replaces")).toBeVisible()
     await expect(firstCard.getByText("Matheus Cunha")).toBeVisible()
->>>>>>> origin/main
   })
 
   test("should render multiple opportunity cards", async ({ page }) => {
@@ -133,16 +100,6 @@ test.describe("Scout Page", () => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto("/scout")
     
-<<<<<<< HEAD
-    if (response && response.status() === 200) {
-      await expect(page.locator("main")).toBeVisible()
-      
-      // Check no horizontal overflow
-      const bodyWidth = await page.evaluate(() => document.body.scrollWidth)
-      const viewportWidth = await page.evaluate(() => window.innerWidth)
-      expect(bodyWidth).toBeLessThanOrEqual(viewportWidth + 1)
-    }
-=======
     await page.waitForSelector('article[aria-label*="Opportunity"]', { timeout: 10000 })
     
     // Verify cards are visible
@@ -189,6 +146,5 @@ test.describe("Scout Page - Empty State Contract", () => {
     
     // And that data rendered (not empty state)
     await expect(page.getByText("No opportunities found")).not.toBeVisible()
->>>>>>> origin/main
   })
 })

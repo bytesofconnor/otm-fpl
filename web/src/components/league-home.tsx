@@ -201,6 +201,7 @@ export function LeagueHome(): React.ReactElement {
         period={snap.viewedPeriod ?? snap.currentPeriod ?? 1}
         periodCount={snap.periodCount}
         live={snap.liveStarted}
+        isCurrentWeek={(snap.viewedPeriod ?? snap.currentPeriod) === snap.currentPeriod}
         onPeriod={setPeriod}
         loading={loading}
       />

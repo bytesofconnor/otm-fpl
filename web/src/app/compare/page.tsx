@@ -458,7 +458,7 @@ export default function ComparePage() {
         </div>
       </header>
       {/* Desktop filters row (full width, larger chips, not under nav) */}
-      <div className="hidden md:flex items-center gap-3 mt-3 relative z-20" role="search" aria-label="Filter players">
+      <div className="hidden md:flex items-center gap-3 mt-3 relative z-20" role="region" aria-label="Filter players">
         <ToggleGroup
           multiple
           value={Array.from(selectedPositions)}

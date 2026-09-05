@@ -429,17 +429,17 @@ export default function ComparePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [p.id])
     if (!vid) return null
+    // Visual-only overlay - parent card is the main interactive control
+    // Click handler prevents parent selection when tapping thumbnail
     return (
-      <Button
-        type="button"
-        variant="outline"
+      <div
         onClick={(e) => { e.stopPropagation(); setMobileVideoOpenId(mobileVideoOpenId === p.id ? null : p.id) }}
-        className="absolute right-3 top-3 z-30 h-auto overflow-hidden p-0 md:hidden"
-        aria-label="Play highlights"
+        className="absolute right-3 top-3 z-30 h-auto overflow-hidden rounded-md border border-border bg-background cursor-pointer md:hidden hover:border-gold transition-colors"
+        aria-hidden="true"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`https://img.youtube.com/vi/${vid}/mqdefault.jpg`} alt="" className="h-14 w-20 object-cover" />
-      </Button>
+        <img src={`https://img.youtube.com/vi/${vid}/mqdefault.jpg`} alt="" className="h-14 w-20 object-cover rounded-[calc(var(--radius-md)-1px)]" />
+      </div>
     )
   }
 
@@ -458,7 +458,7 @@ export default function ComparePage() {
         </div>
       </header>
       {/* Desktop filters row (full width, larger chips, not under nav) */}
-      <div className="hidden md:flex items-center gap-3 mt-3 relative z-20" role="region" aria-label="Filter players">
+      <div className="hidden md:flex items-center gap-3 mt-3 relative z-20" aria-label="Filter players">
         <ToggleGroup
           multiple
           value={Array.from(selectedPositions)}
@@ -728,18 +728,9 @@ function DynamicHighlight({ query }: { query: string }) {
   if (!queried) {
     return <VideoSkeleton />
   }
-  return (
-    <div className="mt-3 text-xs">
-      <a
-        className="underline"
-        href={`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`}
-        target="_blank"
-        rel="noreferrer"
-      >
-        Search highlights on YouTube
-      </a>
-    </div>
-  )
+  // No fallback link to avoid nested-interactive a11y violation
+  // (card is role=button, links inside cause nesting issues)
+  return null
 }
 
 function VideoSkeleton() {

@@ -1,6 +1,7 @@
 import { Page } from "@playwright/test"
 import fantraxLeagueFixture from "../fixtures/fantrax-league.json"
 import fantraxFormFixture from "../fixtures/fantrax-form.json"
+import appBundleFixture from "../fixtures/app-bundle.json"
 import scoutOpportunitiesFixture from "../fixtures/scout-opportunities.json"
 
 /**
@@ -53,23 +54,22 @@ export async function mockFantraxAPIs(page: Page) {
     })
   })
 
-  // Mock app-bundle endpoint
+  // Mock app-bundle endpoint (critical for Compare page)
   await page.route("**/api/app-bundle*", async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({
-        league: fantraxLeagueFixture,
-        form: fantraxFormFixture,
-        highlights: [],
-        headlines: [],
-      }),
+      body: JSON.stringify(appBundleFixture),
     })
   })
 }
 
 /**
+<<<<<<< HEAD
+ * Mock scout API with opportunities data
+=======
  * Mock scout API with valid opportunities data
+>>>>>>> origin/main
  */
 export async function mockScoutAPI(page: Page) {
   await page.route("**/api/scout/opportunities*", async (route) => {

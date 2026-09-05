@@ -30,6 +30,10 @@ test.describe("Compare Page", () => {
     await page.goto("/compare")
     await page.waitForLoadState("networkidle")
     
+    // Wait for main content to load (same check as render test)
+    await expect(page.locator("main")).toBeVisible()
+    await expect(page.locator("h1, h2, [role='heading']").first()).toBeVisible()
+    
     await assertNoA11yViolations(page, "Compare page (desktop)")
   })
 
@@ -37,6 +41,10 @@ test.describe("Compare Page", () => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto("/compare")
     await page.waitForLoadState("networkidle")
+    
+    // Wait for main content to load (same check as render test)
+    await expect(page.locator("main")).toBeVisible()
+    await expect(page.locator("h1, h2, [role='heading']").first()).toBeVisible()
     
     await assertNoA11yViolations(page, "Compare page (mobile)")
   })

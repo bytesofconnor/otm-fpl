@@ -710,7 +710,7 @@ export function PoolChart({
     .map((g) => ({
       ...g,
       players: g.players.filter((p) => {
-        if (posSet && p.position && !posSet.has(p.position[0] ?? "")) return false
+        if (posSet && p.position && !posSet.has(p.position)) return false
         if (!q) return true
         return `${p.name} ${p.club ?? ""} ${p.owner ?? ""} ${g.name} ${g.code}`.toLowerCase().includes(q)
       }),

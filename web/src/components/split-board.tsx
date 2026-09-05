@@ -163,7 +163,7 @@ export function SplitBoard({
         {/* eslint-enable jsx-a11y/no-static-element-interactions, jsx-a11y/no-noninteractive-tabindex */}
         <div
           className={cn(
-            "otm-split-list flex min-h-0 w-full shrink-0 flex-col overflow-hidden border-t border-border",
+            "otm-split-list flex min-h-[240px] w-full shrink-0 flex-col overflow-hidden border-t border-border sm:min-h-[280px] md:min-h-0",
             !hot && "md:transition-[flex-basis] md:duration-150 md:ease-out",
           )}
           style={{ ["--otm-list-pct" as string]: `${pct}%` }}

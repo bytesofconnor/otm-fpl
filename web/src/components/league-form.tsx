@@ -454,81 +454,134 @@ export function LeagueForm(): React.ReactElement {
           {pane !== "teams" ? (
             <div className="mb-2 sm:mb-3" role="search">
               {/* Mobile: Compact search - expands when tapped */}
-              <div className="flex gap-1.5 md:hidden overflow-x-clip">
-                {!searchExpanded && !query ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="tap h-11 flex-1"
-                    onClick={() => setSearchExpanded(true)}
-                    aria-label="Open search"
-                  >
-                    <Search className="size-4 text-muted-foreground" aria-hidden="true" />
-                    <span className="text-[14px] text-muted-foreground">Search</span>
-                  </Button>
-                ) : (
-                  <div className="flex min-w-0 flex-1 items-center gap-1.5 rounded-md bg-muted/70 p-1.5 ring-1 ring-border/70 focus-within:ring-foreground/20 overflow-hidden">
-                    <Search className="ml-1 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                    <Input
-                      id="form-search"
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      onBlur={() => {
-                        if (!query.trim()) setSearchExpanded(false)
+              <div className="flex flex-col gap-1.5 md:hidden overflow-x-clip">
+                <div className="flex gap-1.5">
+                  {!searchExpanded && !query ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="tap h-11 flex-1"
+                      onClick={() => setSearchExpanded(true)}
+                      aria-label="Open search"
+                    >
+                      <Search className="size-4 text-muted-foreground" aria-hidden="true" />
+                      <span className="text-[14px] text-muted-foreground">Search</span>
+                    </Button>
+                  ) : (
+                    <div className="flex min-w-0 flex-1 items-center gap-1.5 rounded-md bg-muted/70 p-1.5 ring-1 ring-border/70 focus-within:ring-foreground/20 overflow-hidden">
+                      <Search className="ml-1 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                      <Input
+                        id="form-search"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        onBlur={() => {
+                          if (!query.trim()) setSearchExpanded(false)
+                        }}
+                        placeholder="Player, manager, or club"
+                        spellCheck={false}
+                        autoComplete="off"
+                        autoCorrect="off"
+                        className="h-9 min-w-0 flex-1 border-0 bg-transparent text-[15px] shadow-none ring-0 focus-visible:border-transparent focus-visible:ring-0"
+                        aria-label="Search players, managers, or clubs"
+                      />
+                    </div>
+                  )}
+                  {(!searchExpanded && !query) && (
+                    <>
+                      <ToggleGroup
+                        multiple
+                        value={positions}
+                        onValueChange={(next) => {
+                          const list = (Array.isArray(next) ? next : []).filter((id): id is (typeof POSITIONS)[number] =>
+                            POSITIONS.includes(id as (typeof POSITIONS)[number]),
+                          )
+                          setPositions(list.length === POSITIONS.length ? [] : list)
+                        }}
+                        variant="outline"
+                        size="sm"
+                        spacing={0}
+                        className="shrink-0 rounded-lg bg-card p-0.5 ring-1 ring-border/80"
+                        aria-label="Filter by position"
+                      >
+                        {POS_COLS.map((col) => (
+                          <ToggleGroupItem 
+                            key={col.id} 
+                            value={col.id} 
+                            aria-label={`Filter to ${col.name}`} 
+                            title={col.name}
+                            className="tap h-10 min-w-[2.875rem] px-2.5 text-[13px]"
+                          >
+                            {col.code}
+                          </ToggleGroupItem>
+                        ))}
+                      </ToggleGroup>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="tap h-11 min-w-[4.5rem] shrink-0 px-3"
+                        onClick={() => {
+                          setPositions([])
+                          setQuery("")
+                          setClubFilter(null)
+                          setSearchExpanded(false)
+                        }}
+                        disabled={!positions.length && !query && !clubFilter}
+                        aria-label="Clear all filters"
+                      >
+                        Clear
+                      </Button>
+                    </>
+                  )}
+                </div>
+                {(searchExpanded || query) && (
+                  <div className="flex gap-1.5">
+                    <ToggleGroup
+                      multiple
+                      value={positions}
+                      onValueChange={(next) => {
+                        const list = (Array.isArray(next) ? next : []).filter((id): id is (typeof POSITIONS)[number] =>
+                          POSITIONS.includes(id as (typeof POSITIONS)[number]),
+                        )
+                        setPositions(list.length === POSITIONS.length ? [] : list)
                       }}
-                      placeholder="Player or club"
-                      spellCheck={false}
-                      autoComplete="off"
-                      autoCorrect="off"
-                      className="h-9 min-w-0 flex-1 border-0 bg-transparent text-[15px] shadow-none ring-0 focus-visible:border-transparent focus-visible:ring-0"
-                      aria-label="Search players, managers, or clubs"
-                    />
+                      variant="outline"
+                      size="sm"
+                      spacing={0}
+                      className="flex-1 rounded-lg bg-card p-0.5 ring-1 ring-border/80"
+                      aria-label="Filter by position"
+                    >
+                      {POS_COLS.map((col) => (
+                        <ToggleGroupItem 
+                          key={col.id} 
+                          value={col.id} 
+                          aria-label={`Filter to ${col.name}`} 
+                          title={col.name}
+                          className="tap h-10 flex-1 px-2.5 text-[13px]"
+                        >
+                          {col.code}
+                        </ToggleGroupItem>
+                      ))}
+                    </ToggleGroup>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="tap h-11 min-w-[4.5rem] shrink-0 px-3"
+                      onClick={() => {
+                        setPositions([])
+                        setQuery("")
+                        setClubFilter(null)
+                        setSearchExpanded(false)
+                      }}
+                      disabled={!positions.length && !query && !clubFilter}
+                      aria-label="Clear all filters"
+                    >
+                      Clear
+                    </Button>
                   </div>
                 )}
-                <ToggleGroup
-                  multiple
-                  value={positions}
-                  onValueChange={(next) => {
-                    const list = (Array.isArray(next) ? next : []).filter((id): id is (typeof POSITIONS)[number] =>
-                      POSITIONS.includes(id as (typeof POSITIONS)[number]),
-                    )
-                    setPositions(list.length === POSITIONS.length ? [] : list)
-                  }}
-                  variant="outline"
-                  size="sm"
-                  spacing={0}
-                  className="shrink-0 rounded-lg bg-card p-0.5 ring-1 ring-border/80"
-                  aria-label="Filter by position"
-                >
-                  {POS_COLS.map((col) => (
-                    <ToggleGroupItem 
-                      key={col.id} 
-                      value={col.id} 
-                      aria-label={`Filter to ${col.name}`} 
-                      title={col.name}
-                      className="tap h-10 min-w-[2.875rem] px-2.5 text-[13px]"
-                    >
-                      {col.code}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="tap h-11 min-w-[4.5rem] shrink-0 px-3"
-                  onClick={() => {
-                    setPositions([])
-                    setQuery("")
-                    setClubFilter(null)
-                    setSearchExpanded(false)
-                  }}
-                  disabled={!positions.length && !query && !clubFilter}
-                  aria-label="Clear all filters"
-                >
-                  Clear
-                </Button>
               </div>
 
               {/* Desktop: Full search bar */}

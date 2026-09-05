@@ -103,9 +103,9 @@ function PlayerBlock({
         align === "right" ? "text-right" : "text-left"
       } ${hot ? "otm-kit-hot" : ""}`}
     >
-      <div className={`flex items-center gap-2.5 ${align === "right" ? "flex-row-reverse" : ""}`}>
+      <div className={`flex items-start gap-2.5 ${align === "right" ? "flex-row-reverse" : ""}`}>
         <Crest src={player.headshotUrl} alt={player.team} />
-        <span className="min-w-0 flex-1 break-words text-[15px] font-semibold leading-tight tracking-tight text-white sm:text-[16px]">{player.name}</span>
+        <span className="min-w-0 flex-1 break-words text-[15px] font-semibold leading-tight tracking-tight text-white sm:text-[16px] line-clamp-2">{player.name}</span>
         <span className="shrink-0 text-right">
           <span className={`otm-score block text-[1.2rem] leading-none tabular-nums sm:text-[1.45rem] ${hot ? "text-white" : "text-white/90"}`}>
             {pts(player.points)}
@@ -233,8 +233,8 @@ function TeamMark({
           <span className="otm-kicker text-white/70">{shortName || (align === "left" ? "Home" : "Away")}</span>
           {you ? <Badge variant="live">You</Badge> : null}
         </div>
-        <div className="otm-title mt-0.5 truncate text-[1.05rem] leading-tight text-white sm:text-[1.45rem]">{name}</div>
-        {owner ? <div className="mt-0.5 hidden truncate text-[13px] text-white/70 sm:block">{owner}</div> : null}
+        <div className="otm-title mt-0.5 break-words text-[1.05rem] leading-tight text-white sm:text-[1.45rem] line-clamp-2">{name}</div>
+        {owner ? <div className="mt-0.5 hidden break-words text-[13px] text-white/70 sm:block line-clamp-1">{owner}</div> : null}
       </div>
     </div>
   )
@@ -345,7 +345,7 @@ export function LeagueWeek({
             className="size-11 text-white hover:bg-white/15 hover:text-white disabled:opacity-40"
             onClick={() => onPeriod(period - 1)}
           >
-            <span className="text-[22px] leading-none">‹</span>
+            <span className="text-[28px] leading-none">‹</span>
           </Button>
           <Button
             type="button"
@@ -356,10 +356,10 @@ export function LeagueWeek({
             className="size-11 text-white hover:bg-white/15 hover:text-white disabled:opacity-40"
             onClick={() => onPeriod(period + 1)}
           >
-            <span className="text-[22px] leading-none">›</span>
+            <span className="text-[28px] leading-none">›</span>
           </Button>
           {matchup ? (
-            <Button type="button" variant="outline" size="sm" className="ml-1 h-10 min-w-[4.5rem] border-white/40 bg-black/25 px-3 text-[14px] text-white hover:bg-black/35 hover:text-white" onClick={() => void onCopy()}>
+            <Button type="button" variant="outline" size="sm" className="ml-1 h-10 min-w-[4.5rem] border-white/40 bg-black/25 px-3 text-[14px] text-white hover:bg-black/35 hover:text-white" onClick={() => void onCopy()} aria-label="Copy matchup score">
               {copied ? "Copied" : "Copy"}
             </Button>
           ) : null}

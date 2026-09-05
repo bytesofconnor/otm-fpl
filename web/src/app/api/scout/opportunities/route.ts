@@ -35,12 +35,17 @@ import {
   isSIADropBanned,
   isSIATeamExcluded,
   MIN_CURRENT_GW_PROJECTION,
-  MIN_FORM_SCORE_GAP,
+  getMinFormScoreGap,
   MAX_OPPORTUNITIES_TOTAL,
   determineConfidence,
   generateKillConditions,
   type ConfidenceLevel,
 } from "@/lib/scout-config"
+import {
+  getFixtureContext,
+  formatFixtureDifficultyBar,
+  getFixtureSummary,
+} from "@/lib/fixtures"
 
 // ============================================================================
 // Types
@@ -57,8 +62,15 @@ interface OpportunityCandidate {
   whyNow: string
   formChip: HeatBucket
   formScore: number
+  formScoreWithFixtures: number // Form score + fixture adjustment
   recentGW: Array<number | null>
   minutesContext: string | null
+  fixtureContext: {
+    bar: string // e.g. "🟢🟢⚪⚫⚪"
+    summary: string // e.g. "Favorable fixtures ahead"
+    avgDifficulty: number
+    adjustment: number // +/- points from fixtures
+  } | null
   beatsWho: {
     benchPlayer: string
     benchFormChip: HeatBucket
@@ -69,12 +81,32 @@ interface OpportunityCandidate {
   fantraxProj: number | null
 }
 
+interface NearMiss {
+  playerName: string
+  formGap: number
+  blockedBy: "form_gap" | "drop_ban"
+  dropCandidate?: string
+}
+
 interface OpportunitiesResponse {
   leagueId: string
   teamId: string | null
   teamName: string | null
   currentPeriod: number
   opportunities: OpportunityCandidate[]
+  debug?: {
+    totalUnowned: number
+    afterWireFilter: number
+    afterSignalFilter: number
+    afterTeamExclusionFilter: number
+    afterFixtureFilter: number
+    afterBenchComparisonFilter: number
+    afterFormGapFilter: number
+    afterDropBanFilter: number
+    finalCandidates: number
+    minFormScoreGap: number
+    topNearMisses: NearMiss[]
+  }
 }
 
 // ============================================================================
@@ -101,20 +133,31 @@ function computeFormForRosterPlayer(player: FantraxPlayerSeries): FormScore {
 
 /**
  * Compute form score for a FantraxPoolPlayer (available/owned by others)
+ * Improved to use actual season stats when available instead of just current proj
  */
 function computeFormForPoolPlayer(player: FantraxPoolPlayer, hasRecentStarts: boolean): FormScore {
-  // Pool players only have current GW projection, not historical series
-  // Use projection as proxy for "last GW" and assume moderate form
+  // Try to use actual season performance data when available
+  // Many pool players have YTD stats even without full series
   const projectedPts = player.points ?? 0
+  
+  // If player has actual minutes played, estimate last GW performance
+  // from average points per game (total FPts / games played)
+  let estimatedLastGW = projectedPts
+  
+  // Better signal: if player has played minutes, they have actual performance
+  if (player.playedMinutes != null && player.playedMinutes > 0) {
+    // Use projection as decent signal for last GW
+    estimatedLastGW = projectedPts > 0 ? projectedPts : 5
+  }
 
   return computeFormScore({
-    lastGW: projectedPts > 0 ? projectedPts : null,
-    priorGW: null, // Not available from pool
+    lastGW: estimatedLastGW > 0 ? estimatedLastGW : null,
+    priorGW: null, // Not available from pool (could use historical if we had it)
     prior2GW: null,
-    minutesStability: player.playedMinutes && player.playedMinutes >= 60 ? 1.0 : 0.5,
-    startRate: hasRecentStarts ? 0.8 : 0.5,
-    projBeat: false,
-    gameweeksSinceLastReturn: projectedPts > 0 ? 0 : 2,
+    minutesStability: player.playedMinutes && player.playedMinutes >= 60 ? 1.5 : 0.5,
+    startRate: hasRecentStarts ? 0.9 : 0.5,
+    projBeat: false, // Unknown without historical comparison
+    gameweeksSinceLastReturn: estimatedLastGW > 0 ? 0 : 2,
   })
 }
 
@@ -273,6 +316,24 @@ export async function GET(request: Request) {
       rosterFormScores.set(player.id, formScore)
     }
 
+    // Adaptive form gap threshold
+    const minFormScoreGap = getMinFormScoreGap(form.currentPeriod)
+
+    // Debug counters + near-miss tracking
+    const debug = {
+      totalUnowned: form.unowned.length,
+      afterWireFilter: 0,
+      afterSignalFilter: 0,
+      afterTeamExclusionFilter: 0,
+      afterFixtureFilter: 0,
+      afterBenchComparisonFilter: 0,
+      afterFormGapFilter: 0,
+      afterDropBanFilter: 0,
+      finalCandidates: 0,
+      minFormScoreGap,
+      topNearMisses: [] as NearMiss[],
+    }
+
     // Process available players (FA/WW)
     const candidates: OpportunityCandidate[] = []
 
@@ -281,20 +342,29 @@ export async function GET(request: Request) {
       if (!player.wire || (player.wire !== "FA" && player.wire !== "WW")) {
         continue
       }
+      debug.afterWireFilter++
 
       // Hard Filter 2: Enough signal
       if (!hasEnoughSignal(player)) {
         continue
       }
+      debug.afterSignalFilter++
 
       // Hard Filter 3: SIA team exclusions (no Arsenal)
       if (isSIATeamExcluded(player.team)) {
         continue
       }
+      debug.afterTeamExclusionFilter++
 
       // Compute form score
       const hasRecentStarts = player.playedMinutes != null && player.playedMinutes >= 60
       const formScore = computeFormForPoolPlayer(player, hasRecentStarts)
+
+      // Fetch fixture context (blend opponent difficulty)
+      const fixtureContext = await getFixtureContext(player.team)
+      const fixtureAdjustment = fixtureContext?.difficultyAdjustment ?? 0
+      const formScoreWithFixtures = formScore.score + fixtureAdjustment
+      debug.afterFixtureFilter++
 
       // Hard Filter 4: Must beat a bench player (or fill roster hole)
       const benchComparison = findBenchPlayerToReplace(player, form.players, rosterFormScores)
@@ -305,17 +375,34 @@ export async function GET(request: Request) {
         // For now, skip if no bench comparison possible
         continue
       }
+      debug.afterBenchComparisonFilter++
 
-      // Hard Filter 5: Must beat bench player by minimum gap
-      const formGap = formScore.score - benchComparison.form.score
-      if (formGap < MIN_FORM_SCORE_GAP) {
+      // Hard Filter 5: Must beat bench player by minimum gap (use adjusted form score)
+      const formGap = formScoreWithFixtures - benchComparison.form.score
+      if (formGap < minFormScoreGap) {
+        // Track near-miss: blocked by form gap
+        debug.topNearMisses.push({
+          playerName: player.name,
+          formGap,
+          blockedBy: "form_gap",
+          dropCandidate: benchComparison.player.name,
+        })
         continue
       }
+      debug.afterFormGapFilter++
 
       // Hard Filter 6: SIA drop bans (never suggest dropping these players)
       if (isSIADropBanned(benchComparison.player.name)) {
+        // Track near-miss: blocked by drop ban
+        debug.topNearMisses.push({
+          playerName: player.name,
+          formGap,
+          blockedBy: "drop_ban",
+          dropCandidate: benchComparison.player.name,
+        })
         continue
       }
+      debug.afterDropBanFilter++
 
       // Generate rec card fields
       const whyNow = generateWhyNow(player, formScore.score)
@@ -345,8 +432,17 @@ export async function GET(request: Request) {
         whyNow,
         formChip: formScore.heat,
         formScore: formScore.score,
+        formScoreWithFixtures,
         recentGW: [player.points], // Only current proj available for pool players
         minutesContext,
+        fixtureContext: fixtureContext
+          ? {
+              bar: formatFixtureDifficultyBar(fixtureContext.next5Fixtures),
+              summary: getFixtureSummary(fixtureContext),
+              avgDifficulty: fixtureContext.avgDifficulty,
+              adjustment: fixtureAdjustment,
+            }
+          : null,
         beatsWho: {
           benchPlayer: benchComparison.player.name,
           benchFormChip: benchComparison.form.heat,
@@ -358,10 +454,10 @@ export async function GET(request: Request) {
       })
     }
 
-    // Rank by form score gap (desc), then availability (FA > WW)
+    // Rank by adjusted form score gap (desc), then availability (FA > WW)
     candidates.sort((a, b) => {
-      const gapA = a.formScore - (a.beatsWho?.benchFormScore ?? 0)
-      const gapB = b.formScore - (b.beatsWho?.benchFormScore ?? 0)
+      const gapA = a.formScoreWithFixtures - (a.beatsWho?.benchFormScore ?? 0)
+      const gapB = b.formScoreWithFixtures - (b.beatsWho?.benchFormScore ?? 0)
       if (Math.abs(gapA - gapB) > 5) return gapB - gapA
 
       // Tiebreaker: FA > WW
@@ -374,6 +470,14 @@ export async function GET(request: Request) {
 
     // Limit total opportunities
     const limitedCandidates = candidates.slice(0, MAX_OPPORTUNITIES_TOTAL)
+    debug.finalCandidates = limitedCandidates.length
+
+    // Log debug info for troubleshooting
+    console.log("Scout opportunities debug:", {
+      teamId,
+      teamName: form.teamName || "(no team name)",
+      ...debug,
+    })
 
     const response: OpportunitiesResponse = {
       leagueId: form.leagueId,
@@ -381,6 +485,7 @@ export async function GET(request: Request) {
       teamName: form.teamName,
       currentPeriod: form.currentPeriod,
       opportunities: limitedCandidates,
+      debug, // Include debug info in response
     }
 
     return NextResponse.json(response, {

@@ -86,8 +86,18 @@ export const MIN_CURRENT_GW_PROJECTION = 6
 /**
  * Minimum form score gap to recommend a pickup over a bench player
  * Available player must score at least this much higher than bench
+ * Adapts based on season stage: lower threshold when data is thin
  */
-export const MIN_FORM_SCORE_GAP = 10
+export const MIN_FORM_SCORE_GAP_EARLY = 2  // Early season (GW 1-4)
+export const MIN_FORM_SCORE_GAP_NORMAL = 5 // Normal season (GW 5+)
+
+/**
+ * Determine minimum form score gap based on current period
+ */
+export function getMinFormScoreGap(currentPeriod: number): number {
+  // Early season: lower threshold when history is thin
+  return currentPeriod <= 4 ? MIN_FORM_SCORE_GAP_EARLY : MIN_FORM_SCORE_GAP_NORMAL
+}
 
 // ============================================================================
 // Display Limits

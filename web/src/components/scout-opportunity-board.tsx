@@ -6,8 +6,8 @@ import { heatLabel, heatEmoji, heatColor, type HeatBucket } from "@/lib/form-eng
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
-// SIA default teamId (cbarrett97) — can be made configurable later
-const SIA_TEAM_ID = "fqzp0okbkaycu7v8"
+// SIA default teamId (cbarrett97 / Saints Intelligence Agency)
+const SIA_TEAM_ID = "yv00la6xmsxcq62w"
 
 type Opportunity = {
   player: {
@@ -20,7 +20,14 @@ type Opportunity = {
   whyNow: string
   formChip: HeatBucket
   formScore: number
+  formScoreWithFixtures: number
   minutesContext: string
+  fixtureContext: {
+    bar: string
+    summary: string
+    avgDifficulty: number
+    adjustment: number
+  } | null
   beatsWho: {
     name: string
     position: string
@@ -30,11 +37,32 @@ type Opportunity = {
   killConditions: string[]
 }
 
+interface NearMiss {
+  playerName: string
+  formGap: number
+  blockedBy: "form_gap" | "drop_ban"
+  dropCandidate?: string
+}
+
 type OpportunitiesResponse = {
   opportunities: Opportunity[]
   timestamp: string
-  teamId: string
+  teamId: string | null
+  teamName: string | null
   leagueId: string
+  debug?: {
+    totalUnowned: number
+    afterWireFilter: number
+    afterSignalFilter: number
+    afterTeamExclusionFilter: number
+    afterFixtureFilter: number
+    afterBenchComparisonFilter: number
+    afterFormGapFilter: number
+    afterDropBanFilter: number
+    finalCandidates: number
+    minFormScoreGap: number
+    topNearMisses: NearMiss[]
+  }
 }
 
 export function OpportunityBoard() {
@@ -96,12 +124,37 @@ export function OpportunityBoard() {
   }
 
   if (!data || data.opportunities.length === 0) {
+    // Better empty state messaging based on context
+    let emptyMessage = "All available players are below your roster quality."
+    let emptyHint = "Check back after fixtures or adjust your roster."
+    
+    if (!data) {
+      emptyMessage = "Unable to load opportunities"
+      emptyHint = "Please try refreshing the page."
+    } else if (!data.teamName && data.teamId) {
+      emptyMessage = "Team not found"
+      emptyHint = "Please verify your team ID or contact support."
+    }
+    
     return (
       <div className="rounded-lg border border-border bg-muted/20 p-8 text-center">
         <p className="text-lg font-medium">No opportunities found</p>
         <p className="mt-2 text-sm text-muted-foreground">
-          All available players are below your roster quality. Check back after fixtures.
+          {emptyMessage}
         </p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {emptyHint}
+        </p>
+        {data?.debug && (
+          <details className="mt-4 text-left">
+            <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
+              Debug info (click to expand)
+            </summary>
+            <pre className="mt-2 overflow-auto rounded-md bg-muted p-2 text-xs">
+              {JSON.stringify(data.debug, null, 2)}
+            </pre>
+          </details>
+        )}
       </div>
     )
   }
@@ -127,7 +180,7 @@ export function OpportunityBoard() {
 }
 
 function OpportunityCard({ opportunity, rank }: { opportunity: Opportunity; rank: number }) {
-  const { player, whyNow, formChip, formScore, minutesContext, beatsWho, confidence, killConditions } = opportunity
+  const { player, whyNow, formChip, formScore, formScoreWithFixtures, minutesContext, fixtureContext, beatsWho, confidence, killConditions } = opportunity
   const chipColor = heatColor(formChip)
   const chipLabel = heatLabel(formChip)
   const chipEmoji = heatEmoji(formChip)
@@ -168,9 +221,34 @@ function OpportunityCard({ opportunity, rank }: { opportunity: Opportunity; rank
           {chipLabel}
         </span>
         <span className="text-sm font-medium text-white/90">
-          {formScore.toFixed(1)}
+          {formScoreWithFixtures.toFixed(1)}
+          {fixtureContext && fixtureContext.adjustment !== 0 && (
+            <span className="ml-1 text-xs opacity-75">
+              ({formScore.toFixed(1)} {fixtureContext.adjustment > 0 ? '+' : ''}{fixtureContext.adjustment})
+            </span>
+          )}
         </span>
       </div>
+
+      {/* Fixture context */}
+      {fixtureContext && (
+        <div className="mb-4 rounded-md border border-border bg-muted/20 p-3">
+          <h3 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Next 5 Fixtures
+          </h3>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl tracking-wider" aria-label="Fixture difficulty: green is easy, white is medium, black is hard">
+              {fixtureContext.bar}
+            </span>
+            <div className="flex-1">
+              <p className="text-sm leading-tight">{fixtureContext.summary}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Avg difficulty: {fixtureContext.avgDifficulty.toFixed(1)}/5.0
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Why now */}
       <div className="mb-4">

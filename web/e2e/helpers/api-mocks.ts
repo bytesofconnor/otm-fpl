@@ -65,7 +65,11 @@ export async function mockFantraxAPIs(page: Page) {
 }
 
 /**
+<<<<<<< HEAD
  * Mock scout API with opportunities data
+=======
+ * Mock scout API with valid opportunities data
+>>>>>>> origin/main
  */
 export async function mockScoutAPI(page: Page) {
   await page.route("**/api/scout/opportunities*", async (route) => {

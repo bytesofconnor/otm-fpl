@@ -1,6 +1,6 @@
 // Scout Matchup Prep — League-wide start/sit intelligence
-import { Suspense } from "react"
 import type { Metadata } from "next"
+import { Suspense } from "react"
 import { MatchupPrep } from "@/components/scout-matchup-prep"
 import { ScoutTeamPicker } from "@/components/scout-team-picker"
 import { PageShell } from "@/components/page-shell"
@@ -33,14 +33,33 @@ export default async function MatchupPrepPage({
           </p>
         </header>
 
-        <Suspense fallback={<div className="text-sm text-muted-foreground">Loading team picker...</div>}>
+        <Suspense fallback={<TeamPickerFallback />}>
           <ScoutTeamPicker currentTeamId={teamId} basePath="/scout/matchup" />
         </Suspense>
 
-        <Suspense fallback={<div className="text-sm text-muted-foreground">Loading matchup prep...</div>}>
+        <Suspense fallback={<MatchupFallback />}>
           <MatchupPrep />
         </Suspense>
       </div>
     </PageShell>
+  )
+}
+
+function TeamPickerFallback() {
+  return (
+    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <span>Loading teams...</span>
+    </div>
+  )
+}
+
+function MatchupFallback() {
+  return (
+    <div className="flex min-h-[40vh] items-center justify-center">
+      <div className="text-center">
+        <div className="mb-2 text-lg font-medium">Loading lineup...</div>
+        <div className="text-sm text-muted-foreground">Analyzing form</div>
+      </div>
+    </div>
   )
 }

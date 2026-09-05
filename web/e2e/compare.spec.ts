@@ -30,8 +30,9 @@ test.describe("Compare Page", () => {
     await page.goto("/compare")
     await page.waitForLoadState("networkidle")
     
-    // Wait for page header to be visible (always renders, even during loading)
-    await expect(page.locator("h1")).toBeVisible()
+    // Wait for main content to load (same check as render test)
+    await expect(page.locator("main")).toBeVisible()
+    await expect(page.locator("h1, h2, [role='heading']").first()).toBeVisible()
     
     await assertNoA11yViolations(page, "Compare page (desktop)")
   })
@@ -41,8 +42,9 @@ test.describe("Compare Page", () => {
     await page.goto("/compare")
     await page.waitForLoadState("networkidle")
     
-    // Wait for page header to be visible (always renders, even during loading)
-    await expect(page.locator("h1")).toBeVisible()
+    // Wait for main content to load (same check as render test)
+    await expect(page.locator("main")).toBeVisible()
+    await expect(page.locator("h1, h2, [role='heading']").first()).toBeVisible()
     
     await assertNoA11yViolations(page, "Compare page (mobile)")
   })

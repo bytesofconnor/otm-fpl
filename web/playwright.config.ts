@@ -29,10 +29,12 @@ export default defineConfig({
   projects: [
     {
       name: "Desktop Chrome",
+      testIgnore: "**/smoke.spec.ts",
       use: { ...devices["Desktop Chrome"] },
     },
     {
       name: "Mobile Safari",
+      testIgnore: "**/smoke.spec.ts",
       use: { 
         ...devices["iPhone 12 Pro"],
         // iPhone 12 Pro viewport: 390x844

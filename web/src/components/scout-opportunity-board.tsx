@@ -128,10 +128,127 @@ export function OpportunityBoard() {
     )
   }
 
-  if (!data || data.opportunities.length === 0) {
-    // Better empty state messaging based on context
-    let emptyMessage = "All available players are below your roster quality."
-    let emptyHint = "Check back after fixtures or adjust your roster."
+  if (!data || !data.opportunities || data.opportunities.length === 0) {
+    // When no true opportunities but we have near-misses, show them as first-class cards
+    const hasNearMisses = data?.debug?.topNearMisses && data.debug.topNearMisses.length > 0
+    
+    if (hasNearMisses) {
+      const dropBanBlocked = data.debug!.topNearMisses.filter(
+        (miss) => miss.blockedBy === "drop_ban"
+      )
+      const formGapBlocked = data.debug!.topNearMisses.filter(
+        (miss) => miss.blockedBy === "form_gap"
+      )
+      
+      return (
+        <div className="space-y-6">
+          {/* Header explaining why these are near-misses */}
+          <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4">
+            <h3 className="flex items-center gap-2 font-semibold text-yellow-700 dark:text-yellow-300">
+              <span className="text-xl">⚠️</span>
+              No Immediate Pickups Available
+            </h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {dropBanBlocked.length > 0 
+                ? `${dropBanBlocked.length} upgrade${dropBanBlocked.length > 1 ? 's' : ''} would require dropping a protected player (Garner, Truffert, or Havertz).`
+                : `${formGapBlocked.length} player${formGapBlocked.length > 1 ? 's' : ''} available but below minimum form threshold.`
+              }
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Showing closest upgrades for context. Consider these if form changes significantly.
+            </p>
+          </div>
+
+          {/* Near-miss cards */}
+          <div>
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Blocked Upgrades ({data.debug!.topNearMisses.length})
+            </h3>
+            <div className="grid gap-4">
+              {data.debug!.topNearMisses.map((nearMiss, idx) => (
+                <NearMissCard key={`${nearMiss.playerName}-${idx}`} nearMiss={nearMiss} rank={idx + 1} />
+              ))}
+            </div>
+          </div>
+
+          {/* Next actions section */}
+          <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
+            <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
+              <span className="text-lg">💡</span>
+              Potential Next Actions
+            </h3>
+            <div className="space-y-3 text-sm">
+              {dropBanBlocked.length > 0 && (
+                <div className="flex gap-3">
+                  <span className="text-xl" aria-hidden>🔒</span>
+                  <div>
+                    <p className="font-medium">Consider Adjusting Protected Players</p>
+                    <p className="mt-1 text-muted-foreground">
+                      {dropBanBlocked.slice(0, 2).map(m => m.playerName).join(' and ')} could be strong pickups, but {dropBanBlocked.slice(0, 2).map(m => m.dropCandidate).filter((v, i, a) => a.indexOf(v) === i).join(', ')} {dropBanBlocked.slice(0, 2).filter((v, i, a) => a.findIndex(t => t.dropCandidate === v.dropCandidate) === i).length === 1 ? 'is' : 'are'} protected. Only adjust if these players become essential.
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              <div className="flex gap-3">
+                <span className="text-xl" aria-hidden>📊</span>
+                <div>
+                  <p className="font-medium">Check Waiver Wire Priorities</p>
+                  <p className="mt-1 text-muted-foreground">
+                    Visit <a href="/scout/waivers" className="text-primary underline-offset-4 hover:underline">Scout Waivers</a> to see prioritized waiver wire targets. WW claims don&apos;t require drops until after the claim period.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <span className="text-xl" aria-hidden>⚡</span>
+                <div>
+                  <p className="font-medium">Review Start/Sit Decisions</p>
+                  <p className="mt-1 text-muted-foreground">
+                    Head to <a href="/scout/matchup" className="text-primary underline-offset-4 hover:underline">Matchup Prep</a> to see your lineup heatmap and identify any cold starters who could be benched for hot bench players.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <span className="text-xl" aria-hidden>📅</span>
+                <div>
+                  <p className="font-medium">Monitor After Fixtures</p>
+                  <p className="mt-1 text-muted-foreground">
+                    Form changes after each gameweek. Check back after the next round of fixtures when new returns and minutes data updates the rankings.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Info section about the scout */}
+          <div className="rounded-lg border border-border bg-muted/20 p-4">
+            <h4 className="mb-2 text-sm font-semibold">How Scout Works</h4>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              Scout recommends FA pickups when they significantly outperform your bench players by form score (goals, assists, clean sheets, minutes). 
+              Protected players are never suggested for drops. When no immediate upgrades exist, near-misses show potential moves to consider if circumstances change.
+            </p>
+          </div>
+
+          {/* Debug toggle (collapsed by default) */}
+          {data.debug && (
+            <details className="rounded-lg border border-border bg-muted/20 p-4">
+              <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground">
+                Debug Info (Technical Details)
+              </summary>
+              <pre className="mt-3 overflow-auto rounded-md bg-muted p-3 text-xs">
+                {JSON.stringify(data.debug, null, 2)}
+              </pre>
+            </details>
+          )}
+        </div>
+      )
+    }
+    
+    // True empty state (no opportunities, no near-misses) - very rare
+    let emptyMessage = "No players available meet upgrade criteria."
+    let emptyHint = "Check back after fixtures, or visit Waivers and Matchup Prep for other opportunities."
     
     if (!data) {
       emptyMessage = "Unable to load opportunities"
@@ -139,46 +256,55 @@ export function OpportunityBoard() {
     } else if (!data.teamName && data.teamId) {
       emptyMessage = "Team not found"
       emptyHint = "Please verify your team ID or contact support."
-    } else if (data.debug?.topNearMisses && data.debug.topNearMisses.length > 0) {
-      // Check if any near-misses are blocked by drop_ban
-      const dropBanBlocked = data.debug.topNearMisses.filter(
-        (miss) => miss.blockedBy === "drop_ban"
-      )
-      const formGapBlocked = data.debug.topNearMisses.filter(
-        (miss) => miss.blockedBy === "form_gap"
-      )
-
-      if (dropBanBlocked.length > 0) {
-        // Primary message: Blocked by protected players
-        const examples = dropBanBlocked
-          .slice(0, 2)
-          .map((miss) => `${miss.playerName} (for ${miss.dropCandidate})`)
-          .join(", ")
-        emptyMessage = "Closest FA upgrades would require dropping a protected player."
-        emptyHint = `Examples: ${examples}. Your protected players remain untouchable.`
-      } else if (formGapBlocked.length > 0) {
-        // Secondary message: Form gap insufficient
-        const minGap = data.debug.minFormScoreGap
-        emptyMessage = "No players significantly better than your current bench."
-        emptyHint = `Minimum form score gap required: ${minGap}. Check back after fixtures.`
-      }
     }
     
     return (
-      <div className="rounded-lg border border-border bg-muted/20 p-8 text-center">
-        <p className="text-lg font-medium">No opportunities found</p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {emptyMessage}
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {emptyHint}
-        </p>
+      <div className="space-y-6">
+        <div className="rounded-lg border border-border bg-muted/20 p-8 text-center">
+          <p className="text-lg font-medium">No opportunities found</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {emptyMessage}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {emptyHint}
+          </p>
+        </div>
+
+        {/* Still show next actions even in true empty state */}
+        <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
+          <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
+            <span className="text-lg">💡</span>
+            Where to Look Next
+          </h3>
+          <div className="space-y-3 text-sm">
+            <div className="flex gap-3">
+              <span className="text-xl" aria-hidden>📊</span>
+              <div>
+                <p className="font-medium">Waiver Wire</p>
+                <p className="mt-1 text-muted-foreground">
+                  Visit <a href="/scout/waivers" className="text-primary underline-offset-4 hover:underline">Scout Waivers</a> for prioritized waiver wire targets.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <span className="text-xl" aria-hidden>⚡</span>
+              <div>
+                <p className="font-medium">Matchup Prep</p>
+                <p className="mt-1 text-muted-foreground">
+                  Check <a href="/scout/matchup" className="text-primary underline-offset-4 hover:underline">Matchup Prep</a> for lineup optimization and start/sit decisions.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {data?.debug && (
-          <details className="mt-4 text-left">
-            <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
+          <details className="rounded-lg border border-border bg-muted/20 p-4">
+            <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground">
               Debug info (click to expand)
             </summary>
-            <pre className="mt-2 overflow-auto rounded-md bg-muted p-2 text-xs">
+            <pre className="mt-3 overflow-auto rounded-md bg-muted p-3 text-xs">
               {JSON.stringify(data.debug, null, 2)}
             </pre>
           </details>
@@ -193,9 +319,11 @@ export function OpportunityBoard() {
         <p className="text-sm text-muted-foreground">
           {data.opportunities.length} opportunities ranked by form
         </p>
-        <p className="text-xs text-muted-foreground">
-          Updated {new Date(data.timestamp).toLocaleTimeString()}
-        </p>
+        {data.timestamp && (
+          <p className="text-xs text-muted-foreground">
+            Updated {new Date(data.timestamp).toLocaleTimeString()}
+          </p>
+        )}
       </div>
 
       <div className="grid gap-4">
@@ -249,10 +377,10 @@ function OpportunityCard({ opportunity, rank }: { opportunity: Opportunity; rank
           {chipLabel}
         </span>
         <span className="text-sm font-medium text-white/90">
-          {formScoreWithFixtures.toFixed(1)}
-          {fixtureContext && fixtureContext.adjustment !== 0 && (
+          {typeof formScoreWithFixtures === 'number' ? formScoreWithFixtures.toFixed(1) : '—'}
+          {fixtureContext && typeof fixtureContext.adjustment === 'number' && fixtureContext.adjustment !== 0 && (
             <span className="ml-1 text-xs opacity-75">
-              ({formScore.toFixed(1)} {fixtureContext.adjustment > 0 ? '+' : ''}{fixtureContext.adjustment})
+              ({typeof formScore === 'number' ? formScore.toFixed(1) : '—'} {fixtureContext.adjustment > 0 ? '+' : ''}{fixtureContext.adjustment})
             </span>
           )}
         </span>
@@ -271,7 +399,7 @@ function OpportunityCard({ opportunity, rank }: { opportunity: Opportunity; rank
             <div className="flex-1">
               <p className="text-sm leading-tight">{fixtureContext.summary}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Avg difficulty: {fixtureContext.avgDifficulty.toFixed(1)}/5.0
+                Avg difficulty: {typeof fixtureContext.avgDifficulty === 'number' ? fixtureContext.avgDifficulty.toFixed(1) : '—'}/5.0
               </p>
             </div>
           </div>
@@ -308,10 +436,12 @@ function OpportunityCard({ opportunity, rank }: { opportunity: Opportunity; rank
           </div>
           <div className="text-right">
             <p className="text-sm font-semibold text-destructive">
-              Form: {beatsWho.formScore.toFixed(1)}
+              Form: {typeof beatsWho.formScore === 'number' ? beatsWho.formScore.toFixed(1) : '—'}
             </p>
             <p className="text-xs text-muted-foreground">
-              Gap: +{(formScore - beatsWho.formScore).toFixed(1)}
+              Gap: {(typeof formScore === 'number' && typeof beatsWho.formScore === 'number') 
+                ? `+${(formScore - beatsWho.formScore).toFixed(1)}` 
+                : '—'}
             </p>
           </div>
         </div>
@@ -351,6 +481,101 @@ function OpportunityCard({ opportunity, rank }: { opportunity: Opportunity; rank
           </ul>
         </details>
       )}
+    </article>
+  )
+}
+
+function NearMissCard({ nearMiss, rank }: { nearMiss: NearMiss; rank: number }) {
+  const isDropBanBlocked = nearMiss.blockedBy === "drop_ban"
+  
+  return (
+    <article
+      className={cn(
+        "relative rounded-lg border bg-card p-4 shadow-sm sm:p-6",
+        "opacity-75", // Dimmed to show it's not a true opportunity
+        isDropBanBlocked 
+          ? "border-orange-500/30 bg-orange-500/5" 
+          : "border-muted-foreground/20"
+      )}
+      aria-label={`Near-miss ${rank}: ${nearMiss.playerName} - blocked by ${isDropBanBlocked ? 'protected player' : 'form gap'}`}
+    >
+      {/* Rank badge */}
+      <div className="absolute right-4 top-4 flex size-8 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground opacity-50">
+        {rank}
+      </div>
+
+      {/* Player header */}
+      <div className="mb-3 pr-12">
+        <div className="flex items-center gap-2">
+          <h2 className="text-xl font-bold tracking-tight">{nearMiss.playerName}</h2>
+          <span className="rounded-sm bg-muted px-2 py-0.5 text-xs font-medium uppercase text-muted-foreground">
+            Near-miss
+          </span>
+        </div>
+      </div>
+
+      {/* Blocked reason banner */}
+      <div className={cn(
+        "mb-4 rounded-md border p-3",
+        isDropBanBlocked 
+          ? "border-orange-500/50 bg-orange-500/10" 
+          : "border-yellow-500/50 bg-yellow-500/10"
+      )}>
+        <div className="flex items-start gap-2">
+          <span className="text-lg" aria-hidden>
+            {isDropBanBlocked ? "🔒" : "📊"}
+          </span>
+          <div className="flex-1">
+            <p className={cn(
+              "text-sm font-semibold",
+              isDropBanBlocked 
+                ? "text-orange-700 dark:text-orange-300" 
+                : "text-yellow-700 dark:text-yellow-300"
+            )}>
+              {isDropBanBlocked ? "Blocked: Protected Player" : "Blocked: Form Gap Too Small"}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {isDropBanBlocked 
+                ? `Would require dropping ${nearMiss.dropCandidate || "a protected player"} (untouchable)`
+                : `Form advantage (${typeof nearMiss.formGap === 'number' ? `+${nearMiss.formGap.toFixed(1)}` : '—'}) below minimum threshold`
+              }
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Form gap display */}
+      <div className="mb-4 rounded-md border border-border bg-muted/30 p-3">
+        <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Would Replace
+        </h3>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium">{nearMiss.dropCandidate || "Bench player"}</p>
+            <p className="text-xs text-muted-foreground">Protected roster spot</p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm font-semibold text-muted-foreground">
+              Form gap: {typeof nearMiss.formGap === 'number' ? `+${nearMiss.formGap.toFixed(1)}` : '—'}
+            </p>
+            {isDropBanBlocked && (
+              <p className="text-xs font-bold text-orange-600 dark:text-orange-400">
+                DROP BANNED
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Why blocked explanation */}
+      <div className="text-sm text-muted-foreground">
+        <p>
+          {isDropBanBlocked 
+            ? `${nearMiss.dropCandidate || "This player"} is on your protected list. Consider adjusting your drop bans if ${nearMiss.playerName} becomes essential.`
+            : "Not enough of an upgrade to recommend. Check back after fixtures or if form changes significantly."
+          }
+        </p>
+      </div>
     </article>
   )
 }

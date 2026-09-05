@@ -226,7 +226,9 @@ function PlayerCard({ player, rank }: { player: Player; rank?: number }) {
 
       <div className="flex flex-col items-end text-right">
         <p className="text-xs font-medium text-muted-foreground">{chipLabel}</p>
-        <p className="font-mono text-sm font-semibold">{player.formScore.toFixed(1)}</p>
+        <p className="font-mono text-sm font-semibold">
+          {typeof player.formScore === 'number' ? player.formScore.toFixed(1) : '—'}
+        </p>
       </div>
     </div>
   )

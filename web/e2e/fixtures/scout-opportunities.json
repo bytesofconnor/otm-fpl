@@ -1,0 +1,81 @@
+{
+  "leagueId": "7hjk3otbkaycu7v8",
+  "teamId": "fqzp0okbkaycu7v8",
+  "teamName": "Connor's Team",
+  "timestamp": "2026-09-04T23:30:00.000Z",
+  "currentPeriod": 27,
+  "opportunities": [
+    {
+      "player": {
+        "id": "test-player-1",
+        "name": "João Pedro",
+        "club": "Brighton",
+        "position": "FWD",
+        "availability": "FA"
+      },
+      "whyNow": "Hot form, 2G, 6.5 proj",
+      "formChip": "hot",
+      "formScore": 42.5,
+      "formScoreWithFixtures": 42.5,
+      "recentGW": [6.5],
+      "minutesContext": "78′ played",
+      "fixtureContext": null,
+      "beatsWho": {
+        "name": "Matheus Cunha",
+        "position": "FWD",
+        "formScore": 18.2
+      },
+      "confidence": "HIGH",
+      "killConditions": ["Loses starting spot", "Injury concern arises"],
+      "fantraxProj": 6.5
+    },
+    {
+      "player": {
+        "id": "test-player-2",
+        "name": "Ollie Watkins",
+        "club": "Aston Villa",
+        "position": "FWD",
+        "availability": "WW"
+      },
+      "whyNow": "Recent returns, nailed starter",
+      "formChip": "warm",
+      "formScore": 28.3,
+      "formScoreWithFixtures": 28.3,
+      "recentGW": [5.2],
+      "minutesContext": "Expected starter",
+      "fixtureContext": null,
+      "beatsWho": {
+        "name": "Darwin Núñez",
+        "position": "FWD",
+        "formScore": 12.1
+      },
+      "confidence": "MEDIUM",
+      "killConditions": ["Form drops below 20", "Returns to bench"],
+      "fantraxProj": 5.2
+    },
+    {
+      "player": {
+        "id": "test-player-3",
+        "name": "Pedro Porro",
+        "club": "Tottenham",
+        "position": "DEF",
+        "availability": "FA"
+      },
+      "whyNow": "Elite form, 1G, 1A, 1CS",
+      "formChip": "fire",
+      "formScore": 68.7,
+      "formScoreWithFixtures": 68.7,
+      "recentGW": [9.3],
+      "minutesContext": "90′ played",
+      "fixtureContext": null,
+      "beatsWho": {
+        "name": "Trent Alexander-Arnold",
+        "position": "DEF",
+        "formScore": 22.4
+      },
+      "confidence": "HIGH",
+      "killConditions": ["Rotation risk appears"],
+      "fantraxProj": 9.3
+    }
+  ]
+}

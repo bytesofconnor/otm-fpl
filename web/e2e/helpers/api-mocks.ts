@@ -1,6 +1,7 @@
 import { Page } from "@playwright/test"
 import fantraxLeagueFixture from "../fixtures/fantrax-league.json"
 import fantraxFormFixture from "../fixtures/fantrax-form.json"
+import scoutOpportunitiesFixture from "../fixtures/scout-opportunities.json"
 
 /**
  * Mock Fantrax API routes to avoid needing live secrets in CI
@@ -68,14 +69,14 @@ export async function mockFantraxAPIs(page: Page) {
 }
 
 /**
- * Mock scout API if it exists (return 404 if not implemented yet)
+ * Mock scout API with valid opportunities data
  */
 export async function mockScoutAPI(page: Page) {
-  await page.route("**/api/scout*", async (route) => {
+  await page.route("**/api/scout/opportunities*", async (route) => {
     await route.fulfill({
-      status: 404,
+      status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ error: "not_implemented" }),
+      body: JSON.stringify(scoutOpportunitiesFixture),
     })
   })
 }

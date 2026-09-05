@@ -378,7 +378,7 @@ export function LeagueWeek({
           <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-6">
             <TeamMark name={matchup.home} shortName={matchup.homeShort} owner={matchup.homeOwner} logoUrl={matchup.homeLogo} align="left" you={matchup.homeId === teamId} />
             <div className="min-w-[6rem] shrink-0 text-center sm:min-w-[10rem]">
-              <div className={live ? "otm-kicker text-[#b8ffcf]" : "otm-kicker text-white/70"}>{live ? "Live" : "Projected"}</div>
+              <div className={live && isCurrentWeek ? "otm-kicker text-[#b8ffcf]" : "otm-kicker text-white/70"}>{live && isCurrentWeek ? "Live" : "Projected"}</div>
               <div className="otm-score mt-1 text-[2.2rem] leading-none text-white sm:text-[3.6rem]">
                 {live ? matchup.homeScore ?? "0" : matchup.homeProjected ?? "—"}
                 <span className="mx-1 text-[0.55em] font-semibold text-white/50 sm:mx-1.5">–</span>

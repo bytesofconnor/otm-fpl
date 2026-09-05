@@ -218,7 +218,7 @@ function WaiverCard({ waiver }: { waiver: WaiverCandidate }) {
             {heatEmoji(waiver.formChip)} {heatLabel(waiver.formChip)}
           </span>
           <span className="text-muted-foreground">
-            ({waiver.formScoreWithFixtures.toFixed(1)})
+            ({typeof waiver.formScoreWithFixtures === 'number' ? waiver.formScoreWithFixtures.toFixed(1) : '—'})
           </span>
         </div>
 
@@ -228,7 +228,7 @@ function WaiverCard({ waiver }: { waiver: WaiverCandidate }) {
             <span title={waiver.fixtureContext.summary}>
               {waiver.fixtureContext.bar}
             </span>
-            {waiver.fixtureContext.adjustment !== 0 && (
+            {typeof waiver.fixtureContext.adjustment === 'number' && waiver.fixtureContext.adjustment !== 0 && (
               <span className={cn(
                 "text-xs font-medium",
                 waiver.fixtureContext.adjustment > 0 ? "text-green-500" : "text-red-500"
@@ -251,7 +251,7 @@ function WaiverCard({ waiver }: { waiver: WaiverCandidate }) {
           <span className="text-foreground">{waiver.dropCandidate.name}</span>
           {" "}
           <span className="text-muted-foreground">
-            ({waiver.dropCandidate.position}, {heatLabel(waiver.dropCandidate.formChip)} {waiver.dropCandidate.formScore.toFixed(1)})
+            ({waiver.dropCandidate.position}, {heatLabel(waiver.dropCandidate.formChip)} {typeof waiver.dropCandidate.formScore === 'number' ? waiver.dropCandidate.formScore.toFixed(1) : '—'})
           </span>
         </div>
       )}
@@ -316,7 +316,7 @@ function WaiverCard({ waiver }: { waiver: WaiverCandidate }) {
       )}
 
       {/* Fantrax projection footnote */}
-      {waiver.fantraxProj !== null && (
+      {typeof waiver.fantraxProj === 'number' && (
         <div className="mt-3 border-t border-dashed border-muted-foreground/20 pt-2 text-xs text-muted-foreground">
           Fantrax proj: {waiver.fantraxProj.toFixed(1)} pts
         </div>

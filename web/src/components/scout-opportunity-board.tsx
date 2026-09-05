@@ -280,10 +280,10 @@ function OpportunityCard({ opportunity, rank }: { opportunity: Opportunity; rank
           {chipLabel}
         </span>
         <span className="text-sm font-medium text-white/90">
-          {formScoreWithFixtures.toFixed(1)}
-          {fixtureContext && fixtureContext.adjustment !== 0 && (
+          {typeof formScoreWithFixtures === 'number' ? formScoreWithFixtures.toFixed(1) : '—'}
+          {fixtureContext && typeof fixtureContext.adjustment === 'number' && fixtureContext.adjustment !== 0 && (
             <span className="ml-1 text-xs opacity-75">
-              ({formScore.toFixed(1)} {fixtureContext.adjustment > 0 ? '+' : ''}{fixtureContext.adjustment})
+              ({typeof formScore === 'number' ? formScore.toFixed(1) : '—'} {fixtureContext.adjustment > 0 ? '+' : ''}{fixtureContext.adjustment})
             </span>
           )}
         </span>
@@ -302,7 +302,7 @@ function OpportunityCard({ opportunity, rank }: { opportunity: Opportunity; rank
             <div className="flex-1">
               <p className="text-sm leading-tight">{fixtureContext.summary}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Avg difficulty: {fixtureContext.avgDifficulty.toFixed(1)}/5.0
+                Avg difficulty: {typeof fixtureContext.avgDifficulty === 'number' ? fixtureContext.avgDifficulty.toFixed(1) : '—'}/5.0
               </p>
             </div>
           </div>
@@ -339,10 +339,12 @@ function OpportunityCard({ opportunity, rank }: { opportunity: Opportunity; rank
           </div>
           <div className="text-right">
             <p className="text-sm font-semibold text-destructive">
-              Form: {beatsWho.formScore.toFixed(1)}
+              Form: {typeof beatsWho.formScore === 'number' ? beatsWho.formScore.toFixed(1) : '—'}
             </p>
             <p className="text-xs text-muted-foreground">
-              Gap: +{(formScore - beatsWho.formScore).toFixed(1)}
+              Gap: {(typeof formScore === 'number' && typeof beatsWho.formScore === 'number') 
+                ? `+${(formScore - beatsWho.formScore).toFixed(1)}` 
+                : '—'}
             </p>
           </div>
         </div>
@@ -438,7 +440,7 @@ function NearMissCard({ nearMiss, rank }: { nearMiss: NearMiss; rank: number }) 
             <p className="mt-1 text-sm text-muted-foreground">
               {isDropBanBlocked 
                 ? `Would require dropping ${nearMiss.dropCandidate || "a protected player"} (untouchable)`
-                : `Form advantage (+${nearMiss.formGap.toFixed(1)}) below minimum threshold`
+                : `Form advantage (${typeof nearMiss.formGap === 'number' ? `+${nearMiss.formGap.toFixed(1)}` : '—'}) below minimum threshold`
               }
             </p>
           </div>
@@ -457,7 +459,7 @@ function NearMissCard({ nearMiss, rank }: { nearMiss: NearMiss; rank: number }) 
           </div>
           <div className="text-right">
             <p className="text-sm font-semibold text-muted-foreground">
-              Form gap: +{nearMiss.formGap.toFixed(1)}
+              Form gap: {typeof nearMiss.formGap === 'number' ? `+${nearMiss.formGap.toFixed(1)}` : '—'}
             </p>
             {isDropBanBlocked && (
               <p className="text-xs font-bold text-orange-600 dark:text-orange-400">

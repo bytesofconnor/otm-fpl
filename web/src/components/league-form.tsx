@@ -372,7 +372,7 @@ export function LeagueForm(): React.ReactElement {
       </a>
       <div id="form-dock" className="sticky top-[calc(var(--header-h)+env(safe-area-inset-top))] z-40 border-b border-border bg-card/95 backdrop-blur-sm sm:bg-card">
         <div className={pageWidth}>
-          <div className="flex items-stretch justify-between gap-1 sm:gap-2 md:gap-4">
+          <div className="flex items-stretch justify-between gap-2 sm:gap-2 md:gap-4">
             <LayoutGroup id="form-tabs">
             <Tabs
               value={pane}
@@ -381,24 +381,24 @@ export function LeagueForm(): React.ReactElement {
               }}
               className="min-w-0 flex-1 gap-0"
             >
-              <TabsList variant="line" className="h-12 w-full justify-start gap-1 rounded-none bg-transparent p-0 sm:h-12 md:h-14 sm:gap-1 md:gap-2" role="tablist" aria-label="Form views">
+              <TabsList variant="line" className="h-14 w-full justify-start gap-1.5 rounded-none bg-transparent p-0 sm:h-14 md:h-14 sm:gap-1.5 md:gap-2" role="tablist" aria-label="Form views">
                 {jumps.map((item) => (
                   <TabsTrigger
                     key={item.id}
                     value={item.id}
-                    className="tap relative h-12 flex-none rounded-none px-2 text-[12px] font-semibold uppercase tracking-[0.11em] after:!hidden sm:h-12 sm:px-2 sm:text-[11px] md:h-14 md:px-3 md:text-[12px] md:tracking-[0.14em]"
+                    className="tap relative h-14 flex-none rounded-none px-3 text-[13px] font-semibold uppercase tracking-[0.12em] after:!hidden sm:h-14 sm:px-3 sm:text-[12px] md:h-14 md:px-4 md:text-[13px] md:tracking-[0.14em]"
                     role="tab"
                     aria-selected={pane === item.id}
                     aria-controls={`form-panel-${item.id}`}
                   >
                     <span>{item.label}</span>
                     {item.count != null ? (
-                      <span className="ml-1 font-mono text-[11px] font-normal text-muted-foreground/80 sm:ml-1 sm:text-[11px]">{item.count}</span>
+                      <span className="ml-1.5 font-mono text-[11px] font-normal text-muted-foreground/80 sm:ml-1.5 sm:text-[11px]">{item.count}</span>
                     ) : null}
                     {pane === item.id ? (
                       <motion.span
                         layoutId="form-tab-ink"
-                        className="absolute inset-x-1.5 bottom-0 h-0.5 bg-foreground sm:inset-x-2 md:inset-x-3"
+                        className="absolute inset-x-2 bottom-0 h-0.5 bg-foreground sm:inset-x-2.5 md:inset-x-3"
                         transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 380, damping: 32 }}
                         aria-hidden="true"
                       />
@@ -442,13 +442,15 @@ export function LeagueForm(): React.ReactElement {
                 <TooltipContent>Next graph (→ or ])</TooltipContent>
               </Tooltip>
             </div>
-            <Button type="button" variant="ghost" size="sm" className="tap shrink-0 self-center px-2.5 text-[12px] sm:px-3 sm:text-[13px]" onClick={() => void onCopy()} aria-label="Copy share link">
+          </div>
+          <div className="flex items-center justify-end gap-2 border-t border-border/50 px-3 py-1.5 sm:hidden">
+            <Button type="button" variant="ghost" size="sm" className="tap h-9 shrink-0 px-3 text-[13px]" onClick={() => void onCopy()} aria-label="Copy share link">
               {copied ? "Copied" : "Copy"}
             </Button>
           </div>
 
           {pane !== "teams" ? (
-            <div className="mb-2 flex flex-col gap-1.5 rounded-md bg-muted/70 p-1.5 ring-1 ring-border/70 focus-within:ring-foreground/20 sm:mb-3 sm:flex-row sm:items-center sm:gap-1.5 sm:p-1.5 md:gap-0 md:p-0 md:pr-1.5" role="search">
+            <div className="min-h-[4.5rem] mb-2 flex flex-col gap-1.5 rounded-md bg-muted/70 p-1.5 ring-1 ring-border/70 focus-within:ring-foreground/20 sm:mb-3 sm:min-h-[3.5rem] sm:flex-row sm:items-center sm:gap-1.5 sm:p-1.5 md:gap-0 md:p-0 md:pr-1.5" role="search">
               <div className="flex min-w-0 flex-1 items-center">
                 <label htmlFor="form-search" className="sr-only">Search players, managers, or clubs</label>
                 <Search className="ml-2.5 size-4 shrink-0 text-muted-foreground sm:ml-3 sm:size-4" aria-hidden="true" />
@@ -486,7 +488,7 @@ export function LeagueForm(): React.ReactElement {
                       value={col.id} 
                       aria-label={`Filter to ${col.name}`} 
                       title={col.name}
-                      className="tap"
+                      className="tap h-9 min-w-[2.75rem]"
                     >
                       {col.code}
                     </ToggleGroupItem>
@@ -497,7 +499,7 @@ export function LeagueForm(): React.ReactElement {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="tap"
+                  className="tap h-9"
                   onClick={() => {
                     setPositions([])
                     setQuery("")

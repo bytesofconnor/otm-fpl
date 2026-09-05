@@ -99,13 +99,13 @@ function PlayerBlock({
       type="button"
       variant="ghost"
       onClick={onToggle}
-      className={`otm-kit h-auto min-h-14 w-full min-w-0 flex-col items-stretch justify-start gap-0 px-2 py-2 whitespace-normal hover:bg-white/10 ${
+      className={`otm-kit h-auto min-h-14 w-full min-w-0 flex-col items-stretch justify-start gap-0 px-2 py-2 text-left hover:bg-white/10 ${
         align === "right" ? "text-right" : "text-left"
       } ${hot ? "otm-kit-hot" : ""}`}
     >
       <div className={`flex items-center gap-2.5 ${align === "right" ? "flex-row-reverse" : ""}`}>
         <Crest src={player.headshotUrl} alt={player.team} />
-        <span className="min-w-0 flex-1 truncate text-[15px] font-semibold tracking-tight text-white sm:text-[16px]">{player.name}</span>
+        <span className="min-w-0 flex-1 break-words text-[15px] font-semibold leading-tight tracking-tight text-white sm:text-[16px]">{player.name}</span>
         <span className="shrink-0 text-right">
           <span className={`otm-score block text-[1.2rem] leading-none tabular-nums sm:text-[1.45rem] ${hot ? "text-white" : "text-white/90"}`}>
             {pts(player.points)}
@@ -335,17 +335,17 @@ export function LeagueWeek({
             {periodLabel || `GW${period}`}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1.5">
           <Button
             type="button"
             variant="ghost"
             size="icon"
             aria-label="Previous gameweek"
             disabled={period <= 1}
-            className="text-white hover:bg-white/15 hover:text-white"
+            className="size-11 text-white hover:bg-white/15 hover:text-white disabled:opacity-40"
             onClick={() => onPeriod(period - 1)}
           >
-            ‹
+            <span className="text-[22px] leading-none">‹</span>
           </Button>
           <Button
             type="button"
@@ -353,13 +353,13 @@ export function LeagueWeek({
             size="icon"
             aria-label="Next gameweek"
             disabled={period >= periodCount}
-            className="text-white hover:bg-white/15 hover:text-white"
+            className="size-11 text-white hover:bg-white/15 hover:text-white disabled:opacity-40"
             onClick={() => onPeriod(period + 1)}
           >
-            ›
+            <span className="text-[22px] leading-none">›</span>
           </Button>
           {matchup ? (
-            <Button type="button" variant="outline" size="sm" className="ml-1 border-white/40 bg-black/25 text-white hover:bg-black/35 hover:text-white" onClick={() => void onCopy()}>
+            <Button type="button" variant="outline" size="sm" className="ml-1 h-10 min-w-[4.5rem] border-white/40 bg-black/25 px-3 text-[14px] text-white hover:bg-black/35 hover:text-white" onClick={() => void onCopy()}>
               {copied ? "Copied" : "Copy"}
             </Button>
           ) : null}

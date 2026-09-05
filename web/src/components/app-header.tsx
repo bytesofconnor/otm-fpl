@@ -53,7 +53,7 @@ export function AppHeader(): ReactElement {
                 {item.label}
                 <span
                   className={cn(
-                    "absolute inset-x-2 bottom-0 h-0.5 bg-live transition-opacity sm:inset-x-3",
+                    "absolute inset-x-2 bottom-0 h-0.5 bg-foreground transition-opacity sm:inset-x-3",
                     active ? "opacity-100" : "opacity-0",
                   )}
                   aria-hidden

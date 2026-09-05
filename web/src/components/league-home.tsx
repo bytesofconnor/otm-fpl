@@ -212,7 +212,7 @@ export function LeagueHome(): React.ReactElement {
               {snap.standings.map((row) => (
                 <li
                   key={row.teamId}
-                  className={`otm-row flex items-center gap-3 rounded-md px-1.5 py-2.5 text-[14px] ${row.you ? "bg-live/15 text-foreground" : "text-muted-foreground"}`}
+                  className={`otm-row flex items-center gap-3 rounded-md px-1.5 py-2.5 text-[14px] ${row.you ? "bg-muted text-foreground" : "text-muted-foreground"}`}
                 >
                   {row.logoUrl ? (
                     <ImageWithFallback src={row.logoUrl} alt="" className="h-6 w-6 rounded-md object-cover ring-1 ring-border" fallback="/favicon.svg" />

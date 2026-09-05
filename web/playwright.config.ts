@@ -7,7 +7,9 @@ import { defineConfig, devices } from "@playwright/test"
  * - Desktop & mobile viewport testing (iPhone 12 Pro)
  * - Accessibility testing with axe-core
  * - Automatic test server startup
- * - CI optimizations (no video in CI, parallel workers)
+ * - CI video/screenshot capture for visual evidence
+ *   - Always-on video for smoke tests (critical routes)
+ *   - Retain-on-failure video for all other tests
  */
 export default defineConfig({
   testDir: "./e2e",
@@ -21,6 +23,7 @@ export default defineConfig({
     baseURL: "http://localhost:3000",
     trace: process.env.CI ? "retain-on-failure" : "on-first-retry",
     screenshot: process.env.CI ? "only-on-failure" : "off",
+    video: process.env.CI ? "retain-on-failure" : "off",
   },
 
   projects: [
@@ -33,6 +36,16 @@ export default defineConfig({
       use: { 
         ...devices["iPhone 12 Pro"],
         // iPhone 12 Pro viewport: 390x844
+      },
+    },
+    // Smoke tests with always-on video for visual evidence
+    {
+      name: "Smoke Tests (Always Record)",
+      testMatch: "**/smoke.spec.ts",
+      use: {
+        ...devices["Desktop Chrome"],
+        video: "on",
+        screenshot: "on",
       },
     },
   ],

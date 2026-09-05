@@ -224,9 +224,30 @@ The GitHub Actions workflow:
 2. Builds the Next.js app (`npm run build`)
 3. Starts the production server (`npm run start`)
 4. Runs Playwright tests against the local server
-5. Uploads test reports and traces on failure
+5. Uploads test reports, screenshots, videos, and traces
 
 **No environment variables required** — API routes are mocked with fixtures, so tests work without Fantrax or Supabase credentials.
+
+### Downloading CI Artifacts (Screenshots & Videos)
+
+Every CI run uploads visual evidence as artifacts with 14-day retention:
+
+**To download artifacts:**
+1. Navigate to the [Actions tab](https://github.com/bytesofconnor/otm-fpl/actions)
+2. Click on the workflow run you want to inspect
+3. Scroll to the bottom of the run page to the "Artifacts" section
+4. Download `playwright-artifacts` (contains both reports and videos)
+
+**What's included:**
+- `playwright-report/` — HTML test report with embedded screenshots
+- `test-results/` — Videos and traces for failed tests
+- Smoke test videos (always captured for critical routes: home, form, scout)
+
+**Use cases:**
+- Review screenshots/videos after a failed test
+- Verify visual rendering on CI (especially mobile)
+- Debug flaky tests
+- Provide visual proof of functionality for merge reviews
 
 ### Accessibility Testing
 

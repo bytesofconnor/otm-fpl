@@ -90,6 +90,7 @@ export function LeagueForm(): React.ReactElement {
   const [weekFocus, setWeekFocus] = React.useState<number | "season" | null>(null)
   const [copied, setCopied] = React.useState(false)
   const [dir, setDir] = React.useState<1 | -1>(1)
+  const [isMobile, setIsMobile] = React.useState(false)
   const hydrated = React.useRef(false)
   const paneRef = React.useRef(pane)
   const swipe = React.useRef<{ x: number; y: number; id: number } | null>(null)
@@ -177,6 +178,15 @@ export function LeagueForm(): React.ReactElement {
   React.useEffect(() => {
     if (positions.length === POSITIONS.length) setPositions([])
   }, [positions])
+
+  React.useEffect(() => {
+    function checkMobile() {
+      setIsMobile(window.innerWidth < 640)
+    }
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
+  }, [])
 
   const go = React.useCallback((target: FormPane, hint?: 1 | -1) => {
     const from = PANES.indexOf(paneRef.current)
@@ -459,7 +469,7 @@ export function LeagueForm(): React.ReactElement {
                   id="form-search"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Player, manager, or club"
+                  placeholder={isMobile ? "Player or club" : "Player, manager, or club"}
                   spellCheck={false}
                   autoComplete="off"
                   autoCorrect="off"

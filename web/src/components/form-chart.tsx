@@ -151,15 +151,16 @@ function formatTick(tick: number): string {
 }
 
 
-/** Ultra-short code for cramped mobile x-axis. Max 5 chars to prevent overlap. */
+/** Ultra-short stable code for mobile x-axis. Fixed 2-3 chars, no reflow. */
 function mobileLabel(label: string, code?: string): string {
-  if (code) return code.slice(0, 5).toUpperCase()
+  if (code) return code.slice(0, 3).toUpperCase()
   const parts = label.replace(/['']/g, "").trim().split(/\s+/)
   if (parts.length >= 2) {
     // Use initials for multi-word names: "John Smith" -> "JS"
-    return parts.slice(0, 3).map(p => p[0]).join('').toUpperCase().slice(0, 5)
+    return parts.slice(0, 2).map(p => p[0]).join('').toUpperCase()
   }
-  return label.slice(0, 5).toUpperCase()
+  // Single word: first 2-3 chars
+  return label.slice(0, 3).toUpperCase()
 }
 
 /**
@@ -505,8 +506,8 @@ export function FormChart({
           <div
             className="grid"
           style={{
-            gridTemplateColumns: `${pad.left}px repeat(${Math.max(1, plotted.length)}, minmax(44px, 1fr)) ${pad.right}px`,
-            minWidth: `${pad.left + plotted.length * 44 + pad.right}px`,
+            gridTemplateColumns: `${pad.left}px repeat(${Math.max(1, plotted.length)}, minmax(52px, 1fr)) ${pad.right}px`,
+            minWidth: `${pad.left + plotted.length * 52 + pad.right}px`,
           }}
           >
             <div />
@@ -519,7 +520,7 @@ export function FormChart({
                 title={s.label}
                 aria-label={s.label}
                 onClick={() => onSelect?.(s.id)}
-                className={`tap h-auto min-h-[48px] min-w-0 justify-center rounded-none px-0.5 py-2.5 text-center text-[11px] font-semibold leading-tight tracking-wide sm:text-[11px] md:text-[12px] ${
+                className={`tap h-auto min-h-[52px] min-w-[52px] justify-center rounded-none px-1 py-2.5 text-center text-[12px] font-semibold leading-tight tracking-wide sm:text-[12px] md:text-[13px] ${
                   s.id === activeId ? "text-foreground" : "text-muted-foreground"
                 }`}
               >
@@ -573,7 +574,7 @@ export function FormChart({
                   ) : (
                     <span className="h-2.5 w-2.5 shrink-0 rounded-sm sm:h-2 sm:w-2" style={{ background: color }} />
                   )}
-                  <span className="min-w-0 flex-1 break-words line-clamp-2" title={s.label}>{s.label}</span>
+                  <span className="min-w-0 flex-1 break-words line-clamp-2 text-left" title={s.label}>{s.label}</span>
                   {s.hint === "You" ? <Badge variant="you" className="hidden sm:inline-flex">You</Badge> : null}
                 </Button>
                 {s.owner && s.ownerId && onFilterOwner ? (
@@ -922,11 +923,11 @@ export function PoolChart({
                 aria-pressed={on}
                 title={`${g.code} · ${g.name}`}
                 onClick={() => onSelect?.(g.id)}
-                className={`h-10 min-w-0 flex-col gap-0.5 rounded-none px-0.5 ${
+                className={`h-12 min-w-0 flex-col gap-0.5 rounded-none px-1 ${
                   gi > 0 ? "border-l border-border" : ""
                 } ${on ? "bg-background font-semibold text-foreground" : "text-muted-foreground"}`}
               >
-                <span className="max-w-full truncate px-0.5 text-[10px] font-medium tracking-wide sm:text-[11px]">{g.code}</span>
+                <span className="max-w-full truncate px-0.5 text-[11px] font-medium tracking-wide sm:text-[12px]">{g.code}</span>
                 <span className="font-mono text-[10px] tabular-nums text-muted-foreground">{g.players.length}</span>
               </Button>
             )
@@ -1001,7 +1002,7 @@ export function PoolChart({
                     className="h-2.5 w-2.5 shrink-0 border sm:h-2 sm:w-2"
                     style={{ borderColor: color, background: scored != null && scored > 0 ? color : "transparent" }}
                   />
-                  <span className="min-w-0 flex-1 break-words line-clamp-2" title={p.name}>{p.name}</span>
+                  <span className="min-w-0 flex-1 break-words line-clamp-2 text-left" title={p.name}>{p.name}</span>
                 </Button>
                 {p.owner && p.ownerId && onFilterOwner ? (
                   <Button

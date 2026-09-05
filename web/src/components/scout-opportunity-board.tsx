@@ -134,6 +134,29 @@ export function OpportunityBoard() {
     } else if (!data.teamName && data.teamId) {
       emptyMessage = "Team not found"
       emptyHint = "Please verify your team ID or contact support."
+    } else if (data.debug?.topNearMisses && data.debug.topNearMisses.length > 0) {
+      // Check if any near-misses are blocked by drop_ban
+      const dropBanBlocked = data.debug.topNearMisses.filter(
+        (miss) => miss.blockedBy === "drop_ban"
+      )
+      const formGapBlocked = data.debug.topNearMisses.filter(
+        (miss) => miss.blockedBy === "form_gap"
+      )
+
+      if (dropBanBlocked.length > 0) {
+        // Primary message: Blocked by protected players
+        const examples = dropBanBlocked
+          .slice(0, 2)
+          .map((miss) => `${miss.playerName} (for ${miss.dropCandidate})`)
+          .join(", ")
+        emptyMessage = "Closest FA upgrades would require dropping a protected player."
+        emptyHint = `Examples: ${examples}. Your protected players remain untouchable.`
+      } else if (formGapBlocked.length > 0) {
+        // Secondary message: Form gap insufficient
+        const minGap = data.debug.minFormScoreGap
+        emptyMessage = "No players significantly better than your current bench."
+        emptyHint = `Minimum form score gap required: ${minGap}. Check back after fixtures.`
+      }
     }
     
     return (

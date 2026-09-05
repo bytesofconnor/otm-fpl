@@ -105,7 +105,7 @@ function PlayerBlock({
     >
       <div className={`flex items-start gap-2.5 ${align === "right" ? "flex-row-reverse" : ""}`}>
         <Crest src={player.headshotUrl} alt={player.team} />
-        <span className="min-w-0 flex-1 break-words text-[15px] font-semibold leading-tight tracking-tight text-white sm:text-[16px] line-clamp-2">{player.name}</span>
+        <span className="min-w-0 flex-1 whitespace-normal break-words text-[15px] font-semibold leading-tight tracking-tight text-white sm:text-[16px] line-clamp-2">{player.name}</span>
         <span className="shrink-0 text-right">
           <span className={`otm-score block text-[1.2rem] leading-none tabular-nums sm:text-[1.45rem] ${hot ? "text-white" : "text-white/90"}`}>
             {pts(player.points)}

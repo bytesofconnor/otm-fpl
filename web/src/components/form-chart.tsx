@@ -158,6 +158,17 @@ function shortLabel(label: string, code?: string): string {
   return label.slice(0, 8)
 }
 
+/** Ultra-short code for cramped mobile x-axis. Max 5 chars to prevent overlap. */
+function mobileLabel(label: string, code?: string): string {
+  if (code) return code.slice(0, 5).toUpperCase()
+  const parts = label.replace(/['']/g, "").trim().split(/\s+/)
+  if (parts.length >= 2) {
+    // Use initials for multi-word names: "John Smith" -> "JS"
+    return parts.slice(0, 3).map(p => p[0]).join('').toUpperCase().slice(0, 5)
+  }
+  return label.slice(0, 5).toUpperCase()
+}
+
 /**
  * Spread overlapping points in a column so equal values stay distinct.
  */
@@ -327,7 +338,7 @@ export function FormChart({
               </Button>
             ) : null}
             <h3 className={`otm-title text-[1.35rem] leading-tight sm:text-[1.35rem] sm:leading-snug md:text-[1.5rem] ${onBack ? "mt-0.5" : ""}`}>
-              <span className="line-clamp-2 break-words">{focused?.label ?? headline ?? title}</span>
+              <span className="block min-h-[2.7rem] break-words sm:line-clamp-2">{focused?.label ?? headline ?? title}</span>
             </h3>
             {focused?.hint && focused.hint !== "You" ? (
               <p className="mt-1 line-clamp-1 break-words text-[13px] text-muted-foreground sm:truncate sm:text-[13px]">{focused.hint}</p>
@@ -511,12 +522,16 @@ export function FormChart({
               variant="ghost"
               size="sm"
               title={s.label}
+              aria-label={s.label}
               onClick={() => onSelect?.(s.id)}
-              className={`tap h-auto min-h-[48px] min-w-0 justify-center rounded-none px-0.5 py-2.5 text-center text-[10px] font-medium leading-tight tracking-wide sm:text-[10px] md:text-[11px] ${
+              className={`tap h-auto min-h-[48px] min-w-0 justify-center rounded-none px-0.5 py-2.5 text-center text-[11px] font-semibold leading-tight tracking-wide sm:text-[11px] md:text-[12px] ${
                 s.id === activeId ? "text-foreground" : "text-muted-foreground"
               }`}
             >
-              <span className="block max-w-full break-words hyphens-auto" lang="en">{s.code ?? shortLabel(s.label)}</span>
+              <span className="block max-w-full break-words hyphens-auto" lang="en">
+                <span className="sm:hidden">{mobileLabel(s.label, s.code)}</span>
+                <span className="hidden sm:inline">{s.code ?? shortLabel(s.label)}</span>
+              </span>
             </Button>
           ))}
           <div />
@@ -741,7 +756,7 @@ export function PoolChart({
         <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3.5 sm:gap-4 sm:px-4 sm:py-4 md:px-6">
           <div className="min-w-0 flex-1">
             <h3 className="otm-title text-[1.35rem] leading-tight sm:text-[1.35rem] sm:leading-snug md:text-[1.5rem]">
-              <span className="line-clamp-2 break-words">{picked?.name ?? highlighted?.name ?? title}</span>
+              <span className="block min-h-[2.7rem] break-words sm:line-clamp-2">{picked?.name ?? highlighted?.name ?? title}</span>
             </h3>
             <p className="mt-1 line-clamp-1 break-words text-[13px] text-muted-foreground sm:truncate sm:text-[13px]">
               {picked

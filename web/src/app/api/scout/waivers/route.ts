@@ -96,6 +96,7 @@ interface WaiversResponse {
   leagueId: string
   teamId: string
   teamName: string | null
+  timestamp: string
   currentPeriod: number
   waivers: WaiverCandidate[]
   debug?: {
@@ -521,6 +522,7 @@ export async function GET(request: Request) {
       leagueId: form.leagueId,
       teamId: teamId, // Use the validated teamId from params
       teamName: form.teamName,
+      timestamp: new Date().toISOString(),
       currentPeriod: form.currentPeriod,
       waivers: candidates,
       debug,

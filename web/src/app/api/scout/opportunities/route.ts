@@ -92,6 +92,7 @@ interface OpportunitiesResponse {
   leagueId: string
   teamId: string | null
   teamName: string | null
+  timestamp: string
   currentPeriod: number
   opportunities: OpportunityCandidate[]
   debug?: {
@@ -483,6 +484,7 @@ export async function GET(request: Request) {
       leagueId: form.leagueId,
       teamId: form.teamId,
       teamName: form.teamName,
+      timestamp: new Date().toISOString(),
       currentPeriod: form.currentPeriod,
       opportunities: limitedCandidates,
       debug, // Include debug info in response

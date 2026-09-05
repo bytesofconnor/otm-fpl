@@ -319,23 +319,23 @@ export function FormChart({
     <SplitBoard
       caption={caption}
       header={
-        <div className="flex items-center justify-between gap-4 border-b border-border px-4 py-4 sm:px-6">
-          <div className="min-w-0">
+        <div className="flex items-center justify-between gap-3 border-b border-border px-3 py-3 sm:gap-4 sm:px-4 sm:py-4 md:px-6">
+          <div className="min-w-0 flex-1">
             {onBack ? (
-              <Button type="button" variant="ghost" size="sm" className="-ml-2 h-auto px-2 py-1" onClick={onBack}>
+              <Button type="button" variant="ghost" size="sm" className="tap -ml-2 h-auto px-2 py-1 text-[13px] sm:text-[14px]" onClick={onBack}>
                 {backLabel ?? "All managers"}
               </Button>
             ) : null}
-            <h3 className={`otm-title truncate text-[1.35rem] sm:text-[1.5rem] ${onBack ? "mt-0.5" : ""}`}>
-              {focused?.label ?? headline ?? title}
+            <h3 className={`otm-title text-[1.2rem] leading-tight sm:text-[1.35rem] sm:leading-snug md:text-[1.5rem] ${onBack ? "mt-0.5" : ""}`}>
+              <span className="line-clamp-2 break-words sm:truncate">{focused?.label ?? headline ?? title}</span>
             </h3>
             {focused?.hint && focused.hint !== "You" ? (
-              <p className="mt-0.5 truncate text-[13px] text-muted-foreground">{focused.hint}</p>
+              <p className="mt-0.5 line-clamp-1 break-words text-[12px] text-muted-foreground sm:truncate sm:text-[13px]">{focused.hint}</p>
             ) : focused?.hint === "You" ? (
-              <p className="mt-0.5 text-[13px] text-muted-foreground">Your team</p>
+              <p className="mt-0.5 text-[12px] text-muted-foreground sm:text-[13px]">Your team</p>
             ) : null}
           </div>
-          <div className="flex shrink-0 items-end gap-4">
+          <div className="flex shrink-0 items-end gap-3 sm:gap-4">
             {focused ? (
               <FocusStats
                 split={Boolean(split)}
@@ -512,11 +512,11 @@ export function FormChart({
               size="sm"
               title={s.label}
               onClick={() => onSelect?.(s.id)}
-              className={`h-10 min-w-0 justify-center rounded-none px-0.5 text-center text-[10px] font-medium tracking-wide sm:text-[11px] ${
+              className={`tap h-auto min-h-[44px] min-w-0 justify-center rounded-none px-0.5 py-2 text-center text-[9px] font-medium leading-tight tracking-wide sm:text-[10px] md:text-[11px] ${
                 s.id === activeId ? "text-foreground" : "text-muted-foreground"
               }`}
             >
-              {s.code ?? shortLabel(s.label)}
+              <span className="block max-w-full break-words">{s.code ?? shortLabel(s.label)}</span>
             </Button>
           ))}
           <div />
@@ -544,7 +544,7 @@ export function FormChart({
           return (
             <li key={s.id} data-id={s.id}>
               <div
-                className={`otm-row flex w-full items-center gap-3 px-4 py-1 text-[14px] ${
+                className={`otm-row flex w-full items-center gap-2 px-3 py-1 text-[14px] sm:gap-3 sm:px-4 ${
                   on ? "bg-muted text-foreground" : "text-foreground"
                 }`}
               >
@@ -552,7 +552,7 @@ export function FormChart({
                   type="button"
                   variant="ghost"
                   onClick={() => onSelect?.(s.id)}
-                  className="h-auto min-h-0 min-w-0 flex-1 justify-start gap-3 rounded-none px-0 py-1.5 text-left font-normal"
+                  className="tap h-auto min-h-0 min-w-0 flex-1 justify-start gap-2 rounded-none px-0 py-1.5 text-left font-normal sm:gap-3"
                 >
                   <span className="w-5 font-mono text-[11px] text-muted-foreground">{rank + 1}</span>
                   {split ? (
@@ -563,7 +563,7 @@ export function FormChart({
                   ) : (
                     <span className="h-2 w-2 shrink-0 rounded-sm" style={{ background: color }} />
                   )}
-                  <span className="min-w-0 flex-1 truncate" title={s.label}>{s.label}</span>
+                  <span className="min-w-0 flex-1 break-words line-clamp-2 sm:truncate" title={s.label}>{s.label}</span>
                   {s.hint === "You" ? <Badge variant="you" className="hidden sm:inline-flex">You</Badge> : null}
                 </Button>
                 {s.owner && s.ownerId && onFilterOwner ? (
@@ -571,7 +571,7 @@ export function FormChart({
                     type="button"
                     variant="ghost"
                     onClick={() => onFilterOwner(s.ownerId!)}
-                    className="hidden h-auto min-h-0 max-w-[28%] min-w-0 truncate px-0 py-0 text-left text-[12px] font-normal text-muted-foreground sm:inline-flex"
+                    className="tap hidden h-auto min-h-0 max-w-[28%] min-w-0 truncate px-0 py-0 text-left text-[12px] font-normal text-muted-foreground sm:inline-flex"
                     title={s.owner}
                   >
                     {s.owner}
@@ -584,17 +584,17 @@ export function FormChart({
                     type="button"
                     variant="ghost"
                     onClick={() => onFilterClub(s.club!)}
-                    className="hidden h-auto min-h-0 shrink-0 px-0 py-0 text-[12px] font-normal text-muted-foreground sm:inline-flex"
+                    className="tap hidden h-auto min-h-0 shrink-0 px-0 py-0 text-[12px] font-normal text-muted-foreground sm:inline-flex"
                   >
                     {s.club}
                   </Button>
                 ) : null}
                 {split ? (
-                  <span className="flex items-baseline gap-3 font-mono tabular-nums">
-                    <span className="w-14 text-right text-[13px]" style={{ color: on ? color : undefined }}>
+                  <span className="flex items-baseline gap-2 font-mono tabular-nums sm:gap-3">
+                    <span className="w-12 text-right text-[13px] sm:w-14" style={{ color: on ? color : undefined }}>
                       {scored != null ? scored.toFixed(1) : "—"}
                     </span>
-                    <span className="w-14 text-right text-[13px] text-foreground/50">
+                    <span className="w-12 text-right text-[13px] text-foreground/50 sm:w-14">
                       {remainingPts(value, scored) >= 0.05 ? remainingPts(value, scored).toFixed(1) : "—"}
                     </span>
                   </span>
@@ -738,10 +738,12 @@ export function PoolChart({
     <SplitBoard
       caption={caption}
       header={
-        <div className="flex items-center justify-between gap-4 border-b border-border px-4 py-4 sm:px-6">
-          <div className="min-w-0">
-            <h3 className="otm-title truncate text-[1.35rem] sm:text-[1.5rem]">{picked?.name ?? highlighted?.name ?? title}</h3>
-            <p className="mt-0.5 truncate text-[13px] text-muted-foreground">
+        <div className="flex items-center justify-between gap-3 border-b border-border px-3 py-3 sm:gap-4 sm:px-4 sm:py-4 md:px-6">
+          <div className="min-w-0 flex-1">
+            <h3 className="otm-title text-[1.2rem] leading-tight sm:text-[1.35rem] sm:leading-snug md:text-[1.5rem]">
+              <span className="line-clamp-2 break-words sm:truncate">{picked?.name ?? highlighted?.name ?? title}</span>
+            </h3>
+            <p className="mt-0.5 line-clamp-1 break-words text-[12px] text-muted-foreground sm:truncate sm:text-[13px]">
               {picked
                 ? [picked.owner, picked.club, picked.position].filter(Boolean).join(" · ") || highlighted?.name
                 : highlighted
@@ -749,7 +751,7 @@ export function PoolChart({
                   : null}
             </p>
           </div>
-          <div className="flex shrink-0 items-end gap-4">
+          <div className="flex shrink-0 items-end gap-3 sm:gap-4">
             {picked ? (
               <FocusStats
                 split={hasLive}
@@ -971,7 +973,7 @@ export function PoolChart({
           return (
             <li key={p.id}>
               <div
-                className={`flex w-full items-center gap-3 px-4 py-1 text-[15px] transition-colors hover:bg-accent/70 sm:px-6 ${
+                className={`flex w-full items-center gap-2 px-3 py-1 text-[14px] transition-colors hover:bg-accent/70 sm:gap-3 sm:px-4 md:px-6 md:text-[15px] ${
                   on ? "bg-muted text-foreground" : "text-foreground"
                 }`}
               >
@@ -979,21 +981,21 @@ export function PoolChart({
                   type="button"
                   variant="ghost"
                   onClick={() => onSelectPlayer?.(p.id, p.ownerId ?? groupId)}
-                  className="h-auto min-h-0 min-w-0 flex-1 justify-start gap-3 rounded-none px-0 py-2 text-left text-[15px] font-normal"
+                  className="tap h-auto min-h-0 min-w-0 flex-1 justify-start gap-2 rounded-none px-0 py-2 text-left font-normal sm:gap-3 md:text-[15px]"
                 >
                   <span className="w-5 font-mono text-[11px] text-muted-foreground">{rank + 1}</span>
                   <span
                     className="h-2 w-2 shrink-0 border"
                     style={{ borderColor: color, background: scored != null && scored > 0 ? color : "transparent" }}
                   />
-                  <span className="min-w-0 flex-1 truncate" title={p.name}>{p.name}</span>
+                  <span className="min-w-0 flex-1 break-words line-clamp-2 sm:truncate" title={p.name}>{p.name}</span>
                 </Button>
                 {p.owner && p.ownerId && onFilterOwner ? (
                   <Button
                     type="button"
                     variant="link"
                     onClick={() => onFilterOwner(p.ownerId!)}
-                    className="hidden h-auto min-h-0 max-w-[28%] min-w-0 truncate px-0 py-0 text-left text-[12px] font-normal text-muted-foreground sm:inline-flex"
+                    className="tap hidden h-auto min-h-0 max-w-[28%] min-w-0 truncate px-0 py-0 text-left text-[12px] font-normal text-muted-foreground sm:inline-flex"
                     title={p.owner}
                   >
                     {p.owner}
@@ -1004,7 +1006,7 @@ export function PoolChart({
                     type="button"
                     variant="link"
                     onClick={() => onFilterClub(p.club!)}
-                    className="hidden h-auto min-h-0 shrink-0 px-0 py-0 text-[12px] font-normal text-muted-foreground sm:inline-flex"
+                    className="tap hidden h-auto min-h-0 shrink-0 px-0 py-0 text-[12px] font-normal text-muted-foreground sm:inline-flex"
                   >
                     {p.club}
                   </Button>
@@ -1013,11 +1015,11 @@ export function PoolChart({
                     {[p.club, p.position].filter(Boolean).join(" · ")}
                   </span>
                 ) : null}
-                <span className="flex items-baseline gap-3 font-mono tabular-nums">
-                  <span className="w-14 text-right text-[13px]" style={{ color: on ? color : undefined }}>
+                <span className="flex items-baseline gap-2 font-mono tabular-nums sm:gap-3">
+                  <span className="w-12 text-right text-[13px] sm:w-14" style={{ color: on ? color : undefined }}>
                     {scored != null ? scored.toFixed(1) : "—"}
                   </span>
-                  <span className="w-14 text-right text-[13px] text-foreground/50">
+                  <span className="w-12 text-right text-[13px] text-foreground/50 sm:w-14">
                     {remainingPts(p.value, scored) >= 0.05 ? remainingPts(p.value, scored).toFixed(1) : "—"}
                   </span>
                 </span>

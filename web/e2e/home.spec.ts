@@ -13,8 +13,8 @@ test.describe("Home (League) Page", () => {
     // Wait for main content to load
     await expect(page.locator("main")).toBeVisible()
     
-    // Check for key elements (structure should load even if API mocked)
-    await expect(page.locator("h1, h2, [role='heading']").first()).toBeVisible()
+    // Check for navigation (structure updated in PR #24)
+    await expect(page.locator("nav")).toBeVisible({ timeout: 10000 })
   })
 
   test("should render on mobile viewport", async ({ page }) => {

@@ -332,10 +332,10 @@ export function FormChart({
               </Button>
             ) : null}
             <h3 className={`otm-title text-[1.35rem] leading-tight sm:text-[1.35rem] sm:leading-snug md:text-[1.5rem] ${onBack ? "mt-0.5" : ""}`}>
-              <span className="block min-h-[2.7rem] break-words sm:line-clamp-2">{focused?.label ?? headline ?? title}</span>
+              <span className="block min-h-[2.7rem] break-words line-clamp-2">{focused?.label ?? headline ?? title}</span>
             </h3>
             {focused?.hint && focused.hint !== "You" ? (
-              <p className="mt-1 line-clamp-1 break-words text-[13px] text-muted-foreground sm:truncate sm:text-[13px]">{focused.hint}</p>
+              <p className="mt-1 line-clamp-1 break-words text-[13px] text-muted-foreground sm:text-[13px]">{focused.hint}</p>
             ) : focused?.hint === "You" ? (
               <p className="mt-1 text-[13px] text-muted-foreground sm:text-[13px]">Your team</p>
             ) : null}
@@ -752,9 +752,9 @@ export function PoolChart({
         <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3.5 sm:gap-4 sm:px-4 sm:py-4 md:px-6">
           <div className="min-w-0 flex-1">
             <h3 className="otm-title text-[1.35rem] leading-tight sm:text-[1.35rem] sm:leading-snug md:text-[1.5rem]">
-              <span className="block min-h-[2.7rem] break-words sm:line-clamp-2">{picked?.name ?? highlighted?.name ?? title}</span>
+              <span className="block min-h-[2.7rem] break-words line-clamp-2">{picked?.name ?? highlighted?.name ?? title}</span>
             </h3>
-            <p className="mt-1 line-clamp-1 break-words text-[13px] text-muted-foreground sm:truncate sm:text-[13px]">
+            <p className="mt-1 line-clamp-1 break-words text-[13px] text-muted-foreground sm:text-[13px]">
               {picked
                 ? [picked.owner, picked.club, picked.position].filter(Boolean).join(" · ") || highlighted?.name
                 : highlighted

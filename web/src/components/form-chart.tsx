@@ -332,10 +332,10 @@ export function FormChart({
               </Button>
             ) : null}
             <h3 className={`otm-title text-[1.35rem] leading-tight sm:text-[1.35rem] sm:leading-snug md:text-[1.5rem] ${onBack ? "mt-0.5" : ""}`}>
-              <span className="block min-h-[2.7rem] [overflow-wrap:break-word] [word-break:normal] line-clamp-2">{focused?.label ?? headline ?? title}</span>
+              <span className="block min-h-[2.7rem] whitespace-normal [overflow-wrap:break-word] [word-break:normal] line-clamp-2">{focused?.label ?? headline ?? title}</span>
             </h3>
             {focused?.hint && focused.hint !== "You" ? (
-              <p className="mt-1 [overflow-wrap:break-word] [word-break:normal] line-clamp-1 text-[13px] text-muted-foreground sm:text-[13px]">{focused.hint}</p>
+              <p className="mt-1 whitespace-normal [overflow-wrap:break-word] [word-break:normal] line-clamp-2 text-[13px] text-muted-foreground sm:text-[13px]">{focused.hint}</p>
             ) : focused?.hint === "You" ? (
               <p className="mt-1 text-[13px] text-muted-foreground sm:text-[13px]">Your team</p>
             ) : null}
@@ -584,13 +584,13 @@ export function FormChart({
                     type="button"
                     variant="ghost"
                     onClick={() => onFilterOwner(s.ownerId!)}
-                    className="tap hidden h-auto min-h-11 max-w-[28%] min-w-0 truncate px-2 py-2.5 text-left text-[14px] font-normal text-muted-foreground sm:inline-flex sm:min-h-10 sm:px-1.5 sm:py-2 sm:text-[12px]"
+                    className="tap hidden h-auto min-h-11 max-w-[28%] min-w-0 whitespace-normal break-words px-2 py-2.5 text-left text-[14px] font-normal text-muted-foreground sm:inline-flex sm:min-h-10 sm:px-1.5 sm:py-2 sm:text-[12px] line-clamp-2"
                     title={s.owner}
                   >
                     {s.owner}
                   </Button>
                 ) : s.hint && s.hint !== "You" ? (
-                  <span className="hidden min-w-0 max-w-[45%] truncate text-[13px] text-muted-foreground sm:inline sm:text-[12px]" title={s.hint}>{s.hint}</span>
+                  <span className="hidden min-w-0 max-w-[45%] whitespace-normal break-words text-[13px] text-muted-foreground sm:inline sm:text-[12px] line-clamp-2" title={s.hint}>{s.hint}</span>
                 ) : null}
                 {s.club && onFilterClub ? (
                   <Button
@@ -754,9 +754,9 @@ export function PoolChart({
         <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3.5 sm:gap-4 sm:px-4 sm:py-4 md:px-6">
           <div className="min-w-0 flex-1">
             <h3 className="otm-title text-[1.35rem] leading-tight sm:text-[1.35rem] sm:leading-snug md:text-[1.5rem]">
-              <span className="block min-h-[2.7rem] [overflow-wrap:break-word] [word-break:normal] line-clamp-2">{picked?.name ?? highlighted?.name ?? title}</span>
+              <span className="block min-h-[2.7rem] whitespace-normal [overflow-wrap:break-word] [word-break:normal] line-clamp-2">{picked?.name ?? highlighted?.name ?? title}</span>
             </h3>
-            <p className="mt-1 [overflow-wrap:break-word] [word-break:normal] line-clamp-1 text-[13px] text-muted-foreground sm:text-[13px]">
+            <p className="mt-1 whitespace-normal [overflow-wrap:break-word] [word-break:normal] line-clamp-2 text-[13px] text-muted-foreground sm:text-[13px]">
               {picked
                 ? [picked.owner, picked.club, picked.position].filter(Boolean).join(" · ") || highlighted?.name
                 : highlighted
@@ -1013,7 +1013,7 @@ export function PoolChart({
                     type="button"
                     variant="link"
                     onClick={() => onFilterOwner(p.ownerId!)}
-                    className="tap hidden h-auto min-h-11 max-w-[28%] min-w-0 truncate px-2 py-2.5 text-left text-[14px] font-normal text-muted-foreground sm:inline-flex sm:min-h-10 sm:px-1.5 sm:py-2 sm:text-[12px]"
+                    className="tap hidden h-auto min-h-11 max-w-[28%] min-w-0 whitespace-normal break-words px-2 py-2.5 text-left text-[14px] font-normal text-muted-foreground sm:inline-flex sm:min-h-10 sm:px-1.5 sm:py-2 sm:text-[12px] line-clamp-2"
                     title={p.owner}
                   >
                     {p.owner}

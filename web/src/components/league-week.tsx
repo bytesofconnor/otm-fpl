@@ -233,8 +233,8 @@ function TeamMark({
           <span className="otm-kicker text-white/70">{shortName || (align === "left" ? "Home" : "Away")}</span>
           {you ? <Badge variant="live">You</Badge> : null}
         </div>
-        <div className="otm-title mt-0.5 break-words text-[1.05rem] leading-tight text-white sm:text-[1.45rem] line-clamp-2">{name}</div>
-        {owner ? <div className="mt-0.5 hidden break-words text-[13px] text-white/70 sm:block line-clamp-1">{owner}</div> : null}
+        <div className="otm-title mt-0.5 whitespace-normal break-words text-[1.05rem] leading-tight text-white sm:text-[1.45rem] line-clamp-2">{name}</div>
+        {owner ? <div className="mt-0.5 hidden whitespace-normal break-words text-[13px] text-white/70 sm:block line-clamp-2">{owner}</div> : null}
       </div>
     </div>
   )
@@ -328,11 +328,12 @@ export function LeagueWeek({
     <Card size="flush" className="otm-pitch">
       <div className="flex items-center justify-between gap-3 border-b border-white/25 px-4 py-4 sm:px-7">
         <div className="min-w-0">
-          <h2 className="otm-title text-[1.6rem] text-white sm:text-[2rem]">This week</h2>
-          <p className="mt-0.5 truncate text-[13px] text-white/75">
+          <h2 className="otm-title text-[1.6rem] text-white sm:text-[2rem]">{live ? "This week" : periodLabel || `GW${period}`}</h2>
+          <p className="mt-0.5 whitespace-normal break-words text-[13px] text-white/75 line-clamp-2">
             {live ? <span className="font-semibold text-[#b8ffcf]">Live</span> : null}
             {live ? " · " : null}
             {periodLabel || `GW${period}`}
+            {!live && period ? ` · Week ${period} of ${periodCount}` : null}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
@@ -419,13 +420,13 @@ export function LeagueWeek({
               }`}
             >
               <div className="flex items-baseline justify-between gap-3 text-[13px] text-white">
-                <span className={`truncate ${game.yours ? "font-semibold" : "text-white/80"}`}>{game.home}</span>
+                <span className={`min-w-0 whitespace-normal break-words line-clamp-2 ${game.yours ? "font-semibold" : "text-white/80"}`}>{game.home}</span>
                 <span className={`otm-score shrink-0 text-[1.05rem] tabular-nums ${scoreClass(Number(live ? game.homeScore : game.homeProjected))}`}>
                   {live ? game.homeScore ?? "0" : game.homeProjected ?? "—"}
                 </span>
               </div>
               <div className="mt-1 flex items-baseline justify-between gap-3 text-[13px] text-white">
-                <span className={`truncate ${game.yours ? "font-semibold" : "text-white/80"}`}>{game.away}</span>
+                <span className={`min-w-0 whitespace-normal break-words line-clamp-2 ${game.yours ? "font-semibold" : "text-white/80"}`}>{game.away}</span>
                 <span className={`otm-score shrink-0 text-[1.05rem] tabular-nums ${scoreClass(Number(live ? game.awayScore : game.awayProjected))}`}>
                   {live ? game.awayScore ?? "0" : game.awayProjected ?? "—"}
                 </span>

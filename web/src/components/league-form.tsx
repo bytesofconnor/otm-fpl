@@ -383,24 +383,25 @@ export function LeagueForm(): React.ReactElement {
               }}
               className="min-w-0 flex-1 gap-0 overflow-x-clip"
             >
-              <TabsList variant="line" className="h-12 w-full justify-start gap-0.5 rounded-none bg-transparent p-0 sm:h-12 md:h-14 sm:gap-1 md:gap-2 overflow-x-clip" role="tablist" aria-label="Form views">
+              <TabsList variant="line" className="h-14 w-full justify-start gap-0.5 rounded-none bg-transparent p-0 sm:h-12 md:h-14 sm:gap-1 md:gap-2 overflow-x-clip" role="tablist" aria-label="Form views">
                 {jumps.map((item) => (
                   <TabsTrigger
                     key={item.id}
                     value={item.id}
-                    className="tap relative h-12 flex-none rounded-none px-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] after:!hidden sm:h-12 sm:px-2 sm:text-[11px] md:h-14 md:px-3 md:text-[12px] md:tracking-[0.14em]"
+                    className="tap relative h-14 flex-none rounded-none px-2.5 text-[12px] font-semibold uppercase tracking-[0.12em] after:!hidden sm:h-12 sm:px-2 sm:text-[11px] md:h-14 md:px-3 md:text-[12px] md:tracking-[0.14em]"
                     role="tab"
                     aria-selected={pane === item.id}
                     aria-controls={`form-panel-${item.id}`}
+                    style={{ minHeight: '44px' }}
                   >
                     <span className="whitespace-nowrap">{item.label}</span>
                     {item.count != null ? (
-                      <span className="ml-0.5 font-mono text-[11px] font-normal text-muted-foreground/80 sm:ml-1 sm:text-[11px]">{item.count}</span>
+                      <span className="ml-1 font-mono text-[11px] font-normal text-muted-foreground/80 sm:ml-1 sm:text-[11px]">{item.count}</span>
                     ) : null}
                     {pane === item.id ? (
                       <motion.span
                         layoutId="form-tab-ink"
-                        className="absolute inset-x-1 bottom-0 h-0.5 bg-foreground sm:inset-x-2 md:inset-x-3"
+                        className="absolute inset-x-2 bottom-0 h-0.5 bg-foreground sm:inset-x-2 md:inset-x-3"
                         transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 380, damping: 32 }}
                         aria-hidden="true"
                       />

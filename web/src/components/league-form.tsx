@@ -688,7 +688,7 @@ export function LeagueForm(): React.ReactElement {
                   ? `The league · ${POS_COLS.find((c) => c.id === positions[0])?.name ?? "position"}`
                   : "The league · every owned player"
               }
-                caption="Fill is scored. The gap is what’s still in this week — Fantrax overwrites proj with actual once a player is done. This roster opens that squad on Players."
+                caption="Bar shows points banked vs still to play this week — Fantrax overwrites proj with actual once a player is done. This roster opens that squad on Players."
               unit="FPts"
               groups={leagueGroups}
               activeId={managerId}
@@ -742,9 +742,11 @@ export function LeagueForm(): React.ReactElement {
                     : "Roster · this week"
                 }
                 headline={rosterManager?.name}
-                caption="Fill is scored. Gap is still to play. Finished players collapse to one dim dot. Click a player to pin them."
+                caption="Bars show points banked vs still to play. Finished players show full bar. Click a player to pin them."
                 unit="FPts"
                 xLabels={[`GW${activeWeek}`]}
+                weekLabel={`GW${activeWeek}`}
+                isLive={activeWeek === data.currentPeriod}
                 activeId={poolPlayerId}
                 onSelect={(id) => setPoolPlayerId((prev) => (prev === id ? null : id))}
                 onFilterClub={(club) => {
@@ -805,16 +807,18 @@ export function LeagueForm(): React.ReactElement {
             <FormChart
               title={
                 seasonView
-                  ? "Managers · season · scored vs projected"
-                  : `Managers · GW${activeWeek} · scored vs projected`
+                  ? "Managers · season · banked vs still to play"
+                  : `Managers · GW${activeWeek} · banked vs still to play`
               }
               caption={
                 seasonView
-                  ? "Weekly totals, not cumulative. Filled = scored that GW. Gap = that week’s leftover. Click a GW label to isolate it."
-                  : "Filled = scored. Gap = still to play this week. Teams that are done sit on one dot."
+                  ? "Weekly totals, not cumulative. Bar shows points banked vs still to play that week. Click a GW label to isolate it."
+                  : "Bar shows points banked vs still to play this week. Teams that are done show full bar."
               }
               unit="pts"
               xLabels={managerLabels}
+              weekLabel={seasonView ? "Season" : `GW${activeWeek}`}
+              isLive={!seasonView && activeWeek === data.currentPeriod}
               activeId={managerId}
               action={
                 <Button type="button" variant="outline" size="sm" onClick={() => openManagerPlayers(managerId)}>

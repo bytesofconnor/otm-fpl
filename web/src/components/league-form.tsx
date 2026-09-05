@@ -477,7 +477,7 @@ export function LeagueForm(): React.ReactElement {
                       onBlur={() => {
                         if (!query.trim()) setSearchExpanded(false)
                       }}
-                      placeholder="Player, manager, club"
+                      placeholder="Player or club"
                       spellCheck={false}
                       autoComplete="off"
                       autoCorrect="off"

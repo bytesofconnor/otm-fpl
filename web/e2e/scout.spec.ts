@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test"
 import AxeBuilder from "@axe-core/playwright"
-import { mockScoutAPI } from "./helpers/api-mocks.js"
+import { mockScoutAPI, mockScoutAPIEmpty } from "./helpers/api-mocks.js"
 
 test.describe("Scout Page", () => {
   test.beforeEach(async ({ page }) => {
@@ -209,5 +209,77 @@ test.describe("Scout Page - Empty State Contract", () => {
     
     // And that data rendered (not empty state)
     await expect(page.getByText("No opportunities found")).not.toBeVisible()
+  })
+})
+
+test.describe("Scout Page - Suspense & Team Picker", () => {
+  test("should render team picker after load", async ({ page }) => {
+    await mockScoutAPI(page)
+    await page.goto("/scout")
+    
+    // Wait for opportunities to load (proves Suspense resolved)
+    await page.waitForSelector('article[aria-label*="Opportunity"]', { timeout: 10000 })
+    
+    // Team picker should be present (either dropdown or label)
+    // Look for the team name or manager owner text
+    const teamPickerArea = page.locator('text=/Saints Intelligence Agency|Manager|cbarrett97/i').first()
+    await expect(teamPickerArea).toBeVisible({ timeout: 5000 })
+  })
+
+  test("should render opportunities after Suspense resolves", async ({ page }) => {
+    await mockScoutAPI(page)
+    await page.goto("/scout")
+    
+    // Opportunity board should render (not stuck in Suspense)
+    await page.waitForSelector('article[aria-label*="Opportunity"]', { timeout: 10000 })
+    
+    // Should show the count of opportunities
+    await expect(page.getByText(/\d+ opportunities ranked by form/)).toBeVisible()
+    
+    // Should NOT be stuck showing "Loading opportunities..."
+    await expect(page.getByText("Loading opportunities...")).not.toBeVisible()
+  })
+})
+
+test.describe("Scout Page - Empty State Messaging", () => {
+  test("should show protected player / drop ban messaging in empty state", async ({ page }) => {
+    await mockScoutAPIEmpty(page)
+    await page.goto("/scout")
+    
+    // Wait for page to fully load
+    await page.waitForLoadState("networkidle")
+    
+    // Should show "No opportunities found"
+    await expect(page.getByText("No opportunities found")).toBeVisible()
+    
+    // Should mention protected player or drop ban theme (not just generic "below roster quality")
+    const emptyStateText = page.locator('div:has-text("No opportunities found")').first()
+    const text = await emptyStateText.textContent()
+    
+    // Verify messaging mentions protected players or drop bans
+    const hasProtectedPlayerTheme = 
+      text?.includes("protected player") ||
+      text?.includes("drop") ||
+      text?.includes("Cole Palmer") ||
+      text?.includes("Erling Haaland")
+    
+    expect(hasProtectedPlayerTheme).toBe(true)
+  })
+
+  test("should show near-miss examples with dropCandidate names", async ({ page }) => {
+    await mockScoutAPIEmpty(page)
+    await page.goto("/scout")
+    
+    await page.waitForLoadState("networkidle")
+    
+    // Empty state should mention specific near-miss examples
+    const pageText = await page.textContent("body")
+    
+    // Should show at least one of the protected player names from fixture
+    const mentionsProtectedPlayers = 
+      pageText?.includes("Cole Palmer") ||
+      pageText?.includes("Erling Haaland")
+    
+    expect(mentionsProtectedPlayers).toBe(true)
   })
 })

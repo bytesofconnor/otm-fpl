@@ -156,7 +156,10 @@ The app uses Supabase to store frozen Fantrax weekly projections. This allows Fo
 ### E2E Testing with Playwright
 
 The app includes comprehensive end-to-end tests covering:
-- ✅ All key routes (Home, Form, Predicted, Rankings, Compare, Scout)
+- ✅ All key routes (Home, Form, Predicted, Rankings, Compare, Scout, Scout/Matchup, Scout/Waivers)
+- ✅ **Smoke tests**: Critical routes load without "Application error" crashes
+- ✅ **Scout Suspense**: Team picker and opportunity board render after Suspense resolves
+- ✅ **Scout empty state**: Protected player / drop ban messaging with near-miss examples
 - ✅ Desktop and mobile viewports (iPhone 12 Pro: 390x844)
 - ✅ Accessibility testing (WCAG 2.0/2.1 Level A & AA)
 - ✅ No horizontal overflow on mobile
@@ -191,16 +194,22 @@ web/
 ├── e2e/
 │   ├── fixtures/           # Mock API response data
 │   │   ├── fantrax-league.json
-│   │   └── fantrax-form.json
+│   │   ├── fantrax-form.json
+│   │   ├── scout-opportunities.json
+│   │   ├── scout-opportunities-empty.json
+│   │   └── scout-teams.json
 │   ├── helpers/            # Test utilities
 │   │   ├── accessibility.ts
 │   │   └── api-mocks.ts
+│   ├── smoke.spec.ts       # Critical smoke tests (no black-screen crashes)
+│   ├── scout.spec.ts       # Scout opportunity board tests
+│   ├── scout-matchup.spec.ts   # Scout matchup prep tests
+│   ├── scout-waivers.spec.ts   # Scout waivers tests
 │   ├── home.spec.ts        # Home page tests
 │   ├── form.spec.ts        # Form page tests
 │   ├── predicted.spec.ts   # Predicted XI tests
 │   ├── rankings.spec.ts    # Rankings tests
-│   ├── compare.spec.ts     # Compare tests
-│   └── scout.spec.ts       # Scout tests (graceful 404 handling)
+│   └── compare.spec.ts     # Compare tests
 └── playwright.config.ts    # Playwright configuration
 ```
 

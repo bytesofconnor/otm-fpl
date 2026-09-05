@@ -75,4 +75,41 @@ export async function mockScoutAPI(page: Page) {
       body: JSON.stringify(scoutOpportunitiesFixture),
     })
   })
+
+  // Also mock teams endpoint for team picker
+  await mockScoutTeamsAPI(page)
+}
+
+/**
+ * Mock scout teams API for team picker
+ */
+export async function mockScoutTeamsAPI(page: Page) {
+  const scoutTeamsFixture = await import("../fixtures/scout-teams.json", { with: { type: "json" } })
+  
+  await page.route("**/api/scout/teams*", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(scoutTeamsFixture.default),
+    })
+  })
+}
+
+/**
+ * Mock scout API with empty opportunities and debug near-misses
+ * Use this to test empty state messaging (protected players, drop bans)
+ */
+export async function mockScoutAPIEmpty(page: Page) {
+  const emptyFixture = await import("../fixtures/scout-opportunities-empty.json", { with: { type: "json" } })
+  
+  await page.route("**/api/scout/opportunities*", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(emptyFixture.default),
+    })
+  })
+
+  // Also mock teams endpoint
+  await mockScoutTeamsAPI(page)
 }

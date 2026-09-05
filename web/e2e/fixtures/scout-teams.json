@@ -1,0 +1,24 @@
+{
+  "leagueId": "7hjk3otbkaycu7v8",
+  "leagueName": "Over the Moon",
+  "teams": [
+    {
+      "id": "yv00la6xmsxcq62w",
+      "name": "Saints Intelligence Agency",
+      "owner": "cbarrett97",
+      "shortName": "SIA"
+    },
+    {
+      "id": "fqzp0okbkaycu7v8",
+      "name": "Connor's Team",
+      "owner": "bytesofconnor",
+      "shortName": "CON"
+    },
+    {
+      "id": "test-team-3",
+      "name": "Test Manager 3",
+      "owner": "manager3",
+      "shortName": "TM3"
+    }
+  ]
+}

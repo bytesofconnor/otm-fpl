@@ -605,7 +605,7 @@ export function FormChart({
                 title={s.label}
                 aria-label={s.label}
                 onClick={() => onSelect?.(s.id)}
-                className={`tap h-auto min-h-[56px] justify-center rounded-none px-1 py-3 text-center text-[13px] font-semibold leading-tight tracking-wide sm:text-[12px] md:text-[13px] ${
+                className={`tap h-auto min-h-[56px] w-full justify-center rounded-none px-1 py-3 text-center text-[13px] font-semibold leading-tight tracking-wide sm:text-[12px] md:text-[13px] ${
                   s.id === activeId ? "text-foreground" : "text-muted-foreground"
                 }`}
               >

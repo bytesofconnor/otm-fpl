@@ -7,7 +7,6 @@ import type { FantraxFormSnapshot } from "@/lib/fantrax-shared"
 import { OTM_LEAGUE_ID, parseLeagueId, managerChip, pickupNotes } from "@/lib/fantrax-shared"
 import { FormChart, PoolChart, CHART_PALETTE } from "@/components/form-chart"
 import { useLeagueStatus } from "@/components/league-status"
-import { copyShare } from "@/lib/share"
 import { PageShell, pageWidth } from "@/components/page-shell"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -88,7 +87,6 @@ export function LeagueForm(): React.ReactElement {
   const [ownerFilter, setOwnerFilter] = React.useState<string | null>(null)
   const [clubFilter, setClubFilter] = React.useState<string | null>(null)
   const [weekFocus, setWeekFocus] = React.useState<number | "season" | null>(null)
-  const [copied, setCopied] = React.useState(false)
   const [dir, setDir] = React.useState<1 | -1>(1)
   const [searchExpanded, setSearchExpanded] = React.useState(false)
   const hydrated = React.useRef(false)
@@ -277,7 +275,6 @@ export function LeagueForm(): React.ReactElement {
 
   if (!data) return <div />
 
-  const showingPlayers = pane === "players"
   const weekPeriods = data.managers[0]?.points.map((p) => p.period) ?? []
   const seasonView = weekFocus === "season" && weekPeriods.length > 1
   const activeWeek =
@@ -329,42 +326,6 @@ export function LeagueForm(): React.ReactElement {
     { id: "players", label: "Players", count: rosterPlayers.length },
     { id: "wire", label: "Wire", count: (unownedFiltered.length ? unownedFiltered : data.unowned).length },
   ]
-
-  const league = data
-  function shareCaption(): string {
-    const bits = ["OTM Form"]
-    if (pane === "wire") bits.push("Wire")
-    else if (pane === "league") bits.push("League")
-    else bits.push(showingPlayers ? "Players" : "Teams")
-    if (positions.length) bits.push(positions.join("/"))
-    if (ownerFilter) bits.push(league.managers.find((m) => m.teamId === ownerFilter)?.name ?? "manager")
-    if (clubFilter) bits.push(clubFilter)
-    if (query.trim()) bits.push(`“${query.trim()}”`)
-    const pinned =
-      pane === "wire"
-        ? league.unowned.find((p) => p.id === wireId)
-        : league.leagueOwned.find((p) => p.id === poolPlayerId)
-    const manager = league.managers.find((m) => m.teamId === managerId)
-    if (pane === "wire" && pinned) {
-      bits.push(`${pinned.name} · ${pinned.points?.toFixed(1) ?? "—"} FPts · ${pinned.wire ?? "FA"}`)
-    } else if ((showingPlayers || pane === "league") && pinned) {
-      bits.push(`${pinned.name} · ${pinned.team} ${pinned.position} · ${pinned.points?.toFixed(1) ?? "—"} FPts`)
-    } else if (manager) {
-      const slice = managerPoints[league.managers.indexOf(manager)]
-      const last = slice?.at(-1)
-      bits.push(
-        `${manager.name} · ${seasonView ? "season" : `GW${activeWeek}`} · ${last?.live != null ? `${last.live} scored` : "—"} / ${last?.forecast ?? last?.value ?? "—"} proj`,
-      )
-    }
-    return bits.join(" · ")
-  }
-
-  async function onCopy() {
-    const ok = await copyShare(shareCaption(), window.location.href)
-    if (!ok) return
-    setCopied(true)
-    window.setTimeout(() => setCopied(false), 1600)
-  }
 
   return (
     <div className="relative">
@@ -445,11 +406,6 @@ export function LeagueForm(): React.ReactElement {
                 <TooltipContent>Next graph (→ or ])</TooltipContent>
               </Tooltip>
             </div>
-          </div>
-          <div className="flex items-center justify-end gap-2 border-t border-border/50 px-3 py-1.5 sm:hidden">
-            <Button type="button" variant="ghost" size="sm" className="tap h-9 shrink-0 px-3 text-[13px]" onClick={() => void onCopy()} aria-label="Copy share link">
-              {copied ? "Copied" : "Copy"}
-            </Button>
           </div>
 
           {pane !== "teams" ? (

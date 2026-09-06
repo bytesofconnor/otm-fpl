@@ -441,10 +441,10 @@ export function FormChart({
         </div>
       ) : undefined}
       chart={mobile && strip ? null : (
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-auto" style={{ maxWidth: `${width}px` }}>
       {weekLabel && xLabels.length <= 1 ? <WeekIndicator label={weekLabel} isLive={isLive} /> : null}
-      <div ref={wrapRef} className="relative min-h-[280px] flex-1 overflow-visible md:min-h-0" onPointerLeave={hide}>
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full touch-pan-y md:absolute md:inset-0 md:h-full" role="img" aria-label={title}>
+      <div ref={wrapRef} className="relative min-h-[280px] flex-1" onPointerLeave={hide}>
+        <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} className="touch-pan-y" role="img" aria-label={title}>
           {yTicks.map((tick) => (
             <g key={tick}>
               <line x1={pad.left} x2={width - pad.right} y1={y(tick)} y2={y(tick)} stroke="var(--line)" strokeWidth="1" strokeOpacity="0.7" />
@@ -587,7 +587,7 @@ export function FormChart({
       </div>
       {/* Strip axis labels (desktop only) */}
       {strip ? (
-        <div className="overflow-x-auto border-t border-border">
+        <div className="border-t border-border">
           <div
             className="grid max-w-full"
           style={{
@@ -885,10 +885,10 @@ export function PoolChart({
         </div>
       }
       chart={isMobile ? null : (
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-auto" style={{ maxWidth: `${width}px` }}>
       <>
-      <div ref={wrapRef} className="relative min-h-[290px] flex-1 overflow-visible md:min-h-0" onPointerLeave={hide}>
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full touch-pan-y md:absolute md:inset-0 md:h-full" role="img" aria-label={title}>
+      <div ref={wrapRef} className="relative min-h-[290px] flex-1" onPointerLeave={hide}>
+        <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} className="touch-pan-y" role="img" aria-label={title}>
           {yTicks.map((tick) => (
             <g key={tick}>
               <line x1={pad.left} x2={width - pad.right} y1={y(tick)} y2={y(tick)} stroke="var(--line)" strokeWidth="1" strokeOpacity="0.7" />
@@ -1014,7 +1014,7 @@ export function PoolChart({
         </svg>
         <ChartTooltip tip={tip} />
       </div>
-      <div className="overflow-x-auto border-t border-border">
+      <div className="border-t border-border">
         <div
           className="grid max-w-full"
           style={{

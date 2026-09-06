@@ -383,7 +383,7 @@ export function LeagueForm(): React.ReactElement {
               }}
               className="min-w-0 flex-1 gap-0 overflow-x-clip"
             >
-              <TabsList variant="line" className="h-14 w-full justify-start gap-0.5 rounded-none bg-transparent p-0 sm:h-12 md:h-14 sm:gap-1 md:gap-2 overflow-x-clip" role="tablist" aria-label="Form views">
+              <TabsList variant="line" className="relative h-14 w-full justify-start gap-0.5 rounded-none bg-transparent p-0 sm:h-12 md:h-14 sm:gap-1 md:gap-2 overflow-hidden" role="tablist" aria-label="Form views">
                 {jumps.map((item) => (
                   <TabsTrigger
                     key={item.id}

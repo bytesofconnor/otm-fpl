@@ -54,6 +54,18 @@ function useDesktopPlot(): boolean {
   return desktop
 }
 
+function useMobilePlot(): boolean {
+  const [mobile, setMobile] = React.useState(false)
+  React.useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)")
+    const sync = () => setMobile(mq.matches)
+    sync()
+    mq.addEventListener("change", sync)
+    return () => mq.removeEventListener("change", sync)
+  }, [])
+  return mobile
+}
+
 type Tip = { x: number; y: number; w: number; title: string; body: string; color: string }
 
 function ChartTooltip({ tip }: { tip: Tip | null }): ReactElement | null {
@@ -332,6 +344,7 @@ export function FormChart({
   const listRef = React.useRef<HTMLOListElement>(null)
   const { tip, show, hide } = useSvgTip(wrapRef)
   const desktop = useDesktopPlot()
+  const mobile = useMobilePlot()
   const width = desktop ? 1080 : 720
   const height = desktop ? 380 : 420
   const pad = { top: 16, right: 12, bottom: 12, left: 40 }
@@ -441,6 +454,8 @@ export function FormChart({
       chart={
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       {weekLabel && xLabels.length <= 1 ? <WeekIndicator label={weekLabel} isLive={isLive} /> : null}
+      {/* Hide strip chart on mobile - list shows everything with full names and bars */}
+      {mobile && strip ? null : (
       <div ref={wrapRef} className="relative min-h-[280px] flex-1 overflow-visible md:min-h-0" onPointerLeave={hide}>
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full touch-pan-y md:absolute md:inset-0 md:h-full" role="img" aria-label={title}>
           {yTicks.map((tick) => (
@@ -583,7 +598,9 @@ export function FormChart({
         </svg>
         <ChartTooltip tip={tip} />
       </div>
-      {strip ? (
+      )}
+      {/* Hide strip axis labels on mobile - confusing codes that don't match list */}
+      {strip && !mobile ? (
         <div className="overflow-x-auto border-t border-border">
           <div
             className="grid max-w-full"

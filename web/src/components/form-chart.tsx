@@ -795,6 +795,16 @@ export function PoolChart({
   const wrapRef = React.useRef<HTMLDivElement>(null)
   const { tip, show, hide } = useSvgTip(wrapRef)
   const desktop = useDesktopPlot()
+  const [isMobile, setIsMobile] = React.useState(false)
+  
+  React.useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)")
+    const sync = () => setIsMobile(mq.matches)
+    sync()
+    mq.addEventListener("change", sync)
+    return () => mq.removeEventListener("change", sync)
+  }, [])
+  
   const width = desktop ? 1080 : 720
   const height = desktop ? 400 : 440
   const pad = { top: 16, right: 8, bottom: 12, left: 40 }
@@ -873,6 +883,74 @@ export function PoolChart({
       }
       chart={
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      {isMobile ? (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="flex items-baseline gap-3 border-b border-border px-4 py-2.5 otm-kicker">
+            <span className="min-w-0 flex-1">Manager</span>
+            <span className="w-12 text-right">Players</span>
+            <span className="w-16 text-right">Banked</span>
+            <span className="w-16 text-right">Still to play</span>
+          </div>
+          <div className="min-h-0 flex-1 overflow-auto">
+            {visible.map((g) => {
+              const on = g.id === highlighted?.id
+              const color = colorOf(g.id)
+              const totalScored = g.players.reduce((sum, p) => sum + (p.scored ?? 0), 0)
+              const totalProjected = g.players.reduce((sum, p) => sum + p.value, 0)
+              const remaining = Math.max(0, totalProjected - totalScored)
+              const maxTotal = Math.max(...visible.map(vg => vg.players.reduce((sum, p) => sum + p.value, 0)))
+              
+              return (
+                <div
+                  key={g.id}
+                  className={`flex w-full flex-col gap-2 px-4 py-3 text-[15px] transition-colors ${
+                    on ? "bg-muted text-foreground" : "text-foreground"
+                  }`}
+                >
+                  <div className="flex w-full items-center gap-2.5">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => onSelect?.(g.id)}
+                      className="tap h-auto min-h-11 min-w-0 flex-1 justify-start gap-2.5 rounded-none px-0 py-0 text-left font-normal"
+                    >
+                      <span
+                        className="h-3 w-3 shrink-0 rounded-sm"
+                        style={{ backgroundColor: color }}
+                      />
+                      <span className="min-w-0 flex-1 whitespace-normal break-words line-clamp-2 text-left font-medium" title={g.name}>
+                        {g.name}
+                      </span>
+                    </Button>
+                    <span className="w-12 text-right font-mono text-[13px] text-muted-foreground">
+                      {g.players.length}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 pl-5">
+                    <div className="min-w-0 flex-1">
+                      <HorizontalBar
+                        scored={totalScored}
+                        projected={totalProjected}
+                        color={color}
+                        maxValue={maxTotal}
+                      />
+                    </div>
+                    <div className="flex shrink-0 items-baseline gap-2.5 font-mono tabular-nums">
+                      <span className="w-14 text-right text-[14px]" style={{ color: on ? color : undefined }}>
+                        {totalScored > 0 ? totalScored.toFixed(1) : "—"}
+                      </span>
+                      <span className="w-14 text-right text-[14px] text-foreground/50">
+                        {remaining >= 0.05 ? remaining.toFixed(1) : "—"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      ) : (
+      <>
       <div ref={wrapRef} className="relative min-h-[290px] flex-1 overflow-visible md:min-h-0" onPointerLeave={hide}>
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full touch-pan-y md:absolute md:inset-0 md:h-full" role="img" aria-label={title}>
           {yTicks.map((tick) => (
@@ -1062,6 +1140,8 @@ export function PoolChart({
         </div>
       </div>
       ) : null}
+      </>
+      )}
       </div>
       }
       list={

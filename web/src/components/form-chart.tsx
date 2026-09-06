@@ -591,8 +591,8 @@ export function FormChart({
           <div
             className="grid max-w-full"
           style={{
-            gridTemplateColumns: `${pad.left}px repeat(${Math.max(1, plotted.length)}, minmax(54px, 1fr)) ${pad.right}px`,
-            minWidth: `${pad.left + plotted.length * 54 + pad.right}px`,
+            gridTemplateColumns: `${pad.left}px repeat(${Math.max(1, plotted.length)}, ${innerW / Math.max(1, plotted.length)}px) ${pad.right}px`,
+            minWidth: `${width}px`,
           }}
           >
             <div />
@@ -605,7 +605,7 @@ export function FormChart({
                 title={s.label}
                 aria-label={s.label}
                 onClick={() => onSelect?.(s.id)}
-                className={`tap h-auto min-h-[56px] min-w-[54px] justify-center rounded-none px-1 py-3 text-center text-[13px] font-semibold leading-tight tracking-wide sm:text-[12px] md:text-[13px] ${
+                className={`tap h-auto min-h-[56px] justify-center rounded-none px-1 py-3 text-center text-[13px] font-semibold leading-tight tracking-wide sm:text-[12px] md:text-[13px] ${
                   s.id === activeId ? "text-foreground" : "text-muted-foreground"
                 }`}
               >

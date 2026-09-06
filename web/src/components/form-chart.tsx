@@ -366,17 +366,6 @@ export function FormChart({
     return head
   })()
   const dense = strip && plotted.length > 18
-  React.useEffect(() => {
-    const list = listRef.current
-    if (!list || !activeId) return
-    const row = list.querySelector<HTMLElement>(`[data-id="${CSS.escape(activeId)}"]`)
-    if (!row) return
-    const listBox = list.getBoundingClientRect()
-    const rowBox = row.getBoundingClientRect()
-    if (rowBox.top < listBox.top || rowBox.bottom > listBox.bottom) {
-      list.scrollTop += rowBox.top - listBox.top - listBox.height / 2 + rowBox.height / 2
-    }
-  }, [activeId])
   const xAt = (pointIndex: number, seriesIndex: number) => {
     if (strip) return pad.left + ((seriesIndex + 0.5) / plotted.length) * innerW
     if (xLabels.length <= 1) return pad.left + innerW / 2

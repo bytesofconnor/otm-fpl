@@ -127,7 +127,7 @@ export function SplitBoard({
       <div className="shrink-0">{header}</div>
       {toolbar ? <div className="shrink-0">{toolbar}</div> : null}
       <div ref={boardRef} className="flex min-h-0 flex-1 flex-col md:flex-row">
-        <div className="flex min-h-[220px] min-w-0 flex-1 flex-col sm:min-h-[260px] md:min-h-0">{chart}</div>
+        {chart ? <div className="flex min-h-[220px] min-w-0 flex-1 flex-col sm:min-h-[260px] md:min-h-0">{chart}</div> : null}
         {/* eslint-disable jsx-a11y/no-static-element-interactions, jsx-a11y/no-noninteractive-tabindex */}
         <div
           data-otm-split

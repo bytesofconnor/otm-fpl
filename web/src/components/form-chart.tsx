@@ -440,11 +440,9 @@ export function FormChart({
           {toolbar}
         </div>
       ) : undefined}
-      chart={
+      chart={mobile && strip ? null : (
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       {weekLabel && xLabels.length <= 1 ? <WeekIndicator label={weekLabel} isLive={isLive} /> : null}
-      {/* Hide strip chart on mobile - list shows everything with full names and bars */}
-      {mobile && strip ? null : (
       <div ref={wrapRef} className="relative min-h-[280px] flex-1 overflow-visible md:min-h-0" onPointerLeave={hide}>
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full touch-pan-y md:absolute md:inset-0 md:h-full" role="img" aria-label={title}>
           {yTicks.map((tick) => (
@@ -587,9 +585,8 @@ export function FormChart({
         </svg>
         <ChartTooltip tip={tip} />
       </div>
-      )}
-      {/* Hide strip axis labels on mobile - confusing codes that don't match list */}
-      {strip && !mobile ? (
+      {/* Strip axis labels (desktop only) */}
+      {strip ? (
         <div className="overflow-x-auto border-t border-border">
           <div
             className="grid max-w-full"
@@ -622,7 +619,7 @@ export function FormChart({
         </div>
       ) : null}
       </div>
-      }
+      )}
       list={
       <div className="flex min-h-0 flex-1 flex-col">
       {split ? (

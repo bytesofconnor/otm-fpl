@@ -281,6 +281,8 @@ export function LeagueForm(): React.ReactElement {
     typeof weekFocus === "number" && weekPeriods.includes(weekFocus) ? weekFocus : data.currentPeriod
   const weekIndex = weekPeriods.indexOf(activeWeek)
   const managerPoints = data.managers.map((m) => (seasonView ? m.points : [m.points[Math.max(0, weekIndex)]].filter(Boolean)))
+  // GW is complete when all managers have projected:false for this period (scored, not live)
+  const gwComplete = !seasonView && managerPoints.every((pts) => pts.length > 0 && pts.every((pt) => !pt.projected))
   const managerLabels = seasonView ? weekPeriods.map((p) => `GW${p}`) : [`GW${activeWeek}`]
   const unownedFiltered = data.unowned.filter((p) => {
     if (positions.length && !positions.includes(p.position)) return false
@@ -650,6 +652,7 @@ export function LeagueForm(): React.ReactElement {
               activeId={managerId}
               activePlayerId={poolPlayerId}
               keepEmpty={!query.trim()}
+              gwComplete={gwComplete}
               action={
                 <Button type="button" variant="outline" size="sm" onClick={() => openManagerPlayers(managerId)}>
                   This roster
@@ -702,7 +705,8 @@ export function LeagueForm(): React.ReactElement {
                 unit="FPts"
                 xLabels={[`GW${activeWeek}`]}
                 weekLabel={`GW${activeWeek}`}
-                isLive={activeWeek === data.currentPeriod}
+                isLive={activeWeek === data.currentPeriod && !gwComplete}
+                gwComplete={gwComplete}
                 activeId={poolPlayerId}
                 onSelect={(id) => setPoolPlayerId((prev) => (prev === id ? null : id))}
                 onFilterClub={(club) => {

@@ -117,12 +117,14 @@ function FocusStats({
   unit,
   color,
   split,
+  gwComplete,
 }: {
   scored: number | null
   projected: number | null
   unit: string
   color: string
   split: boolean
+  gwComplete?: boolean
 }): ReactElement {
   const left = remainingPts(projected, scored)
   if (!split) {
@@ -146,7 +148,7 @@ function FocusStats({
       <div className="text-right">
         <p className="otm-kicker">Still to play</p>
         <p className="otm-score mt-0.5 text-[1.85rem] leading-none text-foreground/45 sm:text-[1.65rem]">
-          {left >= 0.05 ? left.toFixed(1) : "—"}
+          {gwComplete ? "—" : left >= 0.05 ? left.toFixed(1) : "—"}
         </p>
       </div>
     </div>
@@ -158,15 +160,17 @@ function HorizontalBar({
   projected,
   color,
   maxValue,
+  gwComplete,
 }: {
   scored: number | null
   projected: number | null
   color: string
   maxValue: number
+  gwComplete?: boolean
 }): ReactElement {
   const scoredVal = scored ?? 0
   const projVal = projected ?? 0
-  const remaining = Math.max(0, projVal - scoredVal)
+  const remaining = gwComplete ? 0 : Math.max(0, projVal - scoredVal)
   
   const scoredPercent = maxValue > 0 ? (scoredVal / maxValue) * 100 : 0
   const remainingPercent = maxValue > 0 ? (remaining / maxValue) * 100 : 0
@@ -315,6 +319,7 @@ export function FormChart({
   rankByRemaining,
   weekLabel,
   isLive,
+  gwComplete,
 }: {
   title: string
   caption: string
@@ -339,6 +344,8 @@ export function FormChart({
   weekLabel?: string
   /** Whether the current period is live */
   isLive?: boolean
+  /** Whether the gameweek is complete (all managers scored, not projected) */
+  gwComplete?: boolean
 }): ReactElement {
   const wrapRef = React.useRef<HTMLDivElement>(null)
   const listRef = React.useRef<HTMLOListElement>(null)
@@ -429,6 +436,7 @@ export function FormChart({
                 unit={unit}
                 scored={lastValue(focused.live ?? [])}
                 projected={lastValue(focused.values)}
+                gwComplete={gwComplete}
               />
             ) : null}
             {action}
@@ -696,6 +704,7 @@ export function FormChart({
                         projected={value}
                         color={color}
                         maxValue={maxInList}
+                        gwComplete={gwComplete}
                       />
                     </div>
                     <div className="flex shrink-0 items-baseline gap-2.5 font-mono tabular-nums sm:gap-3">
@@ -703,7 +712,7 @@ export function FormChart({
                         {scored != null ? scored.toFixed(1) : "—"}
                       </span>
                       <span className="w-14 text-right text-[14px] text-foreground/50 sm:w-14 sm:text-[13px]">
-                        {remainingPts(value, scored) >= 0.05 ? remainingPts(value, scored).toFixed(1) : "—"}
+                        {gwComplete ? "—" : remainingPts(value, scored) >= 0.05 ? remainingPts(value, scored).toFixed(1) : "—"}
                       </span>
                     </div>
                   </div>
@@ -773,6 +782,7 @@ export function PoolChart({
   onSwatch,
   activeSwatch,
   action,
+  gwComplete,
 }: {
   title: string
   caption: string
@@ -794,6 +804,8 @@ export function PoolChart({
   onSwatch?: (id: string) => void
   activeSwatch?: string | null
   action?: React.ReactNode
+  /** Whether the gameweek is complete (all managers scored, not projected) */
+  gwComplete?: boolean
 }): ReactElement {
   const wrapRef = React.useRef<HTMLDivElement>(null)
   const { tip, show, hide } = useSvgTip(wrapRef)
@@ -878,6 +890,7 @@ export function PoolChart({
                 unit={unit}
                 scored={pickedScored}
                 projected={picked.value}
+                gwComplete={gwComplete}
               />
             ) : null}
             {action}
@@ -1151,6 +1164,7 @@ export function PoolChart({
                       projected={p.value}
                       color={color}
                       maxValue={maxInList}
+                      gwComplete={gwComplete}
                     />
                   </div>
                   <div className="flex shrink-0 items-baseline gap-2.5 font-mono tabular-nums sm:gap-3">
@@ -1158,7 +1172,7 @@ export function PoolChart({
                       {scored != null ? scored.toFixed(1) : "—"}
                     </span>
                     <span className="w-14 text-right text-[14px] text-foreground/50 sm:w-14 sm:text-[13px]">
-                      {remainingPts(p.value, scored) >= 0.05 ? remainingPts(p.value, scored).toFixed(1) : "—"}
+                      {gwComplete ? "—" : remainingPts(p.value, scored) >= 0.05 ? remainingPts(p.value, scored).toFixed(1) : "—"}
                     </span>
                   </div>
                 </div>

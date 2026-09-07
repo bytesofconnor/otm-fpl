@@ -156,7 +156,7 @@ export function LeagueHome(): React.ReactElement {
         {snap.teams.length > 0 ? (
           <Select value={teamId || null} onValueChange={(id) => { if (typeof id === "string") chooseTeam(id) }}>
             <SelectTrigger className="h-12 min-h-12 w-full min-w-0 flex-1 overflow-hidden rounded-md px-4 text-[15px] shadow-none md:text-[15px]">
-              <span className="truncate">{selectedTeam?.name ?? "Choose your team"}</span>
+              <span className="whitespace-normal break-words">{selectedTeam?.name ?? "Choose your team"}</span>
             </SelectTrigger>
             <SelectContent>
               {snap.teams.map((t) => (
@@ -221,7 +221,7 @@ export function LeagueHome(): React.ReactElement {
                   ) : (
                     <span className="h-6 w-6 rounded-md border border-border" />
                   )}
-                  <span className={`min-w-0 whitespace-normal break-words line-clamp-2 ${row.you ? "font-medium text-foreground" : ""}`}>{row.teamName}</span>
+                  <span className={`min-w-0 whitespace-normal break-words ${row.you ? "font-medium text-foreground" : ""}`}>{row.teamName}</span>
                 </li>
               ))}
             </ul>
@@ -242,7 +242,7 @@ export function LeagueHome(): React.ReactElement {
                     >
                       {row.rank}
                     </span>
-                    <span className={`min-w-0 whitespace-normal break-words line-clamp-2 ${row.you ? "font-medium text-foreground" : ""}`}>{row.teamName}</span>
+                    <span className={`min-w-0 whitespace-normal break-words ${row.you ? "font-medium text-foreground" : ""}`}>{row.teamName}</span>
                   </span>
                   <span className="shrink-0 font-mono text-[12px] tabular-nums">
                     {row.record}
@@ -260,7 +260,7 @@ export function LeagueHome(): React.ReactElement {
             <ul className="mt-3">
               {snap.waivers.map((p) => (
                 <li key={p.id} className="otm-row flex items-baseline justify-between gap-3 rounded-md px-1.5 py-2.5 text-[14px]">
-                  <span className="min-w-0 whitespace-normal break-words text-foreground line-clamp-2">{p.name}</span>
+                  <span className="min-w-0 whitespace-normal break-words text-foreground">{p.name}</span>
                   <span className="shrink-0 text-[11px] uppercase tracking-wider text-muted-foreground">{p.team}</span>
                 </li>
               ))}
@@ -299,7 +299,7 @@ export function LeagueHome(): React.ReactElement {
                 {snap.draftPicks.map((pick) => (
                   <li key={pick.pick} className="flex items-baseline gap-3 border-b border-border py-1.5 text-[13px]">
                     <span className="w-5 shrink-0 font-mono text-[11px] text-muted-foreground">{pick.pick}</span>
-                    <span className="min-w-0 whitespace-normal break-words line-clamp-2">
+                    <span className="min-w-0 whitespace-normal break-words">
                       {pick.playerName}
                       <span className="ml-2 text-[11px] uppercase tracking-wider text-muted-foreground">
                         {pick.playerTeam} · {pick.teamName}

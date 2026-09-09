@@ -778,7 +778,7 @@ export function LeagueForm(): React.ReactElement {
               unit="pts"
               xLabels={managerLabels}
               weekLabel={seasonView ? "Season" : `GW${activeWeek}`}
-              isLive={!seasonView && activeWeek === data.currentPeriod}
+              isLive={!seasonView && activeWeek === data.currentPeriod && !gwComplete}
               activeId={managerId}
               action={
                 <Button type="button" variant="outline" size="sm" onClick={() => openManagerPlayers(managerId)}>

@@ -433,7 +433,6 @@ function FaceMark({
         clipPath={`url(#${clipId})`}
         preserveAspectRatio="xMidYMin slice"
         className="pointer-events-none"
-        referrerPolicy="no-referrer"
         onError={() => {
           const next = nextPlayerPhotoUrl(src)
           if (next && next !== src) setSrc(next)

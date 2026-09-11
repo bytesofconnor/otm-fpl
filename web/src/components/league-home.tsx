@@ -3,29 +3,16 @@
 
 import * as React from "react"
 import type { FantraxLeagueSnapshot } from "@/lib/fantrax-shared"
-import { OTM_LEAGUE_ID, parseLeagueId } from "@/lib/fantrax-shared"
+import { OTM_LEAGUE_ID, parseLeagueId, teamCode } from "@/lib/fantrax-shared"
+import { persistMembership, rememberSquad, useConnectedLeague } from "@/lib/league-session"
 import { LeagueWeek } from "@/components/league-week"
 import { useLeagueStatus } from "@/components/league-status"
 import { PageShell } from "@/components/page-shell"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Skeleton } from "@/components/ui/skeleton"
+import { OtmLoader } from "@/components/otm-loader"
 import { Card } from "@/components/ui/card"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from "@/components/ui/select"
-
-const LEAGUE_KEY = "otm_fantrax_league_id"
-const TEAM_KEY = "otm_fantrax_team_id"
-
-function readStored(key: string): string {
-  if (typeof window === "undefined") return ""
-  return window.localStorage.getItem(key) ?? ""
-}
 
 function tableLocked(snap: FantraxLeagueSnapshot): boolean {
   if (!snap.standings.length) return true
@@ -37,6 +24,8 @@ function tableLocked(snap: FantraxLeagueSnapshot): boolean {
  */
 export function LeagueHome(): React.ReactElement {
   const { setStatus } = useLeagueStatus()
+  const membership = useConnectedLeague()
+  const bootstrapped = React.useRef(false)
   const [leagueInput, setLeagueInput] = React.useState("")
   const [leagueId, setLeagueId] = React.useState(OTM_LEAGUE_ID)
   const [teamId, setTeamId] = React.useState("")
@@ -49,13 +38,14 @@ export function LeagueHome(): React.ReactElement {
   const custom = leagueId !== OTM_LEAGUE_ID
 
   React.useEffect(() => {
-    const storedLeague = parseLeagueId(readStored(LEAGUE_KEY))
-    const storedTeam = readStored(TEAM_KEY)
-    setLeagueId(storedLeague || OTM_LEAGUE_ID)
-    if (storedTeam) setTeamId(storedTeam)
-  }, [])
+    if (!membership.ready || bootstrapped.current) return
+    bootstrapped.current = true
+    setLeagueId(membership.leagueId)
+    if (membership.storedTeamId) setTeamId(membership.storedTeamId)
+  }, [membership.ready, membership.leagueId, membership.storedTeamId])
 
   React.useEffect(() => {
+    if (!membership.ready) return
     if (!leagueId) {
       setData(null)
       setStatus(null)
@@ -74,9 +64,12 @@ export function LeagueHome(): React.ReactElement {
         const next = body as FantraxLeagueSnapshot
         setData(next)
         if (!teamId && next.teams.length === 1) {
-          const only = next.teams[0].id
-          setTeamId(only)
-          window.localStorage.setItem(TEAM_KEY, only)
+          const only = next.teams[0]
+          setTeamId(only.id)
+          persistMembership(leagueId, only.id, only.name, only.shortName)
+        } else if (teamId) {
+          const named = next.teams.find((t) => t.id === teamId)
+          if (named?.name) rememberSquad(named.name, named.shortName)
         }
         setStatus({
           leagueName: next.leagueName,
@@ -91,7 +84,7 @@ export function LeagueHome(): React.ReactElement {
       })
       .finally(() => setLoading(false))
     return () => ctrl.abort()
-  }, [leagueId, teamId, period, setStatus])
+  }, [membership.ready, leagueId, teamId, period, setStatus])
 
   function connect(event: React.FormEvent) {
     event.preventDefault()
@@ -100,7 +93,8 @@ export function LeagueHome(): React.ReactElement {
       setError("Paste a Fantrax league ID or league URL")
       return
     }
-    window.localStorage.setItem(LEAGUE_KEY, id)
+    persistMembership(id, "")
+    setTeamId("")
     setPeriod(null)
     setLeagueId(id)
     setError(null)
@@ -108,8 +102,7 @@ export function LeagueHome(): React.ReactElement {
   }
 
   function useDefaultLeague() {
-    window.localStorage.removeItem(LEAGUE_KEY)
-    window.localStorage.removeItem(TEAM_KEY)
+    persistMembership(OTM_LEAGUE_ID, "")
     setLeagueId(OTM_LEAGUE_ID)
     setTeamId("")
     setLeagueInput("")
@@ -119,15 +112,15 @@ export function LeagueHome(): React.ReactElement {
   }
 
   function chooseTeam(id: string) {
+    const named = snap?.teams.find((t) => t.id === id)
     setTeamId(id)
-    window.localStorage.setItem(TEAM_KEY, id)
+    persistMembership(leagueId, id, named?.name ?? "", named?.shortName)
   }
 
-  if (leagueId && !snap && (loading || !error)) {
+  if (!membership.ready || (leagueId && !snap && (loading || !error))) {
     return (
-      <PageShell className="space-y-4">
-        <Skeleton className="h-12 w-full rounded-[var(--radius-panel)]" />
-        <Skeleton className="h-[28rem] w-full rounded-[var(--radius-panel)]" />
+      <PageShell>
+        <OtmLoader label="This week" hint="Pulling the slate from Fantrax" />
       </PageShell>
     )
   }
@@ -148,66 +141,78 @@ export function LeagueHome(): React.ReactElement {
   }
 
   const locked = tableLocked(snap)
-  const selectedTeam = snap.teams.find((t) => t.id === teamId)
+  const needsSquad = !teamId && snap.teams.length > 1
+
+  if (needsSquad) {
+    return (
+      <PageShell width="article">
+        <p className="otm-kicker">{custom ? snap.leagueName : "Over the Moon"}</p>
+        <h1 className="otm-title mt-2 text-3xl">Who do you manage?</h1>
+        <p className="mt-3 text-[15px] text-muted-foreground">
+          This week opens after you pick. Form and Scout follow.
+        </p>
+        <ul className="mt-8 space-y-2">
+          {snap.teams.map((t) => (
+            <li key={t.id}>
+              <button
+                type="button"
+                onClick={() => chooseTeam(t.id)}
+                className="tap flex w-full items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2.5 text-left hover:border-foreground/40"
+              >
+                <span className="min-w-0 font-semibold">{teamCode(t.name, t.shortName)}</span>
+                {t.owner ? <span className="shrink-0 text-[12px] text-muted-foreground">{t.owner}</span> : null}
+              </button>
+            </li>
+          ))}
+        </ul>
+        {custom ? (
+          <button type="button" className="tap mt-8 text-[11px] text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground" onClick={useDefaultLeague}>
+            Back to Over the Moon
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="tap mt-8 text-[11px] text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground"
+            onClick={() => setSwitching((open) => !open)}
+          >
+            {switching ? "Cancel" : "Not Over the Moon?"}
+          </button>
+        )}
+        {switching ? (
+          <div className="mt-4">
+            <ConnectForm
+              leagueInput={leagueInput}
+              setLeagueInput={setLeagueInput}
+              loading={loading}
+              onConnect={connect}
+            />
+          </div>
+        ) : null}
+        {error ? <p className="mt-4 text-[13px] text-danger">{error}</p> : null}
+      </PageShell>
+    )
+  }
 
   return (
     <PageShell>
-      <div className="mb-5 flex items-center gap-3">
-        {snap.teams.length > 0 ? (
-          <Select value={teamId || null} onValueChange={(id) => { if (typeof id === "string") chooseTeam(id) }}>
-            <SelectTrigger className="h-12 min-h-12 w-full min-w-0 flex-1 overflow-hidden rounded-md px-4 text-[15px] shadow-none md:text-[15px]">
-              <span className="whitespace-normal break-words">{selectedTeam?.name ?? "Choose your team"}</span>
-            </SelectTrigger>
-            <SelectContent>
-              {snap.teams.map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  {t.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : null}
-        {custom ? (
-          <Button type="button" variant="ghost" className="h-12 shrink-0 px-3" onClick={useDefaultLeague}>
-            Our league
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            variant="ghost"
-            className="h-12 shrink-0 px-3"
-            aria-expanded={switching}
-            onClick={() => setSwitching((open) => !open)}
-          >
-            {switching ? "Cancel" : "Add league"}
-          </Button>
-        )}
-      </div>
-      {switching ? (
-        <ConnectForm
-          leagueInput={leagueInput}
-          setLeagueInput={setLeagueInput}
-          loading={loading}
-          onConnect={connect}
-        />
-      ) : null}
       {error ? <p className="mb-3 text-[13px] text-danger">{error}</p> : null}
 
-      <LeagueWeek
-        matchup={snap.matchup}
-        slate={snap.slate}
-        teamId={teamId}
-        periodLabel={snap.periodLabel}
-        period={snap.viewedPeriod ?? snap.currentPeriod ?? 1}
-        periodCount={snap.periodCount}
-        live={snap.liveStarted}
-        isCurrentWeek={(snap.viewedPeriod ?? snap.currentPeriod) === snap.currentPeriod}
-        onPeriod={setPeriod}
-        loading={loading}
-      />
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        <LeagueWeek
+          matchup={snap.matchup}
+          slate={snap.slate}
+          teamId={teamId}
+          periodLabel={snap.periodLabel}
+          period={snap.viewedPeriod ?? snap.currentPeriod ?? 1}
+          periodCount={snap.periodCount}
+          live={snap.liveStarted}
+          isCurrentWeek={(snap.viewedPeriod ?? snap.currentPeriod) === snap.currentPeriod}
+          onPeriod={setPeriod}
+          loading={loading}
+        />
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-12">
-        <Card size="flush" className="p-5 sm:p-6 lg:col-span-7">
+        <div>
+        <Card size="flush" className="p-5 sm:p-6">
           <h2 className="otm-kicker">{locked ? "The field" : "Table"}</h2>
           {locked ? (
             <ul className="mt-3">
@@ -242,7 +247,9 @@ export function LeagueHome(): React.ReactElement {
                     >
                       {row.rank}
                     </span>
-                    <span className={`min-w-0 whitespace-normal break-words ${row.you ? "font-medium text-foreground" : ""}`}>{row.teamName}</span>
+                    <span className={`min-w-0 whitespace-normal break-words ${row.you ? "font-medium text-foreground" : ""}`}>
+                      {teamCode(row.teamName, snap.teams.find((t) => t.id === row.teamId)?.shortName)}
+                    </span>
                   </span>
                   <span className="shrink-0 font-mono text-[12px] tabular-nums">
                     {row.record}
@@ -254,7 +261,44 @@ export function LeagueHome(): React.ReactElement {
           )}
         </Card>
 
-        <Card size="flush" className="p-5 sm:p-6 lg:col-span-5">
+        <p className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-muted-foreground">
+          <button
+            type="button"
+            className="tap underline decoration-border underline-offset-4 hover:text-foreground"
+            onClick={() => {
+              persistMembership(leagueId, "")
+              setTeamId("")
+            }}
+          >
+            Switch squad
+          </button>
+          {custom ? (
+            <button type="button" className="tap underline decoration-border underline-offset-4 hover:text-foreground" onClick={useDefaultLeague}>
+              Back to Over the Moon
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="tap underline decoration-border underline-offset-4 hover:text-foreground"
+              aria-expanded={switching}
+              onClick={() => setSwitching((open) => !open)}
+            >
+              {switching ? "Cancel" : "Not this league?"}
+            </button>
+          )}
+        </p>
+        {switching ? (
+          <div className="mt-4">
+            <ConnectForm
+              leagueInput={leagueInput}
+              setLeagueInput={setLeagueInput}
+              loading={loading}
+              onConnect={connect}
+            />
+          </div>
+        ) : null}
+
+        <Card size="flush" className="mt-6 p-5 sm:p-6">
           <h2 className="otm-kicker">Waivers</h2>
           {snap.waivers.length ? (
             <ul className="mt-3">
@@ -269,6 +313,7 @@ export function LeagueHome(): React.ReactElement {
             <p className="mt-3 text-[14px] text-muted-foreground">Nobody on waivers right now.</p>
           )}
         </Card>
+        </div>
       </div>
 
       <Card size="flush" className="mt-4">
@@ -366,7 +411,7 @@ function ConnectForm({
         </Button>
         {onReset ? (
           <Button type="button" variant="outline" className="h-11" onClick={onReset}>
-            Our league
+            Back to Over the Moon
           </Button>
         ) : null}
       </div>

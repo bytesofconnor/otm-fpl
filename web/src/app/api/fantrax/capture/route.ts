@@ -24,6 +24,21 @@ function authorize(request: Request): boolean {
   return request.headers.get("authorization") === `Bearer ${secret}`
 }
 
+function uniqueLeagueIds(raw: string): string[] {
+  const ids = raw
+    .split(/[,\s]+/)
+    .map((part) => parseLeagueId(part))
+    .filter(Boolean)
+  return [...new Set(ids)]
+}
+
+function captureLeagueIds(explicit: string, includeEnv = false): string[] {
+  const ids = [...uniqueLeagueIds(explicit)]
+  if (includeEnv) ids.push(...uniqueLeagueIds(process.env.CAPTURE_LEAGUE_IDS ?? ""))
+  const unique = [...new Set(ids)]
+  return unique.length ? unique : [OTM_LEAGUE_ID]
+}
+
 function parsePeriod(value: string | null | undefined): number | null {
   if (value == null || value === "") return null
   const period = Number(value)
@@ -72,27 +87,36 @@ async function capturePeriods(leagueId: string, periods: number[]) {
 }
 
 /**
- * Vercel Cron hits GET. Defaults to Over the Moon and the live Fantrax period,
- * plus the next period so next GW can freeze before it becomes current.
- * Query: leagueId, period (optional — omit to capture current and next).
+ * Vercel Cron hits GET. Defaults to Over the Moon (plus CAPTURE_LEAGUE_IDS if set).
+ * Query: leagueId or leagueIds (comma-separated), period (optional — omit to capture current and next).
  */
 export async function GET(request: NextRequest) {
   if (!authorize(request)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 })
   }
 
-  const leagueId = parseLeagueId(request.nextUrl.searchParams.get("leagueId") ?? "") || OTM_LEAGUE_ID
+  const leagueIds = captureLeagueIds(
+    `${request.nextUrl.searchParams.get("leagueId") ?? ""} ${request.nextUrl.searchParams.get("leagueIds") ?? ""}`,
+    true,
+  )
   const requested = parsePeriod(request.nextUrl.searchParams.get("period"))
-  const currentPeriod = requested ?? (await resolveCurrentPeriod(leagueId))
-  const periods = requested != null ? [requested] : [currentPeriod, currentPeriod + 1]
 
   try {
-    const results = await capturePeriods(leagueId, periods)
+    const batches = []
+    for (const leagueId of leagueIds) {
+      const currentPeriod = requested ?? (await resolveCurrentPeriod(leagueId))
+      const periods = requested != null ? [requested] : [currentPeriod, currentPeriod + 1]
+      const results = await capturePeriods(leagueId, periods)
+      batches.push({
+        leagueId,
+        currentPeriod,
+        success: results.every((row) => row.success),
+        results,
+      })
+    }
     return NextResponse.json({
-      success: results.every((row) => row.success),
-      leagueId,
-      currentPeriod,
-      results,
+      success: batches.every((row) => row.success),
+      leagues: batches,
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : "capture_failed"
@@ -110,23 +134,32 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = (await request.json().catch(() => ({}))) as { leagueId?: string; period?: number }
-    const leagueId = parseLeagueId(body.leagueId ?? "") || OTM_LEAGUE_ID
-    const period = body.period ?? (await resolveCurrentPeriod(leagueId))
-    if (!Number.isInteger(period) || period < 1) {
-      return NextResponse.json({ error: "invalid_period" }, { status: 400 })
+    const body = (await request.json().catch(() => ({}))) as { leagueId?: string; leagueIds?: string; period?: number }
+    const leagueIds = captureLeagueIds(`${body.leagueId ?? ""} ${body.leagueIds ?? ""}`)
+    const batches = []
+    for (const leagueId of leagueIds) {
+      const period = body.period ?? (await resolveCurrentPeriod(leagueId))
+      if (!Number.isInteger(period) || period < 1) {
+        return NextResponse.json({ error: "invalid_period" }, { status: 400 })
+      }
+      const results = await capturePeriods(leagueId, [period])
+      const first = results[0]
+      batches.push({
+        leagueId,
+        success: first?.success ?? false,
+        period: first?.period ?? period,
+        projections: first?.projections ?? { inserted: 0, skipped: 0, skippedStarted: 0, skippedNoProj: 0, total: 0 },
+        stats: first?.stats ?? { inserted: 0, total: 0 },
+        ownership: first?.ownership ?? { inserted: 0, total: 0 },
+        captureId: first?.captureId,
+        error: first?.error,
+      })
     }
-    const results = await capturePeriods(leagueId, [period])
-    const first = results[0]
+    const first = batches[0]
     return NextResponse.json({
-      leagueId,
-      success: first?.success ?? false,
-      period: first?.period ?? period,
-      projections: first?.projections ?? { inserted: 0, skipped: 0, skippedStarted: 0, skippedNoProj: 0, total: 0 },
-      stats: first?.stats ?? { inserted: 0, total: 0 },
-      ownership: first?.ownership ?? { inserted: 0, total: 0 },
-      captureId: first?.captureId,
-      error: first?.error,
+      ...first,
+      success: batches.every((row) => row.success),
+      leagues: batches.length > 1 ? batches : undefined,
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : "capture_failed"

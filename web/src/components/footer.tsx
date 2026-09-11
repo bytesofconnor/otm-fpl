@@ -19,6 +19,12 @@ export function Footer(): ReactElement {
           <Button variant="link" size="sm" nativeButton={false} className="h-11 px-2 text-muted-foreground" render={<Link href="/form" />}>
             Form
           </Button>
+          <Button variant="link" size="sm" nativeButton={false} className="h-11 px-2 text-muted-foreground" render={<Link href="/scout" />}>
+            Scout
+          </Button>
+          <Button variant="link" size="sm" nativeButton={false} className="h-11 px-2 text-muted-foreground" render={<Link href="/login" />}>
+            Sign in
+          </Button>
           <Button variant="link" size="sm" nativeButton={false} className="h-11 px-2 text-muted-foreground" render={<Link href="/terms" />}>
             Terms
           </Button>

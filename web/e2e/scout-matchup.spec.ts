@@ -17,7 +17,7 @@ test.describe("Scout Matchup Page", () => {
     await page.goto("/scout/matchup")
     
     // Page should load with heading
-    await expect(page.getByRole("heading", { name: /Matchup Prep/i })).toBeVisible()
+    await expect(page.locator(".otm-kicker").filter({ hasText: "Matchup" })).toBeVisible()
     
     // Main content should be visible
     const mainContent = page.locator("main#main-content, main")
@@ -34,7 +34,7 @@ test.describe("Scout Matchup Page", () => {
     await page.waitForLoadState("networkidle")
     
     // Should show either team picker dropdown or manager name/label
-    const teamPickerOrLabel = page.locator('text=/Manager|Saints Intelligence Agency|Team/i').first()
+    const teamPickerOrLabel = page.locator('text=/Your squad|Saints Intelligence Agency|Connor/i').first()
     await expect(teamPickerOrLabel).toBeVisible({ timeout: 10000 })
   })
 
@@ -50,8 +50,7 @@ test.describe("Scout Matchup Page", () => {
     await expect(main).toBeVisible()
     
     // Should not be completely empty (has at least header)
-    const heading = page.getByRole("heading", { name: /Matchup Prep/i })
-    await expect(heading).toBeVisible()
+    await expect(page.locator(".otm-kicker").filter({ hasText: "Matchup" })).toBeVisible()
   })
 
   test("should have no critical accessibility violations", async ({ page }) => {

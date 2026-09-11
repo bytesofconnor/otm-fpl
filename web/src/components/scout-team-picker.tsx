@@ -1,8 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { OTM_LEAGUE_ID } from "@/lib/fantrax-shared"
+import { persistMembership, useConnectedLeague } from "@/lib/league-session"
+import { preferredTeamId } from "@/lib/scout-config"
 import {
   Select,
   SelectContent,
@@ -32,24 +34,32 @@ interface ScoutTeamPickerProps {
 export function ScoutTeamPicker({ currentTeamId, basePath }: ScoutTeamPickerProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { leagueId, storedTeamId, ready } = useConnectedLeague()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<TeamsResponse | null>(null)
 
   useEffect(() => {
+    if (!ready) return
+
     async function fetchTeams() {
       try {
         setLoading(true)
         setError(null)
-        const url = `/api/scout/teams?leagueId=${OTM_LEAGUE_ID}`
-        const res = await fetch(url)
-        
+        const res = await fetch(`/api/scout/teams?leagueId=${encodeURIComponent(leagueId)}`)
         if (!res.ok) {
           throw new Error(`Failed to fetch teams: ${res.statusText}`)
         }
-        
-        const json = await res.json()
+        const json = (await res.json()) as TeamsResponse
         setData(json)
+        const nextId = preferredTeamId(json.teams, [currentTeamId, storedTeamId])
+        if (nextId && nextId !== currentTeamId) {
+          const named = json.teams.find((t) => t.id === nextId)
+          persistMembership(leagueId, nextId, named?.name, named?.shortName)
+          const params = new URLSearchParams(window.location.search)
+          params.set("teamId", nextId)
+          router.replace(`${basePath}?${params.toString()}`)
+        }
       } catch (err) {
         console.error("Error fetching teams:", err)
         setError(err instanceof Error ? err.message : "Unknown error")
@@ -58,69 +68,73 @@ export function ScoutTeamPicker({ currentTeamId, basePath }: ScoutTeamPickerProp
       }
     }
 
-    fetchTeams()
-  }, [])
+    void fetchTeams()
+  }, [ready, leagueId, storedTeamId, currentTeamId, basePath, router])
 
   function handleTeamChange(teamId: string | null) {
     if (!teamId) return
-    
+    const named = data?.teams.find((t) => t.id === teamId)
+    persistMembership(leagueId, teamId, named?.name, named?.shortName)
     const params = new URLSearchParams(searchParams.toString())
     params.set("teamId", teamId)
     router.push(`${basePath}?${params.toString()}`)
   }
 
-  if (loading) {
+  if (!ready || loading) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span>Loading teams...</span>
+        <span>Loading squads…</span>
       </div>
     )
   }
 
   if (error || !data) {
     return (
-      <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-        {error || "Failed to load teams"}
+      <div className="rounded-md border border-border p-3 text-sm text-muted-foreground">
+        {error || "Could not load squads"}
       </div>
     )
   }
 
+  if (!currentTeamId && !storedTeamId) {
+    return (
+      <p className="text-[15px] text-muted-foreground">
+        <Link href="/" className="text-foreground underline underline-offset-4">
+          Open League
+        </Link>{" "}
+        and pick a squad first. Scout follows that pick.
+      </p>
+    )
+  }
+
   const currentTeam = data.teams.find((t) => t.id === currentTeamId)
-  const displayName = currentTeam
-    ? currentTeam.owner || currentTeam.shortName || currentTeam.name
-    : "Select team"
+  const displayName = currentTeam?.name ?? "Your squad"
 
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-      <label htmlFor="team-picker" className="text-sm font-medium">
-        Manager:
-      </label>
-      <Select value={currentTeamId ?? undefined} onValueChange={handleTeamChange}>
-        <SelectTrigger
-          id="team-picker"
-          className="w-full sm:w-[280px]"
-          aria-label="Select a manager to view their Scout intelligence"
-        >
-          <SelectValue placeholder="Select a manager">{displayName}</SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          {data.teams.map((team) => {
-            const label = team.owner || team.shortName || team.name
-            const subtitle = team.owner && team.name !== team.owner ? team.name : null
-            
-            return (
+    <details className="text-[13px] text-muted-foreground">
+      <summary className="tap cursor-pointer underline decoration-border underline-offset-4 hover:text-foreground">
+        Scouting another squad
+      </summary>
+      <div className="mt-3">
+        <label htmlFor="team-picker" className="sr-only">
+          Your squad
+        </label>
+        <Select value={currentTeamId || ""} onValueChange={handleTeamChange}>
+          <SelectTrigger id="team-picker" className="w-full sm:w-[280px]" aria-label="Your squad">
+            <SelectValue placeholder="Your squad">{displayName}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {data.teams.map((team) => (
               <SelectItem key={team.id} value={team.id}>
                 <div className="flex flex-col">
-                  <span>{label}</span>
-                  {subtitle && (
-                    <span className="text-xs text-muted-foreground">{subtitle}</span>
-                  )}
+                  <span>{team.name}</span>
+                  {team.owner ? <span className="text-xs text-muted-foreground">{team.owner}</span> : null}
                 </div>
               </SelectItem>
-            )
-          })}
-        </SelectContent>
-      </Select>
-    </div>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </details>
   )
 }

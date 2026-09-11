@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   try {
     const snapshot = await loadFantraxForm(leagueId, teamId)
     return NextResponse.json(snapshot, {
-      headers: { "cache-control": "s-maxage=180, stale-while-revalidate=300" },
+      headers: { "cache-control": "no-store" },
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : "fantrax_failed"

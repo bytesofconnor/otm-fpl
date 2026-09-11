@@ -310,6 +310,7 @@ function findBenchPlayerToReplaceForTeam(
   roster: FantraxPlayerSeries[],
   rosterFormScores: Map<string, FormScore>,
   teamId: string,
+  leagueId: string,
 ): { player: FantraxPlayerSeries; form: FormScore } | null {
   const availPos = availablePlayer.position.charAt(0).toUpperCase()
   
@@ -322,7 +323,7 @@ function findBenchPlayerToReplaceForTeam(
 
   // Find bench players (exclude drop-banned players for this specific team)
   const validBenchCandidates = samePosition
-    .filter((p) => !isSIADropBanned(p.name, teamId))
+    .filter((p) => !isSIADropBanned(p.name, teamId, leagueId))
     .map((p) => ({
       player: p,
       form: rosterFormScores.get(p.id) ?? computeFormForRosterPlayer(p),
@@ -401,7 +402,7 @@ export async function GET(request: Request) {
       debug.afterSignalFilter++
 
       // Hard Filter 3: Team exclusions (SIA-specific: no Arsenal)
-      if (isSIATeamExcluded(player.team, teamId)) {
+      if (isSIATeamExcluded(player.team, teamId, leagueId)) {
         continue
       }
       debug.afterTeamExclusionFilter++
@@ -417,7 +418,7 @@ export async function GET(request: Request) {
       debug.afterFixtureFilter++
 
       // Hard Filter 4: Must have a valid drop candidate (not banned for this team)
-      const benchComparison = findBenchPlayerToReplaceForTeam(player, form.players, rosterFormScores, teamId)
+      const benchComparison = findBenchPlayerToReplaceForTeam(player, form.players, rosterFormScores, teamId, leagueId)
 
       if (!benchComparison) {
         continue
@@ -432,7 +433,7 @@ export async function GET(request: Request) {
       debug.afterFormGapFilter++
 
       // Hard Filter 6: Double-check drop candidate is not banned for this team
-      if (isSIADropBanned(benchComparison.player.name, teamId)) {
+      if (isSIADropBanned(benchComparison.player.name, teamId, leagueId)) {
         continue
       }
       debug.afterDropBanFilter++

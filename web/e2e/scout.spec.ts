@@ -14,7 +14,7 @@ test.describe("Scout Page", () => {
     await expect(page.getByText(/application error.*client-side exception/i)).not.toBeVisible()
     
     // Must show Scout heading
-    await expect(page.getByRole("heading", { name: "Scout" })).toBeVisible()
+    await expect(page.locator(".otm-kicker").filter({ hasText: "Wire" })).toBeVisible()
   })
 
   test("should render opportunity board with valid data", async ({ page }) => {
@@ -27,7 +27,7 @@ test.describe("Scout Page", () => {
     await expect(page.getByText("No opportunities found")).not.toBeVisible()
     
     // Should show opportunities count
-    await expect(page.getByText(/\d+ opportunities ranked by form/)).toBeVisible()
+    await expect(page.getByRole("heading", { name: /claims worth a look/i })).toBeVisible()
     
     // Verify first opportunity card renders with expected player
     const firstCard = page.locator('article[aria-label*="Opportunity 1"]')
@@ -153,7 +153,7 @@ test.describe("Scout Matchup Page", () => {
     await expect(page.getByText(/application error.*client-side exception/i)).not.toBeVisible()
     
     // Must show Matchup Prep heading
-    await expect(page.getByRole("heading", { name: "Matchup Prep" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Matchup" })).toBeVisible()
   })
 })
 
@@ -180,7 +180,7 @@ test.describe("Scout Waivers Page", () => {
     await expect(page.getByText(/application error.*client-side exception/i)).not.toBeVisible()
     
     // Must show Scout Waivers heading
-    await expect(page.getByRole("heading", { name: "Scout Waivers" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Waivers" })).toBeVisible()
   })
 })
 
@@ -222,7 +222,7 @@ test.describe("Scout Page - Suspense & Team Picker", () => {
     
     // Team picker should be present (either dropdown or label)
     // Look for the team name or manager owner text
-    const teamPickerArea = page.locator('text=/Saints Intelligence Agency|Manager|cbarrett97/i').first()
+    const teamPickerArea = page.locator('text=/Your squad|Saints Intelligence Agency|Connor/i').first()
     await expect(teamPickerArea).toBeVisible({ timeout: 5000 })
   })
 
@@ -234,7 +234,7 @@ test.describe("Scout Page - Suspense & Team Picker", () => {
     await page.waitForSelector('article[aria-label*="Opportunity"]', { timeout: 10000 })
     
     // Should show the count of opportunities
-    await expect(page.getByText(/\d+ opportunities ranked by form/)).toBeVisible()
+    await expect(page.getByRole("heading", { name: /claims worth a look/i })).toBeVisible()
     
     // Should NOT be stuck showing "Loading opportunities..."
     await expect(page.getByText("Loading opportunities...")).not.toBeVisible()
@@ -313,7 +313,7 @@ test.describe("Scout Page - Suspense & Team Picker", () => {
     await page.waitForLoadState("networkidle")
     
     // Verify near-miss content is visible (not blank)
-    await expect(page.getByText("No Immediate Pickups Available")).toBeVisible()
+    await expect(page.getByText("No claims this week")).toBeVisible()
     await expect(page.getByText("Daichi Kamada")).toBeVisible()
     
     // Now change to a different team via URL (simulates dropdown change)
@@ -324,7 +324,7 @@ test.describe("Scout Page - Suspense & Team Picker", () => {
     await expect(page.getByText(/application error.*client-side exception/i)).not.toBeVisible()
     
     // Should still show Scout heading (page didn't crash)
-    await expect(page.getByRole("heading", { name: "Scout" })).toBeVisible()
+    await expect(page.locator(".otm-kicker").filter({ hasText: "Wire" })).toBeVisible()
     
     // Should show new team's opportunities
     await expect(page.getByText("Test Player 2")).toBeVisible()
@@ -340,10 +340,10 @@ test.describe("Scout Page - Empty State Messaging", () => {
     await page.waitForLoadState("networkidle")
     
     // Should show "No opportunities found"
-    await expect(page.getByText("No opportunities found")).toBeVisible()
+    await expect(page.getByText("No claims this week")).toBeVisible()
     
     // Should mention protected player or drop ban theme (not just generic "below roster quality")
-    const emptyStateText = page.locator('div:has-text("No opportunities found")').first()
+    const emptyStateText = page.locator("main").first()
     const text = await emptyStateText.textContent()
     
     // Verify messaging mentions protected players or drop bans
@@ -430,7 +430,7 @@ test.describe("Scout Page - Empty State Messaging", () => {
     await expect(page.getByText("No opportunities found")).not.toBeVisible()
     
     // Should show near-miss header explaining the situation
-    await expect(page.getByText("No Immediate Pickups Available")).toBeVisible()
+    await expect(page.getByText("No claims this week")).toBeVisible()
     
     // Should show near-miss cards (not hidden in Debug)
     await expect(page.getByText("Daichi Kamada")).toBeVisible()
@@ -474,10 +474,10 @@ test.describe("Scout Page - Empty State Messaging", () => {
     await expect(page.getByText(/application error.*client-side exception/i)).not.toBeVisible()
     
     // Should show Scout heading
-    await expect(page.getByRole("heading", { name: "Scout" })).toBeVisible()
+    await expect(page.locator(".otm-kicker").filter({ hasText: "Wire" })).toBeVisible()
     
     // Should gracefully handle missing opportunities array
-    await expect(page.getByText("No opportunities found")).toBeVisible()
+    await expect(page.getByText("No claims this week")).toBeVisible()
   })
 
   test("should handle API response without timestamp", async ({ page }) => {
@@ -521,6 +521,6 @@ test.describe("Scout Page - Empty State Messaging", () => {
     await expect(page.getByText("Test Player")).toBeVisible()
     
     // Should show count (without the "Updated" timestamp text, which is fine)
-    await expect(page.getByText(/\d+ opportunities ranked by form/)).toBeVisible()
+    await expect(page.getByRole("heading", { name: /claims worth a look/i })).toBeVisible()
   })
 })

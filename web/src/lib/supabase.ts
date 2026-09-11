@@ -116,6 +116,12 @@ export type PlayerWeekStat = {
   scored_fpts?: number | null
   minutes_played?: number | null
   started?: boolean | null
+  goals?: number | null
+  assists?: number | null
+  key_passes?: number | null
+  clean_sheets?: number | null
+  saves?: number | null
+  shots_on_target?: number | null
   captured_at?: string
   created_at?: string
 }

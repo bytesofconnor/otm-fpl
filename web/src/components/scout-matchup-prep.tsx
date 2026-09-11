@@ -2,13 +2,11 @@
 
 import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { OTM_LEAGUE_ID } from "@/lib/fantrax-shared"
+import { useConnectedLeague } from "@/lib/league-session"
 import { computeFormScoreSimple, heatEmoji, heatLabel, heatColor, type HeatBucket } from "@/lib/form-engine"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-
-// SIA default teamId (cbarrett97 / Saints Intelligence Agency)
-const SIA_TEAM_ID = "yv00la6xmsxcq62w"
+import { OtmLoader } from "@/components/otm-loader"
 
 type Player = {
   id: string
@@ -29,21 +27,23 @@ type LineupData = {
 
 export function MatchupPrep() {
   const searchParams = useSearchParams()
+  const { leagueId, ready } = useConnectedLeague()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<LineupData | null>(null)
 
-  // Get teamId from query params, default to SIA
-  const teamId = searchParams.get("teamId") || SIA_TEAM_ID
+  const teamId = searchParams.get("teamId")
 
   useEffect(() => {
+    if (!ready || !teamId) return
+    const id = teamId
+
     async function fetchLineup() {
       try {
         setLoading(true)
         setError(null)
         
-        // Fetch form data for the team's roster
-        const url = `/api/fantrax/form?leagueId=${OTM_LEAGUE_ID}&teamId=${teamId}`
+        const url = `/api/fantrax/form?leagueId=${encodeURIComponent(leagueId)}&teamId=${encodeURIComponent(id)}`
         const res = await fetch(url)
         
         if (!res.ok) {
@@ -64,9 +64,11 @@ export function MatchupPrep() {
           
           const lastGW = latestPoint?.live ?? latestPoint?.value ?? null
           const projected = latestPoint?.forecast ?? latestPoint?.value ?? null
+          const weekly =
+            typeof lastGW === "number" && lastGW <= 20 ? lastGW : null
           
           const formScore = computeFormScoreSimple({
-            lastGW: typeof lastGW === 'number' ? lastGW : null,
+            lastGW: weekly,
             projBeat: (lastGW != null && projected != null) ? lastGW > projected : false,
           })
           
@@ -105,18 +107,15 @@ export function MatchupPrep() {
       }
     }
 
-    fetchLineup()
-  }, [teamId])
+    void fetchLineup()
+  }, [ready, leagueId, teamId])
 
+  if (!ready) {
+    return <OtmLoader className="min-h-[40vh] py-8" label="Matchup" hint="Reading the XI" />
+  }
+  if (!teamId) return null
   if (loading) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center">
-        <div className="text-center">
-          <div className="mb-2 text-lg font-medium">Loading lineup...</div>
-          <div className="text-sm text-muted-foreground">Analyzing form</div>
-        </div>
-      </div>
-    )
+    return <OtmLoader className="min-h-[40vh] py-8" label="Matchup" hint="Reading the XI" />
   }
 
   if (error) {

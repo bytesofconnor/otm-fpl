@@ -1,17 +1,15 @@
-// Scout Opportunity Board — League-wide pickup intelligence
 import type { Metadata } from "next"
 import { Suspense } from "react"
 import { OpportunityBoard } from "@/components/scout-opportunity-board"
 import { ScoutTeamPicker } from "@/components/scout-team-picker"
+import { ScoutSubnav } from "@/components/scout-subnav"
 import { PageShell } from "@/components/page-shell"
+import { OtmLoader } from "@/components/otm-loader"
 
 export const metadata: Metadata = {
-  title: "Scout · Opportunity Board",
-  description: "Pickup intelligence for Over the Moon. See hot wire opportunities ranked by form.",
+  title: "Scout · Wire",
+  description: "Wire claims for the connected Fantrax league, ranked by form.",
 }
-
-// SIA default teamId (cbarrett97 / Saints Intelligence Agency)
-const SIA_TEAM_ID = "yv00la6xmsxcq62w"
 
 export default async function ScoutPage({
   searchParams,
@@ -19,21 +17,16 @@ export default async function ScoutPage({
   searchParams: Promise<{ teamId?: string }>
 }) {
   const params = await searchParams
-  const teamId = params.teamId ?? SIA_TEAM_ID
+  const teamId = params.teamId ?? null
 
   return (
     <PageShell>
-      <div className="space-y-6">
-        <header>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            Scout
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Pickup opportunities ranked by form. Select any manager.
-          </p>
-        </header>
+      <div className="space-y-5">
+        <Suspense fallback={null}>
+          <ScoutSubnav room="Wire" />
+        </Suspense>
 
-        <Suspense fallback={<TeamPickerFallback />}>
+        <Suspense fallback={null}>
           <ScoutTeamPicker currentTeamId={teamId} basePath="/scout" />
         </Suspense>
 
@@ -45,21 +38,6 @@ export default async function ScoutPage({
   )
 }
 
-function TeamPickerFallback() {
-  return (
-    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-      <span>Loading teams...</span>
-    </div>
-  )
-}
-
 function BoardFallback() {
-  return (
-    <div className="flex min-h-[40vh] items-center justify-center">
-      <div className="text-center">
-        <div className="mb-2 text-lg font-medium">Loading opportunities...</div>
-        <div className="text-sm text-muted-foreground">Analyzing wire targets</div>
-      </div>
-    </div>
-  )
+  return <OtmLoader className="min-h-[40vh] py-8" label="Scout" hint="Ranking the wire" />
 }

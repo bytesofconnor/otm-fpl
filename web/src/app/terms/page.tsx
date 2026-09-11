@@ -18,7 +18,7 @@ export default function TermsPage() {
 
         <h3>2. Access</h3>
         <p>
-          Over the Moon is free to use. No accounts or payments are required.
+          You can use the companion without an account (this browser remembers your league). Signing in saves your Fantrax league and squad to your account so Form and Scout follow you on other devices. Paid plans, when offered, are billed through Stripe and may unlock Scout.
         </p>
 
         <h3>3. License</h3>

@@ -2,13 +2,11 @@
 
 import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { OTM_LEAGUE_ID } from "@/lib/fantrax-shared"
+import { useConnectedLeague } from "@/lib/league-session"
 import { heatLabel, heatEmoji, heatColor, type HeatBucket } from "@/lib/form-engine"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-
-// SIA default teamId (cbarrett97 / Saints Intelligence Agency)
-const SIA_TEAM_ID = "yv00la6xmsxcq62w"
+import { OtmLoader } from "@/components/otm-loader"
 
 type Opportunity = {
   player: {
@@ -68,19 +66,22 @@ type OpportunitiesResponse = {
 
 export function OpportunityBoard() {
   const searchParams = useSearchParams()
+  const { leagueId, ready } = useConnectedLeague()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<OpportunitiesResponse | null>(null)
 
-  // Get teamId from query params, default to SIA
-  const teamId = searchParams.get("teamId") || SIA_TEAM_ID
+  const teamId = searchParams.get("teamId")
 
   useEffect(() => {
+    if (!ready || !teamId) return
+    const id = teamId
+
     async function fetchOpportunities() {
       try {
         setLoading(true)
         setError(null)
-        const url = `/api/scout/opportunities?teamId=${teamId}&leagueId=${OTM_LEAGUE_ID}`
+        const url = `/api/scout/opportunities?teamId=${encodeURIComponent(id)}&leagueId=${encodeURIComponent(leagueId)}`
         const res = await fetch(url)
         
         if (!res.ok) {
@@ -97,18 +98,15 @@ export function OpportunityBoard() {
       }
     }
 
-    fetchOpportunities()
-  }, [teamId])
+    void fetchOpportunities()
+  }, [ready, leagueId, teamId])
 
+  if (!ready) {
+    return <OtmLoader className="min-h-[40vh] py-8" label="Scout" hint="Ranking the wire" />
+  }
+  if (!teamId) return null
   if (loading) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center">
-        <div className="text-center">
-          <div className="mb-2 text-lg font-medium">Loading opportunities...</div>
-          <div className="text-sm text-muted-foreground">Analyzing wire targets</div>
-        </div>
-      </div>
-    )
+    return <OtmLoader className="min-h-[40vh] py-8" label="Scout" hint="Ranking the wire" />
   }
 
   if (error) {
@@ -136,195 +134,54 @@ export function OpportunityBoard() {
       const dropBanBlocked = data.debug!.topNearMisses.filter(
         (miss) => miss.blockedBy === "drop_ban"
       )
-      const formGapBlocked = data.debug!.topNearMisses.filter(
-        (miss) => miss.blockedBy === "form_gap"
-      )
       
       return (
         <div className="space-y-6">
-          {/* Header explaining why these are near-misses */}
-          <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4">
-            <h3 className="flex items-center gap-2 font-semibold text-yellow-700 dark:text-yellow-300">
-              <span className="text-xl">⚠️</span>
-              No Immediate Pickups Available
-            </h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {dropBanBlocked.length > 0 
-                ? `${dropBanBlocked.length} upgrade${dropBanBlocked.length > 1 ? 's' : ''} would require dropping a protected player (Garner, Truffert, or Havertz).`
-                : `${formGapBlocked.length} player${formGapBlocked.length > 1 ? 's' : ''} available but below minimum form threshold.`
-              }
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Showing closest upgrades for context. Consider these if form changes significantly.
-            </p>
-          </div>
-
-          {/* Near-miss cards */}
           <div>
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Blocked Upgrades ({data.debug!.topNearMisses.length})
-            </h3>
-            <div className="grid gap-4">
-              {data.debug!.topNearMisses.map((nearMiss, idx) => (
-                <NearMissCard key={`${nearMiss.playerName}-${idx}`} nearMiss={nearMiss} rank={idx + 1} />
-              ))}
-            </div>
-          </div>
-
-          {/* Next actions section */}
-          <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
-            <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-              <span className="text-lg">💡</span>
-              Potential Next Actions
-            </h3>
-            <div className="space-y-3 text-sm">
-              {dropBanBlocked.length > 0 && (
-                <div className="flex gap-3">
-                  <span className="text-xl" aria-hidden>🔒</span>
-                  <div>
-                    <p className="font-medium">Consider Adjusting Protected Players</p>
-                    <p className="mt-1 text-muted-foreground">
-                      {dropBanBlocked.slice(0, 2).map(m => m.playerName).join(' and ')} could be strong pickups, but {dropBanBlocked.slice(0, 2).map(m => m.dropCandidate).filter((v, i, a) => a.indexOf(v) === i).join(', ')} {dropBanBlocked.slice(0, 2).filter((v, i, a) => a.findIndex(t => t.dropCandidate === v.dropCandidate) === i).length === 1 ? 'is' : 'are'} protected. Only adjust if these players become essential.
-                    </p>
-                  </div>
-                </div>
-              )}
-              
-              <div className="flex gap-3">
-                <span className="text-xl" aria-hidden>📊</span>
-                <div>
-                  <p className="font-medium">Check Waiver Wire Priorities</p>
-                  <p className="mt-1 text-muted-foreground">
-                    Visit <a href="/scout/waivers" className="text-primary underline-offset-4 hover:underline">Scout Waivers</a> to see prioritized waiver wire targets. WW claims don&apos;t require drops until after the claim period.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <span className="text-xl" aria-hidden>⚡</span>
-                <div>
-                  <p className="font-medium">Review Start/Sit Decisions</p>
-                  <p className="mt-1 text-muted-foreground">
-                    Head to <a href="/scout/matchup" className="text-primary underline-offset-4 hover:underline">Matchup Prep</a> to see your lineup heatmap and identify any cold starters who could be benched for hot bench players.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <span className="text-xl" aria-hidden>📅</span>
-                <div>
-                  <p className="font-medium">Monitor After Fixtures</p>
-                  <p className="mt-1 text-muted-foreground">
-                    Form changes after each gameweek. Check back after the next round of fixtures when new returns and minutes data updates the rankings.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Info section about the scout */}
-          <div className="rounded-lg border border-border bg-muted/20 p-4">
-            <h4 className="mb-2 text-sm font-semibold">How Scout Works</h4>
-            <p className="text-xs leading-relaxed text-muted-foreground">
-              Scout recommends FA pickups when they significantly outperform your bench players by form score (goals, assists, clean sheets, minutes). 
-              Protected players are never suggested for drops. When no immediate upgrades exist, near-misses show potential moves to consider if circumstances change.
+            <h1 className="otm-title text-3xl">No claims this week</h1>
+            <p className="mt-3 text-[15px] text-muted-foreground">
+              {dropBanBlocked.length > 0
+                ? `${data.teamName ? `${data.teamName} holds` : "Holds"}: ${
+                    [
+                      ...new Set(
+                        dropBanBlocked
+                          .map((miss) => miss.dropCandidate)
+                          .filter((name): name is string => Boolean(name)),
+                      ),
+                    ].join(", ") || "protected players"
+                  } — not on this list.`
+                : "Nobody on the wire is far enough ahead of your bench."}
             </p>
           </div>
 
-          {/* Debug toggle (collapsed by default) */}
-          {data.debug && (
-            <details className="rounded-lg border border-border bg-muted/20 p-4">
-              <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground">
-                Debug Info (Technical Details)
-              </summary>
-              <pre className="mt-3 overflow-auto rounded-md bg-muted p-3 text-xs">
-                {JSON.stringify(data.debug, null, 2)}
-              </pre>
-            </details>
-          )}
+          <div className="grid gap-4">
+            {data.debug!.topNearMisses.map((nearMiss, idx) => (
+              <NearMissCard key={`${nearMiss.playerName}-${idx}`} nearMiss={nearMiss} rank={idx + 1} />
+            ))}
+          </div>
         </div>
       )
     }
     
     // True empty state (no opportunities, no near-misses) - very rare
-    let emptyMessage = "No players available meet upgrade criteria."
-    let emptyHint = "Check back after fixtures, or visit Waivers and Matchup Prep for other opportunities."
-    
-    if (!data) {
-      emptyMessage = "Unable to load opportunities"
-      emptyHint = "Please try refreshing the page."
-    } else if (!data.teamName && data.teamId) {
-      emptyMessage = "Team not found"
-      emptyHint = "Please verify your team ID or contact support."
-    }
-    
+    let emptyHint = "Nobody on the wire is far enough ahead of your bench."
+    if (!data) emptyHint = "Could not load the wire. Refresh and try again."
+    else if (!data.teamName && data.teamId) emptyHint = "Open League and pick a squad first."
+
     return (
-      <div className="space-y-6">
-        <div className="rounded-lg border border-border bg-muted/20 p-8 text-center">
-          <p className="text-lg font-medium">No opportunities found</p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {emptyMessage}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {emptyHint}
-          </p>
-        </div>
-
-        {/* Still show next actions even in true empty state */}
-        <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
-          <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-            <span className="text-lg">💡</span>
-            Where to Look Next
-          </h3>
-          <div className="space-y-3 text-sm">
-            <div className="flex gap-3">
-              <span className="text-xl" aria-hidden>📊</span>
-              <div>
-                <p className="font-medium">Waiver Wire</p>
-                <p className="mt-1 text-muted-foreground">
-                  Visit <a href="/scout/waivers" className="text-primary underline-offset-4 hover:underline">Scout Waivers</a> for prioritized waiver wire targets.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <span className="text-xl" aria-hidden>⚡</span>
-              <div>
-                <p className="font-medium">Matchup Prep</p>
-                <p className="mt-1 text-muted-foreground">
-                  Check <a href="/scout/matchup" className="text-primary underline-offset-4 hover:underline">Matchup Prep</a> for lineup optimization and start/sit decisions.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {data?.debug && (
-          <details className="rounded-lg border border-border bg-muted/20 p-4">
-            <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground">
-              Debug info (click to expand)
-            </summary>
-            <pre className="mt-3 overflow-auto rounded-md bg-muted p-3 text-xs">
-              {JSON.stringify(data.debug, null, 2)}
-            </pre>
-          </details>
-        )}
+      <div>
+        <h1 className="otm-title text-3xl">No claims this week</h1>
+        <p className="mt-3 text-[15px] text-muted-foreground">{emptyHint}</p>
       </div>
     )
   }
 
+  const n = data.opportunities.length
+  const title = n === 1 ? "One claim worth a look" : `${n === 2 ? "Two" : n} claims worth a look`
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {data.opportunities.length} opportunities ranked by form
-        </p>
-        {data.timestamp && (
-          <p className="text-xs text-muted-foreground">
-            Updated {new Date(data.timestamp).toLocaleTimeString()}
-          </p>
-        )}
-      </div>
+      <h1 className="otm-title text-3xl">{title}</h1>
 
       <div className="grid gap-4">
         {data.opportunities.map((opp, idx) => (

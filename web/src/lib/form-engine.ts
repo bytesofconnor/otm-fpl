@@ -249,12 +249,48 @@ export function computeFormScoreSimple(options: {
     lastGW: options.lastGW ?? null,
     priorGW: options.priorGW ?? null,
     prior2GW: options.prior2GW ?? null,
-    minutesStability: options.minutesStability ?? 0.5, // assume moderate
-    startRate: options.startRate ?? 0.5, // assume moderate
+    minutesStability: options.minutesStability ?? 0,
+    startRate: options.startRate ?? 0,
     projBeat: options.projBeat ?? false,
-    gameweeksSinceLastReturn: 0, // assume recent return
+    gameweeksSinceLastReturn: 0,
   }
   return computeFormScore(input)
+}
+
+/** One Fantrax gameweek — not season totals. Starter week is ~6–12; 18+ is a haul. */
+export function heatFromWeekPoints(pts: number | null): HeatBucket {
+  if (pts == null || pts <= 0) return "cold"
+  if (pts > 20) return "cold"
+  if (pts >= 20) return "burning"
+  if (pts >= 14) return "fire"
+  if (pts >= 8) return "hot"
+  if (pts >= 3.5) return "warm"
+  return "cold"
+}
+
+function asFinishedWeek(pts: number | null): number | null {
+  if (pts == null || pts < 0 || pts > 20) return null
+  return pts
+}
+
+/** Heat from last three weekly totals. Ignores YTD-sized numbers. */
+export function heatFromRecentPoints(
+  lastGW: number | null,
+  priorGW: number | null = null,
+  prior2GW: number | null = null,
+): HeatBucket {
+  const last = asFinishedWeek(lastGW)
+  const prior = asFinishedWeek(priorGW)
+  const prior2 = asFinishedWeek(prior2GW)
+  const weeks = [last, prior, prior2].filter((v): v is number => v != null)
+  if (weeks.length <= 1) return heatFromWeekPoints(weeks[0] ?? null)
+  const weighted =
+    (last ?? 0) * LAST_GW_WEIGHT + (prior ?? 0) * PRIOR_GW_WEIGHT + (prior2 ?? 0) * PRIOR2_GW_WEIGHT
+  const weight =
+    (last != null ? LAST_GW_WEIGHT : 0) +
+    (prior != null ? PRIOR_GW_WEIGHT : 0) +
+    (prior2 != null ? PRIOR2_GW_WEIGHT : 0)
+  return heatFromWeekPoints(weight > 0 ? weighted / weight : null)
 }
 
 /**

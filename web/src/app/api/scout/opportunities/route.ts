@@ -352,7 +352,7 @@ export async function GET(request: Request) {
       debug.afterSignalFilter++
 
       // Hard Filter 3: Team exclusions (SIA-specific: no Arsenal)
-      if (isSIATeamExcluded(player.team, teamId)) {
+      if (isSIATeamExcluded(player.team, teamId, leagueId)) {
         continue
       }
       debug.afterTeamExclusionFilter++
@@ -393,7 +393,7 @@ export async function GET(request: Request) {
       debug.afterFormGapFilter++
 
       // Hard Filter 6: Team-specific drop bans (SIA: never suggest dropping Garner/Truffert/Havertz)
-      if (isSIADropBanned(benchComparison.player.name, teamId)) {
+      if (isSIADropBanned(benchComparison.player.name, teamId, leagueId)) {
         // Track near-miss: blocked by drop ban
         debug.topNearMisses.push({
           playerName: player.name,

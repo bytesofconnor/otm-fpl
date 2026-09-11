@@ -330,19 +330,17 @@ export function LeagueWeek({
 
   return (
     <Card size="flush" className="otm-pitch">
-      <div className="flex items-center justify-between gap-3 border-b border-white/25 px-4 py-4 sm:px-7">
+      <div className="flex items-center justify-between gap-3 border-b border-white/25 px-4 py-3 sm:px-7">
         <div className="min-w-0 flex-1">
-          <h2 className="otm-title text-[1.6rem] text-white sm:text-[2rem]">{isCurrentWeek ? "This week" : periodLabel || `GW${period}`}</h2>
-          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[13px]">
-            {live && isCurrentWeek ? <Badge variant="live" className="text-[11px]">Live</Badge> : null}
-            <span className="font-semibold text-white">{periodLabel || `GW${period}`}</span>
-            <span className="text-white/60">·</span>
-            <span className="text-white/75">
-              {period === periodCount ? "Final week" : period === 1 ? "First week" : `Week ${period} of ${periodCount}`}
-            </span>
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h2 className="otm-kicker text-white/70">{isCurrentWeek ? "This week" : periodLabel || `GW${period}`}</h2>
+            <p className="text-[12px] text-white/70">
+              {live && isCurrentWeek ? <Badge variant="live" className="mr-2 text-[10px]">Live</Badge> : null}
+              <span>{periodLabel || `GW${period}`}</span>
+            </p>
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-1.5">
+        <div className="flex shrink-0 items-center gap-1">
           <Button
             type="button"
             variant="ghost"

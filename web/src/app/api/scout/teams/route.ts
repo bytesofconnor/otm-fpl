@@ -1,9 +1,7 @@
 /**
- * Scout Teams API — List managers from Over the Moon league
- * 
+ * Scout Teams API — managers in the requested Fantrax league
+ *
  * GET /api/scout/teams?leagueId=X
- * 
- * Returns team list with IDs, names, and owner handles for team picker
  */
 
 import { NextResponse } from "next/server"

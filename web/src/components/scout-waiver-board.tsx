@@ -2,13 +2,11 @@
 
 import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { OTM_LEAGUE_ID } from "@/lib/fantrax-shared"
+import { useConnectedLeague } from "@/lib/league-session"
 import { heatLabel, heatEmoji, heatColor, type HeatBucket } from "@/lib/form-engine"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-
-// SIA default teamId
-const SIA_TEAM_ID = "yv00la6xmsxcq62w"
+import { OtmLoader } from "@/components/otm-loader"
 
 type RiskLevel = "low" | "medium" | "high"
 type ConfidenceLevel = "low" | "medium" | "high"
@@ -69,19 +67,22 @@ type WaiversResponse = {
 
 export function WaiverBoard() {
   const searchParams = useSearchParams()
+  const { leagueId, ready } = useConnectedLeague()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<WaiversResponse | null>(null)
 
-  // Get teamId from query params, default to SIA
-  const teamId = searchParams.get("teamId") || SIA_TEAM_ID
+  const teamId = searchParams.get("teamId")
 
   useEffect(() => {
+    if (!ready || !teamId) return
+    const id = teamId
+
     async function fetchWaivers() {
       try {
         setLoading(true)
         setError(null)
-        const url = `/api/scout/waivers?teamId=${teamId}&leagueId=${OTM_LEAGUE_ID}`
+        const url = `/api/scout/waivers?teamId=${encodeURIComponent(id)}&leagueId=${encodeURIComponent(leagueId)}`
         const res = await fetch(url)
         
         if (!res.ok) {
@@ -98,22 +99,15 @@ export function WaiverBoard() {
       }
     }
 
-    fetchWaivers()
-  }, [teamId])
+    void fetchWaivers()
+  }, [ready, leagueId, teamId])
 
+  if (!ready) {
+    return <OtmLoader className="min-h-[40vh] py-8" label="Waivers" hint="Ranking claims" />
+  }
+  if (!teamId) return null
   if (loading) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center">
-        <div className="space-y-3 text-center">
-          <div
-            className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary"
-            role="status"
-            aria-label="Loading waiver recommendations"
-          />
-          <p className="text-sm text-muted-foreground">Loading waiver priorities...</p>
-        </div>
-      </div>
-    )
+    return <OtmLoader className="min-h-[40vh] py-8" label="Waivers" hint="Ranking claims" />
   }
 
   if (error) {

@@ -1,36 +1,44 @@
-// Description: Lightweight top progress indicator triggered on route/path changes.
+// Description: Quiet route hairline. Not a live-green event.
 "use client"
 
-import * as React from 'react'
-import { usePathname } from 'next/navigation'
+import * as React from "react"
+import { usePathname } from "next/navigation"
 
 export function TopProgress(): React.ReactElement {
   const pathname = usePathname()
+  const first = React.useRef(true)
   const [active, setActive] = React.useState(false)
   const [width, setWidth] = React.useState(0)
 
   React.useEffect(() => {
-    // Start progress when pathname changes (new page mounted)
+    if (first.current) {
+      first.current = false
+      return
+    }
     setActive(true)
-    setWidth(8)
-    const id = setInterval(() => {
-      setWidth((w) => (w < 80 ? w + Math.max(1, Math.round((80 - w) * 0.1)) : w))
-    }, 80)
-    const done = setTimeout(() => {
+    setWidth(12)
+    const tick = window.setInterval(() => {
+      setWidth((w) => (w < 78 ? w + Math.max(1, Math.round((78 - w) * 0.12)) : w))
+    }, 90)
+    const done = window.setTimeout(() => {
       setWidth(100)
-      setTimeout(() => { setActive(false); setWidth(0) }, 300)
-    }, 600)
-    return () => { clearInterval(id); clearTimeout(done) }
+      window.setTimeout(() => {
+        setActive(false)
+        setWidth(0)
+      }, 180)
+    }, 420)
+    return () => {
+      window.clearInterval(tick)
+      window.clearTimeout(done)
+    }
   }, [pathname])
 
   return (
-    <div className="fixed inset-x-0 top-0 z-[999] pointer-events-none">
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-[999]">
       <div
-        className="h-[2px] bg-live transition-all duration-150"
-        style={{ width: `${width}%`, opacity: active ? 0.85 : 0 }}
+        className="h-px bg-foreground/50 transition-[width,opacity] duration-150"
+        style={{ width: `${width}%`, opacity: active ? 1 : 0 }}
       />
     </div>
   )
 }
-
-

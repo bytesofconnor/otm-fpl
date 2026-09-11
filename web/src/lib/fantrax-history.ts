@@ -7,6 +7,7 @@
 
 import type { PlayerWeekStat, OwnershipSnapshot } from "./supabase"
 import { loadFantraxForm } from "./fantrax"
+import { playerStat } from "./fantrax-shared"
 
 /**
  * Generate unique capture ID for correlating stats + ownership snapshots
@@ -57,8 +58,14 @@ export async function collectPlayerWeekStats(
         position: player.position,
         club: player.team,
         scored_fpts: scoredFpts,
-        minutes_played: minutesPlayed,
+        minutes_played: minutesPlayed ?? (playerStat(player, "Min") != null ? Math.round(playerStat(player, "Min")!) : null),
         started,
+        goals: playerStat(player, "G"),
+        assists: playerStat(player, "AT"),
+        key_passes: playerStat(player, "KP"),
+        clean_sheets: playerStat(player, "CS"),
+        saves: playerStat(player, "Sv"),
+        shots_on_target: playerStat(player, "SOT"),
         captured_at: new Date().toISOString(),
       })
     }

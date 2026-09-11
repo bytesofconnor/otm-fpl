@@ -17,7 +17,8 @@ function clamp(value: number): number {
 
 /**
  * Header + optional toolbar on top. Below: plot and ranked list.
- * From md up, drag the gutter to grow or shrink the list. Double-click resets.
+ * Side-by-side from `splitAt` up (md by default, lg to keep tablets stacked).
+ * Drag the gutter to grow or shrink the list. Double-click resets.
  */
 export function SplitBoard({
   header,
@@ -26,6 +27,7 @@ export function SplitBoard({
   list,
   caption,
   className,
+  splitAt = "md",
 }: {
   header: ReactNode
   toolbar?: ReactNode
@@ -33,7 +35,10 @@ export function SplitBoard({
   list: ReactNode
   caption?: string
   className?: string
+  /** Stack chart over the list until this breakpoint. */
+  splitAt?: "md" | "lg"
 }): React.ReactElement {
+  const untilLg = splitAt === "lg"
   const boardRef = React.useRef<HTMLDivElement>(null)
   const dragging = React.useRef(false)
   const pctRef = React.useRef(DEFAULT_PCT)
@@ -126,8 +131,17 @@ export function SplitBoard({
     >
       <div className="shrink-0">{header}</div>
       {toolbar ? <div className="shrink-0">{toolbar}</div> : null}
-      <div ref={boardRef} className="flex min-h-0 flex-1 flex-col md:flex-row">
-        {chart ? <div className="flex min-h-[220px] min-w-0 flex-1 flex-col sm:min-h-[260px] md:min-h-0">{chart}</div> : null}
+      <div ref={boardRef} className={cn("flex min-h-0 flex-1 flex-col", untilLg ? "lg:flex-row" : "md:flex-row")}>
+        {chart ? (
+          <div
+            className={cn(
+              "flex min-h-[220px] min-w-0 flex-1 flex-col sm:min-h-[260px]",
+              untilLg ? "md:min-h-[min(48vh,24rem)] md:flex-[1.7] lg:min-h-0 lg:flex-1" : "md:min-h-0",
+            )}
+          >
+            {chart}
+          </div>
+        ) : null}
         {/* eslint-disable jsx-a11y/no-static-element-interactions, jsx-a11y/no-noninteractive-tabindex */}
         <div
           data-otm-split
@@ -142,7 +156,8 @@ export function SplitBoard({
           onDoubleClick={reset}
           onKeyDown={onHandleKey}
           className={cn(
-            "group/handle relative hidden w-3 shrink-0 cursor-col-resize touch-none items-stretch justify-center md:flex",
+            "group/handle relative hidden w-3 shrink-0 cursor-col-resize touch-none items-stretch justify-center",
+            untilLg ? "lg:flex" : "md:flex",
             "before:absolute before:inset-y-0 before:-left-2 before:-right-2 before:content-['']",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
             hot ? "bg-muted" : "hover:bg-muted/80",
@@ -164,8 +179,11 @@ export function SplitBoard({
         {/* eslint-enable jsx-a11y/no-static-element-interactions, jsx-a11y/no-noninteractive-tabindex */}
         <div
           className={cn(
-            "otm-split-list flex min-h-[240px] w-full shrink-0 flex-col overflow-hidden border-t border-border sm:min-h-[280px] md:min-h-0",
-            !hot && "md:transition-[flex-basis] md:duration-150 md:ease-out",
+            "otm-split-list flex min-h-[240px] w-full shrink-0 flex-col overflow-hidden border-t border-border sm:min-h-[280px]",
+            untilLg
+              ? "otm-split-until-lg md:min-h-0 md:flex-1 lg:flex-none"
+              : "md:min-h-0",
+            !hot && (untilLg ? "lg:transition-[flex-basis] lg:duration-150 lg:ease-out" : "md:transition-[flex-basis] md:duration-150 md:ease-out"),
           )}
           style={{ ["--otm-list-pct" as string]: `${pct}%` }}
         >

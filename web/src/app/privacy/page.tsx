@@ -9,12 +9,13 @@ export default function PrivacyPage() {
       <div className="otm-prose mt-8">
         <h3>Overview</h3>
         <p>
-          We collect as little personal data as possible to run Over the Moon.
+          We collect as little personal data as possible to run OTM FPL.
         </p>
 
         <h3>What we store</h3>
         <ul>
-          <li><strong>Local data</strong>: League and team choice live in your browser.</li>
+          <li><strong>Account</strong>: If you sign in, we store your email and the Fantrax league and team you linked.</li>
+          <li><strong>Local data</strong>: League and team choice also live in your browser when you are signed out.</li>
           <li><strong>Server logs</strong>: Basic request logs from the host for security and troubleshooting.</li>
         </ul>
 

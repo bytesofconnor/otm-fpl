@@ -11,7 +11,7 @@ import { OTM_LEAGUE_ID } from "./fantrax-shared"
 // ============================================================================
 
 /**
- * Over the Moon league ID (default for Scout)
+ * Over the Moon league ID (default when Scout APIs omit leagueId)
  */
 export const SCOUT_DEFAULT_LEAGUE_ID = OTM_LEAGUE_ID
 
@@ -21,9 +21,33 @@ export const SCOUT_DEFAULT_LEAGUE_ID = OTM_LEAGUE_ID
 export const SIA_TEAM_ID = "yv00la6xmsxcq62w"
 
 /**
- * Check if a team ID is SIA
+ * Prefer URL / stored squad. Never invent SIA for another manager.
  */
-export function isSIATeam(teamId: string | null): boolean {
+export function preferredTeamId(
+  teams: Array<{ id: string }>,
+  preferred: Array<string | null | undefined>,
+): string | null {
+  const ids = new Set(teams.map((t) => t.id))
+  for (const id of preferred) {
+    if (id && ids.has(id)) return id
+  }
+  return null
+}
+
+/** @deprecated Use preferredTeamId — SIA is not a global default. */
+export function defaultScoutTeamId(
+  teams: Array<{ id: string }>,
+  _leagueId: string,
+  preferred: Array<string | null | undefined>,
+): string | null {
+  return preferredTeamId(teams, preferred)
+}
+
+/**
+ * Check if a team ID is SIA in Over the Moon. Other leagues never get SIA drop bans.
+ */
+export function isSIATeam(teamId: string | null, leagueId?: string | null): boolean {
+  if (leagueId && leagueId !== OTM_LEAGUE_ID) return false
   return teamId === SIA_TEAM_ID
 }
 
@@ -42,9 +66,9 @@ export const SIA_DROP_BANS = new Set([
  * Check if a player is on SIA's drop ban list
  * Only applies to SIA team - other teams have no drop bans
  */
-export function isSIADropBanned(playerName: string, teamId: string | null): boolean {
-  // Only apply drop bans to SIA team
-  if (!isSIATeam(teamId)) {
+export function isSIADropBanned(playerName: string, teamId: string | null, leagueId?: string | null): boolean {
+  // Only apply drop bans to SIA in Over the Moon
+  if (!isSIATeam(teamId, leagueId)) {
     return false
   }
 
@@ -72,9 +96,8 @@ export const SIA_TEAM_EXCLUSIONS = new Set([
  * Check if a player's team is excluded for SIA
  * Only applies to SIA team - other teams have no exclusions
  */
-export function isSIATeamExcluded(teamShortName: string, forTeamId: string | null): boolean {
-  // Only apply team exclusions to SIA team
-  if (!isSIATeam(forTeamId)) {
+export function isSIATeamExcluded(teamShortName: string, forTeamId: string | null, leagueId?: string | null): boolean {
+  if (!isSIATeam(forTeamId, leagueId)) {
     return false
   }
 

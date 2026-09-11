@@ -20,8 +20,9 @@ import type {
   FantraxTransaction,
   PlayerAvailability,
 } from "./fantrax-shared"
-import { scorePickup } from "./fantrax-shared"
-import { loadFplIndex, matchFplPlayer } from "./fpl"
+import { asThisWeekFpts, scorePickup, withDerivedWeekScores } from "./fantrax-shared"
+import { loadFplIndex, matchFplPlayer, fplPhotoUrl, fplCrestUrl, type FplElement } from "./fpl"
+import { loadClubPhotoIndex, lookupClubPhoto, type ClubPhotoIndex } from "./club-photos"
 import { getProjectionSnapshots } from "./supabase"
 
 const FANTRAX_UA =
@@ -59,6 +60,16 @@ function str(value: unknown, fallback = ""): string {
   if (typeof value === "string") return value
   if (typeof value === "number") return String(value)
   return fallback
+}
+
+function scorerImage(scorer: Json): string | undefined {
+  return (
+    str(scorer.headshotUrlHiRes) ||
+    str(scorer.headshotUrlLarge) ||
+    str(scorer.headshotUrl) ||
+    str(scorer.imageUrl) ||
+    undefined
+  )
 }
 
 function num(value: unknown): number | null {
@@ -268,6 +279,7 @@ async function fxpa(leagueId: string, method: string, data: Json): Promise<Json 
     opt: str(data.optimal ?? ""),
     f: str(data.statusOrTeamFilter ?? ""),
     s: str(data.seasonOrProjection ?? ""),
+    tf: str(data.timeframeTypeId ?? ""),
   })
   const url = `https://www.fantrax.com/fxpa/req?${cacheKey.toString()}`
   const res = await fetch(url, {
@@ -364,6 +376,7 @@ function parseAllScheduleWeeks(data: Json | null): Array<{ period: number; games
 }
 
 const STAT_KEEP = new Set(["G", "AT", "KP", "CS", "Sv", "SOT", "GA", "PKS"])
+const KEY_STAT_CODES = new Set(["G", "AT", "CS", "Sv"])
 
 function asPlayedMinutes(value: number | null): number | null {
   if (value == null || value < 1 || value > 120) return null
@@ -376,6 +389,8 @@ function minutesIndex(codes: string[]): number {
 }
 
 const WEEKLY_PROJ = "PROJECTION_0_926_EVENT_PROJECTED_WEEKLY"
+/** Fantrax `statisticsTimeframeTypes` id for one scoring period, not YTD. */
+const TIMEFRAME_BY_PERIOD = "2"
 
 function parseFixture(raw: string): { opponent?: string; kickoff?: string; finished: boolean } {
   const text = raw.replace(/<br\s*\/?>/gi, " ").replace(/\s+/g, " ").trim()
@@ -438,10 +453,13 @@ function parseProjectedRoster(data: Json | null): FantraxRosterPlayer[] {
         const code = codes[i]
         if (!STAT_KEEP.has(code)) continue
         const value = num(cellContent(cells[i]))
-        if (value == null || Math.abs(value) < 0.15) continue
+        if (value == null) continue
+        if (!KEY_STAT_CODES.has(code) && Math.abs(value) < 0.15) continue
         stats.push({ code, value })
       }
       const minIdx = minutesIndex(codes)
+      const rawMin = minIdx >= 0 ? num(cellContent(cells[minIdx])) : null
+      if (rawMin != null) stats.push({ code: "Min", value: rawMin })
       const { availability, availabilityLabel, news } = parseAvailability(scorer)
       players.push({
         id: str(scorer.scorerId),
@@ -450,7 +468,7 @@ function parseProjectedRoster(data: Json | null): FantraxRosterPlayer[] {
         position: str(scorer.posShortNames ?? scorer.shortName, "—"),
         team: str(scorer.teamShortName, "—"),
         points: num(cellContent(cells[1])),
-        minutes: minIdx >= 0 ? asPlayedMinutes(num(cellContent(cells[minIdx]))) : null,
+        minutes: asPlayedMinutes(rawMin),
         status: statusId === "1" ? "ACTIVE" : statusId === "2" ? "RESERVE" : statusId === "3" ? "IR" : statusId,
         opponent: fixture.opponent,
         kickoff: fixture.kickoff,
@@ -458,7 +476,7 @@ function parseProjectedRoster(data: Json | null): FantraxRosterPlayer[] {
         availability,
         availabilityLabel,
         news,
-        headshotUrl: str(scorer.headshotUrl) || undefined,
+        headshotUrl: scorerImage(scorer),
         stats,
       })
     }
@@ -492,32 +510,71 @@ function parseOwner(data: Json | null): string | undefined {
   return value || undefined
 }
 
-async function loadOwnerByTeam(
+function byPeriodSeasonCode(data: Json | null): string | null {
+  const lists = asRecord(data?.displayedLists)
+  for (const row of asArray(lists?.seasonOrProjections)) {
+    const rec = asRecord(row)
+    if (rec && str(rec.timeframeTypeCode) === "BY_PERIOD") {
+      const code = str(rec.code)
+      return code || null
+    }
+  }
+  return null
+}
+
+async function resolveByPeriodSeasonCode(leagueId: string, teamId: string, period: number): Promise<string | null> {
+  const data = await fxpa(leagueId, "getTeamRosterInfo", { period, teamId }).catch(() => null)
+  return byPeriodSeasonCode(data)
+}
+
+function periodRosterQuery(period: number, teamId: string, byPeriodCode: string | null): Json {
+  if (!byPeriodCode) return { period, teamId, timeframeTypeId: TIMEFRAME_BY_PERIOD }
+  return {
+    period,
+    teamId,
+    seasonOrProjection: byPeriodCode,
+    timeframeTypeId: TIMEFRAME_BY_PERIOD,
+  }
+}
+
+function weeklyProjQuery(period: number, teamId: string): Json {
+  return {
+    period,
+    teamId,
+    seasonOrProjection: WEEKLY_PROJ,
+    timeframeTypeId: TIMEFRAME_BY_PERIOD,
+  }
+}
+
+async function loadLiveRosters(
   leagueId: string,
   teamIds: string[],
   period: number,
-): Promise<Map<string, string>> {
+  byPeriodCode?: string | null,
+): Promise<{ owners: Map<string, string>; byPlayer: Map<string, FantraxRosterPlayer> }> {
   const unique = [...new Set(teamIds.filter(Boolean))]
-  const rows = await Promise.all(
+  const owners = new Map<string, string>()
+  const byPlayer = new Map<string, FantraxRosterPlayer>()
+  await Promise.all(
     unique.map(async (teamId) => {
-      const data = await fxpa(leagueId, "getTeamRosterInfo", { period, teamId }).catch(() => null)
+      const data = await fxpa(leagueId, "getTeamRosterInfo", periodRosterQuery(period, teamId, byPeriodCode ?? null)).catch(() => null)
       const owner = parseOwner(data)
-      return owner ? ([teamId, owner] as const) : null
+      if (owner) owners.set(teamId, owner)
+      for (const player of parseProjectedRoster(data)) {
+        byPlayer.set(player.id, player)
+      }
     }),
   )
-  return new Map(rows.filter((row): row is readonly [string, string] => row != null))
+  return { owners, byPlayer }
 }
 
 type RosterBundle = { players: FantraxRosterPlayer[]; teams: FantraxTeam[]; owner?: string }
 
 async function loadRosterBundle(leagueId: string, teamId: string, period: number): Promise<RosterBundle> {
+  const byPeriodCode = await resolveByPeriodSeasonCode(leagueId, teamId, period)
   const [projData, liveData] = await Promise.all([
-    fxpa(leagueId, "getTeamRosterInfo", {
-      period,
-      teamId,
-      seasonOrProjection: WEEKLY_PROJ,
-    }),
-    fxpa(leagueId, "getTeamRosterInfo", { period, teamId }),
+    fxpa(leagueId, "getTeamRosterInfo", weeklyProjQuery(period, teamId)),
+    fxpa(leagueId, "getTeamRosterInfo", periodRosterQuery(period, teamId, byPeriodCode)),
   ])
   const projected = parseProjectedRoster(projData)
   const actual = parseProjectedRoster(liveData)
@@ -1016,14 +1073,12 @@ export async function loadFantraxLeague(
   }
 }
 
-function trimManagerWeeks(managers: FantraxManagerSeries[]): FantraxManagerSeries[] {
+function trimManagerWeeks(managers: FantraxManagerSeries[], currentPeriod: number): FantraxManagerSeries[] {
   if (!managers.length) return managers
-  const keep = managers[0].points.map((_, i) => managers.some((m) => (m.points[i]?.value ?? 0) > 0))
-  if (!keep.some(Boolean)) return managers
   return managers.map((m) => ({
     ...m,
-    points: m.points.filter((_, i) => keep[i]),
-    cumulative: m.cumulative.filter((_, i) => keep[i]),
+    points: m.points.filter((row) => row.period <= currentPeriod),
+    cumulative: m.cumulative.filter((row) => row.period <= currentPeriod),
   }))
 }
 
@@ -1154,7 +1209,8 @@ function parsePlayerStats(data: Json | null): FantraxPoolPlayer[] {
       const normalized = code === "A" ? "AT" : code
       if (!STAT_KEEP.has(normalized)) return
       const value = num(cellContent(cells[i]))
-      if (value == null || Math.abs(value) < 0.15) return
+      if (value == null) return
+      if (!KEY_STAT_CODES.has(normalized) && Math.abs(value) < 0.15) return
       stats.push({ code: normalized, value })
     })
     const { availability, availabilityLabel, news } = parseAvailability(scorer)
@@ -1173,20 +1229,63 @@ function parsePlayerStats(data: Json | null): FantraxPoolPlayer[] {
       availabilityLabel: availabilityLabel || undefined,
       news,
       playedMinutes: minIdx >= 0 ? asPlayedMinutes(num(cellContent(cells[minIdx]))) : null,
+      headshotUrl: scorerImage(scorer),
+      crestUrl: scorerImage(scorer),
     })
   }
   return out.filter((p) => p.id && p.name)
 }
 
+function enrichPoolPlayer(
+  player: FantraxPoolPlayer,
+  fpl: { byKey: Map<string, FplElement>; elements: FplElement[] },
+  live?: FantraxPoolPlayer,
+  clubPhotos?: ClubPhotoIndex,
+): FantraxPoolPlayer {
+  const fplEl = matchFplPlayer(fpl, player.name, player.team)
+  const liveStats = live?.stats?.length ? live.stats : player.stats
+  const fantraxShot = live?.headshotUrl ?? player.headshotUrl
+  const clubShot = lookupClubPhoto(clubPhotos, player.name, player.team)
+  const fplShot = fplPhotoUrl(fplEl?.code, "250x250") ?? fplPhotoUrl(fplEl?.code, "110x140")
+  const badge = fplCrestUrl(fplEl?.badge) ?? undefined
+  const portrait = clubShot ?? fplShot ?? fantraxShot
+  const fallback = clubShot
+    ? (fplShot ?? fantraxShot ?? badge)
+    : fplShot
+      ? (fantraxShot && fantraxShot !== fplShot ? fantraxShot : badge)
+      : badge
+  return {
+    ...player,
+    stats: liveStats,
+    chance: fplEl?.chance ?? player.chance,
+    playedMinutes: live?.playedMinutes ?? player.playedMinutes,
+    news: fplEl?.news?.trim() || player.news,
+    crestUrl: fallback,
+    headshotUrl: portrait,
+    lastMatch: fplEl?.lastMatch ?? player.lastMatch ?? null,
+    season: fplEl
+      ? {
+          goals: fplEl.goals,
+          assists: fplEl.assists,
+          cleanSheets: fplEl.cleanSheets,
+          minutes: fplEl.minutes,
+          saves: fplEl.saves,
+        }
+      : player.season,
+  }
+}
+
 async function loadPlayerStatsPool(
   leagueId: string,
   filter: "ALL_TAKEN" | "ALL_AVAILABLE",
-  season?: string,
+  opts?: { season?: string; period: number },
 ): Promise<FantraxPoolPlayer[]> {
+  const period = opts?.period ?? 1
   const data = await fxpa(leagueId, "getPlayerStats", {
     pageNumber: 1,
     maxResultsPerPage: 500,
-    ...(season ? { seasonOrProjection: season } : { period: 1 }),
+    period,
+    ...(opts?.season ? { seasonOrProjection: opts.season, timeframeTypeId: TIMEFRAME_BY_PERIOD } : {}),
     statusOrTeamFilter: filter,
   })
   return parsePlayerStats(data)
@@ -1229,38 +1328,53 @@ function buildPlayerSeries(weeks: Array<{ period: number; players: FantraxRoster
  * Merges frozen projection snapshots from Supabase with live Fantrax data.
  */
 export async function loadFantraxForm(leagueId: string, teamId?: string | null): Promise<FantraxFormSnapshot> {
-  const [infoResult, projResult, liveResult, fplResult, takenResult, availResult, takenLiveResult] = await Promise.allSettled([
-    fantraxGet("getLeagueInfo", { leagueId }),
-    fxpa(leagueId, "getStandings", { view: "SCHEDULE", period: 1, proj: true }),
-    fxpa(leagueId, "getStandings", { view: "SCHEDULE", period: 1, proj: false }),
-    loadFplIndex(),
-    loadPlayerStatsPool(leagueId, "ALL_TAKEN", WEEKLY_PROJ),
-    loadPlayerStatsPool(leagueId, "ALL_AVAILABLE", WEEKLY_PROJ),
-    loadPlayerStatsPool(leagueId, "ALL_TAKEN"),
-  ])
-  const info = asRecord(infoResult.status === "fulfilled" ? infoResult.value : {}) ?? {}
+  const info = asRecord(await fantraxGet("getLeagueInfo", { leagueId })) ?? {}
   const currentPeriod = currentPeriodNumber(info.scoringPeriods ?? info.rosterPeriods) ?? 1
+  const teams = teamsFromInfo(info)
+  const scoringPeriods = Array.from({ length: Math.max(1, currentPeriod) }, (_, i) => i + 1)
+  const sampleTeamId = teamId || teams[0]?.id || null
+  const byPeriodCode = sampleTeamId
+    ? await resolveByPeriodSeasonCode(leagueId, sampleTeamId, currentPeriod).catch(() => null)
+    : null
+  const [projResult, liveResult, fplResult, takenResult, availResult, takenLiveResult, rosterWeeksResult, clubPhotoResult] =
+    await Promise.allSettled([
+      fxpa(leagueId, "getStandings", { view: "SCHEDULE", period: 1, proj: true }),
+      fxpa(leagueId, "getStandings", { view: "SCHEDULE", period: 1, proj: false }),
+      loadFplIndex(currentPeriod),
+      loadPlayerStatsPool(leagueId, "ALL_TAKEN", { season: WEEKLY_PROJ, period: currentPeriod }),
+      loadPlayerStatsPool(leagueId, "ALL_AVAILABLE", { season: WEEKLY_PROJ, period: currentPeriod }),
+      loadPlayerStatsPool(leagueId, "ALL_TAKEN", { period: currentPeriod }),
+      Promise.all(
+        scoringPeriods.map((period) =>
+          loadLiveRosters(
+            leagueId,
+            teams.map((team) => team.id),
+            period,
+            byPeriodCode,
+          ).then((rosters) => ({ period, rosters })),
+        ),
+      ),
+      loadClubPhotoIndex(),
+    ])
   const snapshots = await getProjectionSnapshots(leagueId, currentPeriod).catch(() => null)
   const windowStart = currentPeriod
   const windowEnd = Math.min(38, currentPeriod + 5)
   const periods = Array.from({ length: windowEnd - windowStart + 1 }, (_, i) => windowStart + i)
-  const teams = teamsFromInfo(info)
   const projWeeks = parseAllScheduleWeeks(projResult.status === "fulfilled" ? projResult.value : null)
   const liveWeeks = parseAllScheduleWeeks(liveResult.status === "fulfilled" ? liveResult.value : null)
   const managers = buildManagerSeries(projWeeks, liveWeeks, teamId ?? null, teams)
-  const owners = await loadOwnerByTeam(
-    leagueId,
-    managers.map((m) => m.teamId),
-    currentPeriod,
-  )
+  const rosterWeeks = rosterWeeksResult.status === "fulfilled" ? rosterWeeksResult.value : []
+  const rosterByPeriod = new Map(rosterWeeks.map((row) => [row.period, row.rosters]))
+  const liveRosters = rosterByPeriod.get(currentPeriod) ?? { owners: new Map(), byPlayer: new Map() }
   for (const manager of managers) {
-    manager.owner = owners.get(manager.teamId) || manager.owner
+    manager.owner = liveRosters.owners.get(manager.teamId) || manager.owner
   }
 
   let players: FantraxPlayerSeries[] = []
   const news: FantraxFormNews[] = []
   let teamName: string | null = teams.find((t) => t.id === teamId)?.name ?? null
-  const fpl = fplResult.status === "fulfilled" ? fplResult.value : { byKey: new Map(), elements: [] }
+  const fpl = fplResult.status === "fulfilled" ? fplResult.value : { byKey: new Map(), elements: [], eventFinished: false }
+  const clubPhotos = clubPhotoResult.status === "fulfilled" ? clubPhotoResult.value : undefined
 
   if (teamId) {
     const bundles = await Promise.all(periods.map((period) => loadRosterBundle(leagueId, teamId, period).catch(() => null)))
@@ -1327,29 +1441,47 @@ export async function loadFantraxForm(leagueId: string, teamId?: string | null):
   }
 
   const takenLive = takenLiveResult.status === "fulfilled" ? takenLiveResult.value : []
-  const liveById = new Map(takenLive.map((p) => [p.id, p.points]))
+  const liveById = new Map(takenLive.map((p) => [p.id, p]))
   const projectedTaken = takenResult.status === "fulfilled" ? takenResult.value.filter((p) => p.ownerTeamId) : []
   const leagueOwned = projectedTaken.map((p) => {
     const snapshot = snapshots?.get(p.id)
-    const frozenProj = snapshot ? Number(snapshot.projected) : null
+    const frozenProj = asThisWeekFpts(snapshot ? Number(snapshot.projected) : null)
+    const live = liveById.get(p.id)
+    const roster = liveRosters.byPlayer.get(p.id)
+    const seasonYtd = live?.points ?? null
+    const rawProj = frozenProj ?? asThisWeekFpts(p.points, seasonYtd, currentPeriod, currentPeriod)
+    const weekProj = rawProj != null && rawProj > 22 ? null : rawProj
+    const weekLive = asThisWeekFpts(roster?.points, seasonYtd, currentPeriod, currentPeriod)
+    const next = enrichPoolPlayer(p, fpl, live, clubPhotos)
+    const weeks = withDerivedWeekScores(
+      scoringPeriods.map((period) => {
+        if (period === currentPeriod) {
+          return { period, projected: weekProj, scored: weekLive }
+        }
+        const then = rosterByPeriod.get(period)?.byPlayer.get(p.id)
+        const scored = asThisWeekFpts(then?.points, seasonYtd, period, currentPeriod)
+        return { period, projected: scored, scored }
+      }),
+      seasonYtd,
+    )
+    const currentWeek = weeks.find((row) => row.period === currentPeriod)
     return {
-      ...p,
-      points: frozenProj ?? p.points,
-      live: liveById.has(p.id) ? (liveById.get(p.id) ?? 0) : null,
+      ...next,
+      stats: roster?.stats?.length ? roster.stats : next.stats,
+      points: currentWeek?.projected ?? currentWeek?.scored ?? weekProj ?? weekLive,
+      live: currentWeek?.scored ?? null,
+      weeks,
+      seasonFpts: seasonYtd,
     }
   })
   const unowned = (availResult.status === "fulfilled" ? availResult.value : [])
     .filter((p) => !p.ownerTeamId)
     .map((p) => {
-      const fplEl = matchFplPlayer(fpl, p.name, p.team)
       const snapshot = snapshots?.get(p.id)
-      const frozenProj = snapshot ? Number(snapshot.projected) : null
+      const frozenProj = asThisWeekFpts(snapshot ? Number(snapshot.projected) : null)
       const next = {
-        ...p,
-        points: frozenProj ?? p.points,
-        chance: fplEl?.chance ?? p.chance,
-        playedMinutes: (fplEl && fplEl.minutes > 0 ? fplEl.minutes : null) ?? p.playedMinutes,
-        news: fplEl?.news?.trim() || p.news,
+        ...enrichPoolPlayer(p, fpl, undefined, clubPhotos),
+        points: frozenProj ?? asThisWeekFpts(p.points),
       }
       return { ...next, pickup: scorePickup(next) }
     })
@@ -1362,9 +1494,10 @@ export async function loadFantraxForm(leagueId: string, teamId?: string | null):
     teamId: teamId ?? null,
     teamName,
     currentPeriod,
+    periodFinished: fpl.eventFinished,
     windowStart,
     windowEnd,
-    managers: trimManagerWeeks(managers),
+    managers: trimManagerWeeks(managers, currentPeriod),
     players: collapseFlatPlayerWeeks(trimPlayerWeeks(players)),
     leagueOwned,
     unowned,

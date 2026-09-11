@@ -93,7 +93,7 @@ test.describe("Smoke Tests - No Black Screen Crashes", () => {
     await expect(mainContent).toBeVisible()
     
     // Assert heading is present (not just loading spinner)
-    await expect(page.getByRole("heading", { name: /Matchup Prep/i })).toBeVisible()
+    await expect(page.getByRole("heading", { name: /Matchup/i })).toBeVisible()
   })
 
   test("should load scout/waivers page without Application error", async ({ page }) => {
@@ -108,6 +108,6 @@ test.describe("Smoke Tests - No Black Screen Crashes", () => {
     await expect(mainContent).toBeVisible()
     
     // Assert heading is present (not just loading spinner)
-    await expect(page.getByRole("heading", { name: /Scout Waivers/i, level: 1 })).toBeVisible()
+    await expect(page.getByRole("heading", { name: /Waivers/i, level: 1 })).toBeVisible()
   })
 })

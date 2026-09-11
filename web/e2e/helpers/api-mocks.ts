@@ -68,6 +68,10 @@ export async function mockFantraxAPIs(page: Page) {
  * Mock scout API with valid opportunities data
  */
 export async function mockScoutAPI(page: Page) {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("otm_fantrax_team_id", "fqzp0okbkaycu7v8")
+    window.localStorage.setItem("otm_fantrax_team_name", "Connor's Team")
+  })
   await page.route("**/api/scout/opportunities*", async (route) => {
     await route.fulfill({
       status: 200,
@@ -100,6 +104,10 @@ export async function mockScoutTeamsAPI(page: Page) {
  * Use this to test empty state messaging (protected players, drop bans)
  */
 export async function mockScoutAPIEmpty(page: Page) {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("otm_fantrax_team_id", "fqzp0okbkaycu7v8")
+    window.localStorage.setItem("otm_fantrax_team_name", "Connor's Team")
+  })
   const emptyFixture = await import("../fixtures/scout-opportunities-empty.json", { with: { type: "json" } })
   
   await page.route("**/api/scout/opportunities*", async (route) => {

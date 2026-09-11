@@ -246,7 +246,11 @@ function firstToken(value: string): string {
  * Matches a Fantrax player to an FPL element using club + folded name.
  * Fantrax uses BRF/NOT; FPL uses BRE/NFO — both sides are canonicalized.
  */
-export function matchFplPlayer(index: FplIndex, name: string, team: string): FplElement | null {
+export function matchFplPlayer(
+  index: Pick<FplIndex, "byKey" | "elements">,
+  name: string,
+  team: string,
+): FplElement | null {
   const club = canonicalClub(team)
   const folded = fold(name)
   if (!folded) return null

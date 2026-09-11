@@ -4,7 +4,7 @@
 import * as React from "react"
 import Link from "next/link"
 import type { FantraxFormSnapshot, FantraxPoolPlayer, PlayerWeekPts } from "@/lib/fantrax-shared"
-import { OTM_LEAGUE_ID, parseLeagueId, managerChip, managerFilterLabel, pickupNotes, keyStats, seasonStats, playerHeadline, weekFpts, playerWeekPts, playerSeasonFpts, weekBar, weekPending } from "@/lib/fantrax-shared"
+import { OTM_LEAGUE_ID, managerChip, managerFilterLabel, pickupNotes, keyStats, seasonStats, playerHeadline, weekFpts, playerWeekPts, playerSeasonFpts, weekBar, weekPending } from "@/lib/fantrax-shared"
 import { useConnectedLeague } from "@/lib/league-session"
 import { clubChipTone } from "@/lib/clubs"
 import { heatFromWeekPoints, type HeatBucket } from "@/lib/form-engine"

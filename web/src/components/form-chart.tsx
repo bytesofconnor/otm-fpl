@@ -697,7 +697,7 @@ export function FormChart({
   toolbar,
   onTick,
   action,
-  onFilterOwner,
+  onFilterOwner: _onFilterOwner,
   onFilterClub,
   headline,
   rankBy,

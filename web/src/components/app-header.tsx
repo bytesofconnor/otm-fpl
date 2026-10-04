@@ -54,12 +54,12 @@ export function AppHeader(): ReactElement {
           <div
             className={cn(
               stripType,
-              "flex min-w-0 flex-wrap items-center justify-end gap-x-1.5 text-right text-muted-foreground",
+              "flex min-w-0 flex-wrap items-center justify-end gap-x-1.5 gap-y-1 text-right text-muted-foreground",
             )}
           >
             {live ? <span className="otm-live-dot size-1.5 rounded-full bg-live" aria-hidden /> : null}
             {live ? <span className="sr-only">Live. </span> : null}
-            <span>{periodLabel}</span>
+            <span className="shrink-0">{periodLabel}</span>
             <AuthMenu />
           </div>
         </div>

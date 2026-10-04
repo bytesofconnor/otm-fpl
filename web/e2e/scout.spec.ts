@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test"
 import AxeBuilder from "@axe-core/playwright"
-import { mockScoutAPI, mockScoutAPIEmpty } from "./helpers/api-mocks.js"
+import { mockScoutAPI, mockScoutAPIEmpty, mockScoutTeamsAPI } from "./helpers/api-mocks.js"
 
 test.describe("Scout Page", () => {
   test.beforeEach(async ({ page }) => {

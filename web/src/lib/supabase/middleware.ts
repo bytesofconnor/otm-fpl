@@ -33,6 +33,15 @@ export async function updateSession(request: NextRequest) {
     },
   })
 
-  await supabase.auth.getClaims()
+  try {
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Supabase timeout")), 1500)
+    )
+    await Promise.race([supabase.auth.getClaims(), timeoutPromise])
+  } catch (error) {
+    console.error("Middleware: Supabase auth failed, proceeding without auth:", error)
+    return NextResponse.next({ request })
+  }
+
   return supabaseResponse
 }

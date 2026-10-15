@@ -247,7 +247,7 @@ export function LeagueHome(): React.ReactElement {
                     >
                       {row.rank}
                     </span>
-                    <span className={`min-w-0 whitespace-normal break-words ${row.you ? "font-medium text-foreground" : ""}`}>
+                    <span className={`min-w-0 ${row.you ? "font-medium text-foreground" : ""}`}>
                       {teamCode(row.teamName, snap.teams.find((t) => t.id === row.teamId)?.shortName)}
                     </span>
                   </span>
@@ -304,7 +304,7 @@ export function LeagueHome(): React.ReactElement {
             <ul className="mt-3">
               {snap.waivers.map((p) => (
                 <li key={p.id} className="otm-row flex items-baseline justify-between gap-3 rounded-md px-1.5 py-2.5 text-[14px]">
-                  <span className="min-w-0 whitespace-normal break-words text-foreground">{p.name}</span>
+                  <span className="min-w-0 text-foreground">{p.name}</span>
                   <span className="shrink-0 text-[11px] uppercase tracking-wider text-muted-foreground">{p.team}</span>
                 </li>
               ))}
@@ -344,7 +344,7 @@ export function LeagueHome(): React.ReactElement {
                 {snap.draftPicks.map((pick) => (
                   <li key={pick.pick} className="flex items-baseline gap-3 border-b border-border py-1.5 text-[13px]">
                     <span className="w-5 shrink-0 font-mono text-[11px] text-muted-foreground">{pick.pick}</span>
-                    <span className="min-w-0 whitespace-normal break-words">
+                    <span className="min-w-0">
                       {pick.playerName}
                       <span className="ml-2 text-[11px] uppercase tracking-wider text-muted-foreground">
                         {pick.playerTeam} · {pick.teamName}

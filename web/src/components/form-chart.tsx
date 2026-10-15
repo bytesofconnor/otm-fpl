@@ -853,7 +853,7 @@ export function FormChart({
       splitAt={splitAt}
       caption={caption}
       header={
-        <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3.5 sm:gap-4 sm:px-4 sm:py-4 md:px-6">
+        <div className="flex flex-col gap-3 border-b border-border px-4 py-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4 sm:px-4 sm:py-4 md:px-6">
           <div className="flex min-w-0 flex-1 items-start gap-3">
             {focused?.position ? <PlayerFace src={focused.photoUrl} fallback={focused.crestUrl} alt="" color={activeColor} size="md" /> : null}
             <div className="min-w-0 flex-1">
@@ -890,7 +890,7 @@ export function FormChart({
             {focused?.seasonChips?.length ? <StatLine chips={focused.seasonChips} prefix="Season" /> : null}
             </div>
           </div>
-          <div className="flex shrink-0 items-end gap-3 sm:gap-4">
+          <div className="flex shrink-0 items-center justify-between gap-3 sm:items-end sm:justify-start sm:gap-4">
             {focused ? (
               <FocusStats
                 split={Boolean(split)}
@@ -1473,7 +1473,7 @@ export function PoolChart({
     <SplitBoard
       caption={caption}
       header={
-        <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3.5 sm:gap-4 sm:px-4 sm:py-4 md:px-6">
+        <div className="flex flex-col gap-3 border-b border-border px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-4 sm:py-4 md:px-6">
           <div className="min-w-0 flex-1">
             {canPickTeam ? (
               <TitleSelect
@@ -1500,7 +1500,7 @@ export function PoolChart({
                   : null}
             </p>
           </div>
-          <div className="flex shrink-0 items-end gap-3 sm:gap-4">
+          <div className="flex shrink-0 items-center justify-between gap-3 sm:items-end sm:justify-start sm:gap-4">
             {picked ? (
               <FocusStats
                 split={hasLive}

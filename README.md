@@ -52,15 +52,25 @@ No code changes or environment variables needed—it works out of the box once e
 
 - Set Root Directory to `web/` so `web/vercel.json` is used (daily projection capture cron)
 - Install Command: `cd web && npm ci`
-- Build Command: `cd web && npm run build`
+- Build Command: `npx convex deploy --cmd 'npm run build'` (deploys Convex functions, then builds Next.js)
 - Output: `.next`
 
 ## Environment Variables
 
 See `web/.env.example`. Production needs:
 
-- `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` — freeze weekly projections before Fantrax overwrites them
+- `NEXT_PUBLIC_CONVEX_URL` — Convex deployment URL (from Convex dashboard or `npx convex dev`)
+- `CONVEX_DEPLOYMENT` — Convex deployment name (for server-side mutations)
+- `CONVEX_DEPLOY_KEY` — Deploy key for CI/CD (keep secret! Get from Convex dashboard Settings > Deploy Keys)
 - `CRON_SECRET` — Vercel Cron sends `Authorization: Bearer ${CRON_SECRET}` to `GET /api/fantrax/capture` at 08:00 UTC
+
+### Convex Setup
+
+1. Sign up at [convex.dev](https://www.convex.dev) and create a project
+2. Run `cd web && npx convex dev` to link your local environment
+3. Copy `NEXT_PUBLIC_CONVEX_URL` from `.env.local` to Vercel environment variables
+4. Get `CONVEX_DEPLOY_KEY` from Convex dashboard → Settings → Deploy Keys
+5. Import historical data: `npx tsx scripts/import-supabase-export.ts` (requires JSON exports in `../uploads/`)
 
 Capture skips finished and in-progress fixtures. It does not backfill gameweeks after those games have scored.
 

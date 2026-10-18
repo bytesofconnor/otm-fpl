@@ -1,22 +1,10 @@
 import { NextResponse } from "next/server"
-import { createUserSupabaseClient } from "@/lib/supabase/server"
 
-function safeNext(raw: string | null): string {
-  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/"
-  return raw
-}
-
+/**
+ * Simplified auth callback for single-user app (no auth provider).
+ * Kept for backward compatibility in case old magic links exist.
+ */
 export async function GET(request: Request) {
   const url = new URL(request.url)
-  const code = url.searchParams.get("code")
-  const next = safeNext(url.searchParams.get("next"))
-
-  if (code) {
-    const supabase = await createUserSupabaseClient()
-    if (supabase) {
-      await supabase.auth.exchangeCodeForSession(code)
-    }
-  }
-
-  return NextResponse.redirect(new URL(next, url.origin))
+  return NextResponse.redirect(new URL("/", url.origin))
 }

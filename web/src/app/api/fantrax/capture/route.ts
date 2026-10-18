@@ -12,7 +12,7 @@ import {
   upsertProjectionSnapshots,
   insertPlayerWeekStats,
   insertOwnershipSnapshots 
-} from "@/lib/supabase"
+} from "@/lib/convex"
 
 export const maxDuration = 60
 

@@ -1,6 +1,6 @@
 # Agent notes
 
-Work under /poteto-mode for non-trivial changes. pstack models are set in `.cursor/rules/pstack-models.mdc`.
+Work under /poteto-mode for non-trivial changes. pstack models are set in `.cursor/rules/pstack-models.mdc`. Cursor models come first (grok-4.7, then grok-4.6, then composer-2.5). Other models are an opt-in upgrade only.
 
 ## Pull requests
 

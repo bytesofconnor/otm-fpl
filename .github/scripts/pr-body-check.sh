@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Fail unless the given PR body has Summary, Verification, and Blast Radius headings.
 set -euo pipefail
 
 if [[ -n "${1:-}" ]]; then

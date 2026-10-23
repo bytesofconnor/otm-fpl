@@ -137,7 +137,7 @@ jobs:
           EOF
 
       - name: Check this PR body
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]'
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: printf '%s\n' "$PR_BODY" | .github/scripts/pr-body-check.sh

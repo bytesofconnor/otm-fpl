@@ -11,6 +11,16 @@ Same-repo PRs squash auto-merge when required checks pass.
 Only outside forks wait for Connor.
 GitHub Allow auto-merge must be on, or `gh pr merge --auto` cannot queue.
 
+## Vercel builds
+
+Hobby builds are limited.
+Skip the build when the commit does not change `web/`.
+Skip preview builds whose branch starts with `dependabot/` or `cursor/`.
+A production build on `main` that changes `web/` still runs.
+If the parent commit is missing, the build runs.
+Dependabot opens one npm pull request and one GitHub Actions pull request each week, including major updates.
+eslint major updates stay ignored.
+
 ## Quality bar
 
 Do not add `eslint-disable`, `@ts-ignore`, `@ts-expect-error`, or skipped tests.

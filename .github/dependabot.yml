@@ -9,8 +9,24 @@ updates:
         update-types:
           - version-update:semver-major
     groups:
-      npm-minor-patch:
+      npm:
         applies-to: version-updates
+        patterns:
+          - "*"
         update-types:
+          - major
+          - minor
+          - patch
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - major
           - minor
           - patch

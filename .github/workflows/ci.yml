@@ -42,6 +42,9 @@ jobs:
       - name: Auto-merge eligibility
         run: bash .github/scripts/auto-merge-eligible.test.sh
 
+      - name: Vercel ignore build
+        run: bash web/scripts/vercel-ignore-build.test.sh
+
       - name: Build
         working-directory: web
         run: npm run build

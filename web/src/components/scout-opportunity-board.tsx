@@ -202,7 +202,8 @@ function OpportunityCard({ opportunity, rank }: { opportunity: Opportunity; rank
     <article
       className={cn(
         "relative rounded-lg border bg-card p-4 shadow-sm transition-shadow hover:shadow-md sm:p-6",
-        "focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
+        "focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+        "overflow-hidden"
       )}
       aria-label={`Opportunity ${rank}: ${player.name}, ${player.position}, ${player.club}`}
     >
@@ -249,12 +250,12 @@ function OpportunityCard({ opportunity, rank }: { opportunity: Opportunity; rank
           <h3 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Next 5 Fixtures
           </h3>
-          <div className="flex items-center gap-3">
-            <span className="text-2xl tracking-wider" aria-label="Fixture difficulty: green is easy, white is medium, black is hard">
+          <div className="flex items-start gap-3">
+            <span className="shrink-0 text-2xl tracking-wider" aria-label="Fixture difficulty: green is easy, white is medium, black is hard">
               {fixtureContext.bar}
             </span>
-            <div className="flex-1">
-              <p className="text-sm leading-tight">{fixtureContext.summary}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm leading-tight break-words">{fixtureContext.summary}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 Avg difficulty: {typeof fixtureContext.avgDifficulty === 'number' ? fixtureContext.avgDifficulty.toFixed(1) : '—'}/5.0
               </p>
@@ -268,7 +269,7 @@ function OpportunityCard({ opportunity, rank }: { opportunity: Opportunity; rank
         <h3 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Why Now
         </h3>
-        <p className="text-sm leading-relaxed">{whyNow}</p>
+        <p className="text-sm leading-relaxed break-words">{whyNow}</p>
       </div>
 
       {/* Minutes context */}

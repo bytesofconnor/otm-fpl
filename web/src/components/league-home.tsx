@@ -4,6 +4,7 @@
 import * as React from "react"
 import type { FantraxLeagueSnapshot } from "@/lib/fantrax-shared"
 import { OTM_LEAGUE_ID, parseLeagueId, teamCode } from "@/lib/fantrax-shared"
+import { weekChrome, weekPhaseFromSnapshot } from "@/lib/scoring-week"
 import { persistMembership, rememberSquad, useConnectedLeague } from "@/lib/league-session"
 import { LeagueWeek } from "@/components/league-week"
 import { useLeagueStatus } from "@/components/league-status"
@@ -71,10 +72,11 @@ export function LeagueHome(): React.ReactElement {
           const named = next.teams.find((t) => t.id === teamId)
           if (named?.name) rememberSquad(named.name, named.shortName)
         }
+        const isCurrent = (next.viewedPeriod ?? next.currentPeriod) === next.currentPeriod
         setStatus({
           leagueName: next.leagueName,
           periodLabel: next.viewedPeriod ? `GW${next.viewedPeriod}` : "26/27",
-          live: next.liveStarted,
+          live: weekChrome(weekPhaseFromSnapshot(next.slate, next.matchup), isCurrent).badge === "live",
         })
       })
       .catch((err: unknown) => {
@@ -205,7 +207,6 @@ export function LeagueHome(): React.ReactElement {
           periodLabel={snap.periodLabel}
           period={snap.viewedPeriod ?? snap.currentPeriod ?? 1}
           periodCount={snap.periodCount}
-          live={snap.liveStarted}
           isCurrentWeek={(snap.viewedPeriod ?? snap.currentPeriod) === snap.currentPeriod}
           onPeriod={setPeriod}
           loading={loading}

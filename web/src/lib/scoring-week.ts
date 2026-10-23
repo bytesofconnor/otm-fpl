@@ -13,6 +13,13 @@ export type SlateScore = {
 
 export type WeekPhase = "pre" | "live" | "final"
 
+export type WeekChrome = {
+  badge: "live" | "final" | null
+  label: "Live" | "Final" | "Projected"
+  showActuals: boolean
+  showProjLine: boolean
+}
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -59,18 +66,12 @@ export function scoringPeriodsFrom(periods: unknown): ScoringPeriod[] {
     .sort((a, b) => a.number - b.number)
 }
 
-/**
- * Current Fantrax scoring period. Today this is the first window that still contains `now`.
- * Overlapping start/end days therefore stay on the earlier GW.
- */
 export function currentPeriodNumber(periods: unknown, now = Date.now()): number | null {
   const list = scoringPeriodsFrom(periods)
   if (!list.length) return null
-  const live = list.find((p) => now >= p.start && now <= p.end)
-  if (live) return live.number
-  const upcoming = list.find((p) => now < p.start)
-  if (upcoming) return upcoming.number
-  return list[list.length - 1]?.number ?? null
+  const started = list.filter((p) => now >= p.start)
+  if (started.length) return started[started.length - 1].number
+  return list[0]?.number ?? null
 }
 
 function remaining(projected: number | null, scored: number | null): number | null {
@@ -78,30 +79,43 @@ function remaining(projected: number | null, scored: number | null): number | nu
   return Math.max(0, Math.round((projected - scored) * 10) / 10)
 }
 
+function sideDone(projected: number | null, scored: number | null): boolean {
+  const left = remaining(projected, scored)
+  if (left != null) return left <= 0.05
+  if (projected == null) return (scored ?? 0) > 0
+  return false
+}
+
 export function weekPhase(games: SlateScore[]): WeekPhase {
-  const started = games.some((g) => (g.homeScore ?? 0) > 0 || (g.awayScore ?? 0) > 0)
-  return started ? "live" : "pre"
+  if (!games.length) return "pre"
+  const anyPlay = games.some((g) => (g.homeScore ?? 0) > 0 || (g.awayScore ?? 0) > 0)
+  if (!anyPlay) return "pre"
+  const allFinal = games.every((g) => sideDone(g.homeProjected, g.homeScore) && sideDone(g.awayProjected, g.awayScore))
+  return allFinal ? "final" : "live"
 }
 
-export type WeekChrome = {
-  badge: "live" | "final" | null
-  label: "Live" | "Final" | "Projected"
-  showActuals: boolean
-  showProjLine: boolean
-}
-
-/**
- * Badge and score chrome. Today LIVE stays on after the slate is done,
- * because weekPhase never returns "final".
- */
 export function weekChrome(phase: WeekPhase, isCurrentWeek: boolean): WeekChrome {
-  const live = phase === "live" && isCurrentWeek
-  return {
-    badge: live ? "live" : null,
-    label: live ? "Live" : "Projected",
-    showActuals: phase === "live",
-    showProjLine: live,
+  if (phase === "final" || (phase === "live" && !isCurrentWeek)) {
+    return { badge: "final", label: "Final", showActuals: true, showProjLine: false }
   }
+  if (phase === "live" && isCurrentWeek) {
+    return { badge: "live", label: "Live", showActuals: true, showProjLine: true }
+  }
+  return { badge: null, label: "Projected", showActuals: false, showProjLine: false }
+}
+
+export function slateScoresFrom(games: Array<{
+  homeScore: string | null
+  awayScore: string | null
+  homeProjected: string | null
+  awayProjected: string | null
+}>): SlateScore[] {
+  return games.map((g) => ({
+    homeScore: num(g.homeScore),
+    awayScore: num(g.awayScore),
+    homeProjected: num(g.homeProjected),
+    awayProjected: num(g.awayProjected),
+  }))
 }
 
 export function weekPhaseFromSnapshot(
@@ -122,20 +136,6 @@ export function weekPhaseFromSnapshot(
   if (games.length) return weekPhase(games)
   if (!matchup) return "pre"
   return weekPhase(slateScoresFrom([matchup]))
-}
-
-export function slateScoresFrom(games: Array<{
-  homeScore: string | null
-  awayScore: string | null
-  homeProjected: string | null
-  awayProjected: string | null
-}>): SlateScore[] {
-  return games.map((g) => ({
-    homeScore: num(g.homeScore),
-    awayScore: num(g.awayScore),
-    homeProjected: num(g.homeProjected),
-    awayProjected: num(g.awayProjected),
-  }))
 }
 
 export function remainingLeft(projected: number | null, scored: number | null): number {

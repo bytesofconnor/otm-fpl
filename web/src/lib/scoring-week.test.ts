@@ -16,7 +16,7 @@ function assert(condition: boolean, message: string): void {
     console.error(`FAIL: ${message}`)
     process.exit(1)
   }
-  console.log(`PASS: ${message}`)
+  console.info(`PASS: ${message}`)
 }
 
 function assertEqual<T>(actual: T, expected: T, message: string): void {
@@ -24,7 +24,7 @@ function assertEqual<T>(actual: T, expected: T, message: string): void {
     console.error(`FAIL: ${message} (expected ${String(expected)}, got ${String(actual)})`)
     process.exit(1)
   }
-  console.log(`PASS: ${message}`)
+  console.info(`PASS: ${message}`)
 }
 
 const overlapPeriods = [
@@ -125,4 +125,4 @@ assertEqual(weekChrome("final", false).badge, "final", "a finished past week sho
 assertEqual(weekChrome("live", false).badge, "final", "paging back to a played week shows FINAL, not LIVE")
 assertEqual(weekChrome("live", false).label, "Final", "past played week label is Final")
 
-console.log("\nAll scoring-week tests passed.")
+console.info("\nAll scoring-week tests passed.")

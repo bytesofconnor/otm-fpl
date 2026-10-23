@@ -5,7 +5,7 @@
  * This captures actuals after fixtures progress/lock.
  */
 
-import type { PlayerWeekStat, OwnershipSnapshot } from "./supabase"
+import type { PlayerWeekStat, OwnershipSnapshot } from "./convex"
 import { loadFantraxForm } from "./fantrax"
 import { playerStat } from "./fantrax-shared"
 

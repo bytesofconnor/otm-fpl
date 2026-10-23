@@ -1,5 +1,7 @@
 # Agent notes
 
+Work under /poteto-mode for non-trivial changes. pstack models are set in `.cursor/rules/pstack-models.mdc`.
+
 ## Pull requests
 
 Branch from latest `main`.

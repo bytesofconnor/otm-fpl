@@ -1,4 +1,3 @@
-// Description: This-week matchup board — facing XIs, availability, bench, and the rest of the slate.
 "use client"
 
 import * as React from "react"
@@ -10,6 +9,7 @@ import type {
   PlayerAvailability,
 } from "@/lib/fantrax-shared"
 import { remainingPts } from "@/lib/fantrax-shared"
+import { weekChrome, weekPhaseFromSnapshot } from "@/lib/scoring-week"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -279,9 +279,6 @@ function optimalCopy(matchup: FantraxMatchup, teamId: string): string | null {
   return `Optimal XI is ${opt.toFixed(1)}. ${delta.toFixed(1)} still on the bench.`
 }
 
-/**
- * Renders the current (or selected) gameweek: scoreboard, facing XIs, bench, league slate.
- */
 export function LeagueWeek({
   matchup,
   slate,
@@ -289,7 +286,6 @@ export function LeagueWeek({
   periodLabel,
   period,
   periodCount,
-  live,
   isCurrentWeek,
   onPeriod,
   loading = false,
@@ -300,7 +296,6 @@ export function LeagueWeek({
   periodLabel: string
   period: number
   periodCount: number
-  live: boolean
   isCurrentWeek: boolean
   onPeriod: (next: number) => void
   loading?: boolean
@@ -309,16 +304,17 @@ export function LeagueWeek({
   const [copied, setCopied] = React.useState(false)
   const leftover = matchup && teamId ? leftoverCopy(matchup, teamId) : null
   const insight = matchup && teamId ? optimalCopy(matchup, teamId) : null
+  const chrome = weekChrome(weekPhaseFromSnapshot(slate, matchup), isCurrentWeek)
 
   async function onCopy() {
     if (!matchup) return
-    const home = live ? matchup.homeScore ?? "0" : matchup.homeProjected ?? "—"
-    const away = live ? matchup.awayScore ?? "0" : matchup.awayProjected ?? "—"
+    const home = chrome.showActuals ? matchup.homeScore ?? "0" : matchup.homeProjected ?? "—"
+    const away = chrome.showActuals ? matchup.awayScore ?? "0" : matchup.awayProjected ?? "—"
     const caption = [
       "OTM",
       matchup.periodLabel || "This week",
       `${matchup.homeShort || matchup.home} ${home}–${away} ${matchup.awayShort || matchup.away}`,
-      live && matchup.homeProjected ? `proj ${matchup.homeProjected}–${matchup.awayProjected}` : null,
+      chrome.showProjLine && matchup.homeProjected ? `proj ${matchup.homeProjected}–${matchup.awayProjected}` : null,
     ]
       .filter(Boolean)
       .join(" · ")
@@ -335,7 +331,8 @@ export function LeagueWeek({
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
             <h2 className="otm-kicker text-white/70">{isCurrentWeek ? "This week" : periodLabel || `GW${period}`}</h2>
             <p className="text-[12px] text-white/70">
-              {live && isCurrentWeek ? <Badge variant="live" className="mr-2 text-[10px]">Live</Badge> : null}
+              {chrome.badge === "live" ? <Badge variant="live" className="mr-2 text-[10px]">Live</Badge> : null}
+              {chrome.badge === "final" ? <Badge variant="outline" className="mr-2 border-white/40 text-[10px] text-white/80">Final</Badge> : null}
               <span>{periodLabel || `GW${period}`}</span>
             </p>
           </div>
@@ -376,14 +373,14 @@ export function LeagueWeek({
           <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-6">
             <TeamMark name={matchup.home} shortName={matchup.homeShort} owner={matchup.homeOwner} logoUrl={matchup.homeLogo} align="left" you={matchup.homeId === teamId} />
             <div className="min-w-[6rem] shrink-0 text-center sm:min-w-[10rem]">
-              <div className={live && isCurrentWeek ? "otm-kicker text-[#b8ffcf]" : "otm-kicker text-white/70"}>{live && isCurrentWeek ? "Live" : "Projected"}</div>
+              <div className={chrome.badge === "live" ? "otm-kicker text-[#b8ffcf]" : "otm-kicker text-white/70"}>{chrome.label}</div>
               <div className="otm-score mt-1 text-[2.2rem] leading-none text-white sm:text-[3.6rem]">
-                {live ? matchup.homeScore ?? "0" : matchup.homeProjected ?? "—"}
+                {chrome.showActuals ? matchup.homeScore ?? "0" : matchup.homeProjected ?? "—"}
                 <span className="mx-1 text-[0.55em] font-semibold text-white/50 sm:mx-1.5">–</span>
-                {live ? matchup.awayScore ?? "0" : matchup.awayProjected ?? "—"}
+                {chrome.showActuals ? matchup.awayScore ?? "0" : matchup.awayProjected ?? "—"}
               </div>
               <span className="mx-auto mt-2 block h-0.5 w-14 bg-white/70 sm:w-20" aria-hidden />
-              {live && (matchup.homeProjected || matchup.awayProjected) ? (
+              {chrome.showProjLine && (matchup.homeProjected || matchup.awayProjected) ? (
                 <div className="mt-2 font-mono text-[11px] text-white/70">
                   proj {matchup.homeProjected} – {matchup.awayProjected}
                 </div>
@@ -425,14 +422,14 @@ export function LeagueWeek({
             >
               <div className="flex items-baseline justify-between gap-3 text-[13px] text-white">
                 <span className={`min-w-0 whitespace-normal break-words ${game.yours ? "font-semibold" : "text-white/80"}`}>{game.home}</span>
-                <span className={`otm-score shrink-0 text-[1.05rem] tabular-nums ${scoreClass(Number(live ? game.homeScore : game.homeProjected))}`}>
-                  {live ? game.homeScore ?? "0" : game.homeProjected ?? "—"}
+                <span className={`otm-score shrink-0 text-[1.05rem] tabular-nums ${scoreClass(Number(chrome.showActuals ? game.homeScore : game.homeProjected))}`}>
+                  {chrome.showActuals ? game.homeScore ?? "0" : game.homeProjected ?? "—"}
                 </span>
               </div>
               <div className="mt-1 flex items-baseline justify-between gap-3 text-[13px] text-white">
                 <span className={`min-w-0 whitespace-normal break-words ${game.yours ? "font-semibold" : "text-white/80"}`}>{game.away}</span>
-                <span className={`otm-score shrink-0 text-[1.05rem] tabular-nums ${scoreClass(Number(live ? game.awayScore : game.awayProjected))}`}>
-                  {live ? game.awayScore ?? "0" : game.awayProjected ?? "—"}
+                <span className={`otm-score shrink-0 text-[1.05rem] tabular-nums ${scoreClass(Number(chrome.showActuals ? game.awayScore : game.awayProjected))}`}>
+                  {chrome.showActuals ? game.awayScore ?? "0" : game.awayProjected ?? "—"}
                 </span>
               </div>
             </div>

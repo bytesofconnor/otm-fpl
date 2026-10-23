@@ -22,7 +22,7 @@ import { asThisWeekFpts, scorePickup, withDerivedWeekScores } from "./fantrax-sh
 import { currentPeriodNumber, parsePeriodDate, weekPhaseFromSnapshot } from "./scoring-week"
 import { loadFplIndex, matchFplPlayer, fplPhotoUrl, fplCrestUrl, type FplElement } from "./fpl"
 import { loadClubPhotoIndex, lookupClubPhoto, type ClubPhotoIndex } from "./club-photos"
-import { getProjectionSnapshots } from "./supabase"
+import { getProjectionSnapshots } from "./convex"
 
 const FANTRAX_UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"

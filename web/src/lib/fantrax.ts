@@ -1,5 +1,3 @@
-// Description: Fantrax fxea client and normalizers for league info, standings, and rosters.
-
 import type {
   FantraxDraftPick,
   FantraxFormNews,
@@ -21,6 +19,7 @@ import type {
   PlayerAvailability,
 } from "./fantrax-shared"
 import { asThisWeekFpts, scorePickup, withDerivedWeekScores } from "./fantrax-shared"
+import { currentPeriodNumber, parsePeriodDate, weekPhaseFromSnapshot } from "./scoring-week"
 import { loadFplIndex, matchFplPlayer, fplPhotoUrl, fplCrestUrl, type FplElement } from "./fpl"
 import { loadClubPhotoIndex, lookupClubPhoto, type ClubPhotoIndex } from "./club-photos"
 import { getProjectionSnapshots } from "./convex"
@@ -150,36 +149,6 @@ async function loadEplPlayerIndex(): Promise<Map<string, PlayerMeta>> {
   }
   eplPlayerIndex = map
   return map
-}
-
-function parsePeriodDate(value: unknown): number | null {
-  const s = str(value)
-  if (!s) return null
-  const normalized = s.replace(/\.0([+-])/, "$1").replace(/([+-]\d{2})(\d{2})$/, "$1:$2")
-  const ms = Date.parse(normalized)
-  return Number.isFinite(ms) ? ms : null
-}
-
-function currentPeriodNumber(periods: unknown): number | null {
-  const list = asArray(periods)
-    .map((row) => {
-      const rec = asRecord(row)
-      if (!rec) return null
-      const number = num(rec.number ?? rec.period)
-      const start = parsePeriodDate(rec.startDate)
-      const end = parsePeriodDate(rec.endDate)
-      if (number == null || start == null || end == null) return null
-      return { number, start, end }
-    })
-    .filter((row): row is { number: number; start: number; end: number } => row != null)
-    .sort((a, b) => a.number - b.number)
-  if (!list.length) return null
-  const now = Date.now()
-  const live = list.find((p) => now >= p.start && now <= p.end)
-  if (live) return live.number
-  const upcoming = list.find((p) => now < p.start)
-  if (upcoming) return upcoming.number
-  return list[list.length - 1]?.number ?? null
 }
 
 function periodLabel(periods: unknown, period: number | null): string {
@@ -668,7 +637,7 @@ export async function collectWeeklyProjectionCandidates(
 
 export async function resolveCurrentPeriod(leagueId: string): Promise<number> {
   const info = asRecord(await fantraxGet("getLeagueInfo", { leagueId })) ?? {}
-  return currentPeriodNumber(info.scoringPeriods ?? info.rosterPeriods) ?? 1
+  return currentPeriodNumber(asArray(info.scoringPeriods ?? info.rosterPeriods)) ?? 1
 }
 
 function zipMatchupLines(home: FantraxRosterPlayer[], away: FantraxRosterPlayer[]): FantraxMatchupLine[] {
@@ -859,20 +828,10 @@ function mergeSlate(
   })
 }
 
-function liveStarted(slate: FantraxSlateGame[]): boolean {
-  return slate.some((g) => {
-    const hs = num(g.homeScore)
-    const as = num(g.awayScore)
-    return (hs != null && hs > 0) || (as != null && as > 0)
-  })
+function liveStarted(slate: FantraxSlateGame[], matchup: FantraxMatchup | null): boolean {
+  return weekPhaseFromSnapshot(slate, matchup) === "live"
 }
 
-/**
- * Loads a normalized snapshot for a Fantrax league, optionally scoped to one team and gameweek.
- * @param leagueId Fantrax league ID
- * @param teamId Optional fantasy team ID ("you")
- * @param requestedPeriod Optional scoring period to view
- */
 export async function loadFantraxLeague(
   leagueId: string,
   teamId?: string | null,
@@ -897,9 +856,9 @@ export async function loadFantraxLeague(
   const draftRaw = draftResult.status === "fulfilled" ? draftResult.value : null
 
   const info = asRecord(infoRaw) ?? {}
-  const periods = info.scoringPeriods ?? info.rosterPeriods
+  const periods = asArray(info.scoringPeriods ?? info.rosterPeriods)
   const currentPeriod = currentPeriodNumber(periods)
-  const periodCount = asArray(periods).length
+  const periodCount = periods.length
   const viewedPeriod =
     requestedPeriod && requestedPeriod >= 1 && requestedPeriod <= (periodCount || 38)
       ? requestedPeriod
@@ -1060,7 +1019,7 @@ export async function loadFantraxLeague(
     salaryCap: salaryCapFromRosters(nestedRosters),
     draftType: draft.draftType || str(asRecord(info.draftSettings)?.draftType ?? info.draftType) || null,
     draftState: draft.draftState,
-    liveStarted: liveStarted(slate),
+    liveStarted: liveStarted(slate, matchup),
     teams,
     standings: standingsWithMeta,
     matchup,
@@ -1323,13 +1282,9 @@ function buildPlayerSeries(weeks: Array<{ period: number; players: FantraxRoster
   })
 }
 
-/**
- * Loads manager trajectories, upcoming player projections, and news for the Form page.
- * Merges frozen projection snapshots from Supabase with live Fantrax data.
- */
 export async function loadFantraxForm(leagueId: string, teamId?: string | null): Promise<FantraxFormSnapshot> {
   const info = asRecord(await fantraxGet("getLeagueInfo", { leagueId })) ?? {}
-  const currentPeriod = currentPeriodNumber(info.scoringPeriods ?? info.rosterPeriods) ?? 1
+  const currentPeriod = currentPeriodNumber(asArray(info.scoringPeriods ?? info.rosterPeriods)) ?? 1
   const teams = teamsFromInfo(info)
   const scoringPeriods = Array.from({ length: Math.max(1, currentPeriod) }, (_, i) => i + 1)
   const sampleTeamId = teamId || teams[0]?.id || null

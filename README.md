@@ -45,7 +45,7 @@ No code changes or environment variables needed—it works out of the box once e
 ## CI/CD
 
 - **checks** runs on every PR and push to `main` (`.github/workflows/ci.yml`): lint, typecheck, unit tests, `next build`, and Playwright smoke
-- **Convex** deploys on push to `main` (`.github/workflows/convex-deploy.yml`) with the `CONVEX_DEPLOY_KEY` repository secret
+- **Convex** deploys on push to `main` and when a PR into `main` merges (`.github/workflows/convex-deploy.yml`) with the `CONVEX_DEPLOY_KEY` repository secret
 - Smoke tests use mocked API responses. No secrets are required in `checks`
 
 ## Deployment (Vercel)

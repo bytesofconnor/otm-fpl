@@ -1,0 +1,54 @@
+name: Auto-merge
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    name: auto-merge
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout eligibility script
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/scripts/auto-merge-eligible.sh
+          sparse-checkout-cone-mode: false
+
+      - name: Dependabot metadata
+        id: meta
+        if: github.event.pull_request.user.login == 'dependabot[bot]'
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable auto-merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          AUTO_MERGE_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          AUTO_MERGE_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          AUTO_MERGE_BASE_REPO: ${{ github.repository }}
+          AUTO_MERGE_AUTHOR: ${{ github.event.pull_request.user.login }}
+          AUTO_MERGE_UPDATE_TYPE: ${{ steps.meta.outputs.update-type }}
+        run: |
+          set -euo pipefail
+          AUTO_MERGE_FILES=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR}/files" --jq '.[].filename')
+          export AUTO_MERGE_FILES
+          set +e
+          .github/scripts/auto-merge-eligible.sh
+          code=$?
+          set -e
+          if [[ "$code" -eq 2 ]]; then
+            exit 0
+          fi
+          if [[ "$code" -ne 0 ]]; then
+            exit "$code"
+          fi
+          gh pr merge --auto --squash "$PR"

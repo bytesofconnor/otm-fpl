@@ -39,6 +39,9 @@ jobs:
         working-directory: web
         run: npm run test:unit
 
+      - name: Auto-merge eligibility
+        run: bash .github/scripts/auto-merge-eligible.test.sh
+
       - name: Build
         working-directory: web
         run: npm run build

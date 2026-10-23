@@ -44,16 +44,17 @@ No code changes or environment variables needed—it works out of the box once e
 
 ## CI/CD
 
-- **E2E tests** run automatically on every PR and push to `main` via GitHub Actions (`.github/workflows/e2e.yml`)
-- Tests include accessibility checks (axe-core), mobile viewport validation, and Scout page regression coverage
-- Tests use mocked API responses—no secrets required in CI
+- **checks** runs on every PR and push to `main` (`.github/workflows/ci.yml`): lint, typecheck, unit tests, `next build`, and Playwright smoke
+- **Convex** deploys on push to `main` (`.github/workflows/convex-deploy.yml`) with the `CONVEX_DEPLOY_KEY` repository secret
+- Smoke tests use mocked API responses. No secrets are required in `checks`
 
 ## Deployment (Vercel)
 
 - Set Root Directory to `web/` so `web/vercel.json` is used (daily projection capture cron)
-- Install Command: `cd web && npm ci`
-- Build Command: `npx convex deploy --cmd 'npm run build'` (deploys Convex functions, then builds Next.js)
+- Install Command: `npm ci`
+- Build Command: `next build`
 - Output: `.next`
+- Convex functions deploy from GitHub Actions, not from the Vercel build
 
 ## Environment Variables
 
@@ -70,7 +71,7 @@ See `web/.env.example`. Production needs:
 2. Run `cd web && npx convex dev` to link your local environment
 3. Copy `NEXT_PUBLIC_CONVEX_URL` from `.env.local` to Vercel environment variables
 4. Get `CONVEX_DEPLOY_KEY` from Convex dashboard → Settings → Deploy Keys
-5. Import historical data: `npx tsx scripts/import-supabase-export.ts` (requires JSON exports in `../uploads/`)
+5. Production data is already imported. Do not rerun `scripts/import-supabase-export.ts` unless you are rebuilding an empty deployment.
 
 Capture skips finished and in-progress fixtures. It does not backfill gameweeks after those games have scored.
 

@@ -7,6 +7,8 @@ Work under /poteto-mode for non-trivial changes. pstack models are set in `.curs
 Branch from latest `main`.
 Use `cursor/<slug>` branch names.
 Keep each PR small and focused on one change.
+Same-repo PRs squash auto-merge when required checks pass.
+Only outside forks wait for Connor.
 
 ## Quality bar
 

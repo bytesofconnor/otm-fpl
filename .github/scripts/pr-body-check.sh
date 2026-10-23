@@ -16,7 +16,7 @@ body=$(printf '%s\n' "$body" | tr -d '\r')
 
 missing=0
 for section in Summary Verification "Blast Radius"; do
-  if ! printf '%s\n' "$body" | grep -Eq "^#{1,6}[[:space:]]+${section}([[:space:]]|$)"; then
+  if ! printf '%s\n' "$body" | grep -Eiq "^#{1,6}[[:space:]]+${section}([[:space:]]|$)"; then
     echo "PR body is missing a ${section} section." >&2
     missing=1
   fi

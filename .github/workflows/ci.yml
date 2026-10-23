@@ -135,6 +135,14 @@ jobs:
           ## Blast Radius
           x
           EOF
+          .github/scripts/pr-body-check.sh <<'EOF'
+          ## summary
+          x
+          ## verification
+          x
+          ## blast radius
+          x
+          EOF
 
       - name: Check this PR body
         if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]'

@@ -11,6 +11,7 @@ Same-repo PRs squash auto-merge when required checks pass.
 Only outside forks wait for Connor.
 GitHub Allow auto-merge must be on, or `gh pr merge --auto` cannot queue.
 Dependabot PRs are exempt from the PR-body gate (same as minny-agents).
+PR bodies need Summary, Verification, Blast Radius headings (checked in CI; Dependabot exempt).
 
 ## Vercel builds
 

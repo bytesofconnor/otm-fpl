@@ -18,6 +18,12 @@ import { copyShare } from "@/lib/share"
 
 const POS: Record<string, string> = { G: "GK", D: "DEF", M: "MID", F: "FWD" }
 
+export function longToken(name: string): boolean {
+  return name.split(/\s+/).some((word) => word.length >= 12)
+}
+
+export const nameWrap = "min-w-[7.5rem] whitespace-normal [word-break:normal] [overflow-wrap:normal]"
+
 function pts(value: number | null | undefined): string {
   if (value == null) return "—"
   return value.toFixed(1)
@@ -105,7 +111,7 @@ function PlayerBlock({
     >
       <div className={`flex items-start gap-2.5 ${align === "right" ? "flex-row-reverse" : ""}`}>
         <Crest src={player.headshotUrl} alt={player.team} />
-        <span className="min-w-0 flex-1 whitespace-normal break-words text-[15px] font-semibold leading-tight tracking-tight text-white sm:text-[16px]">{player.name}</span>
+        <span className={`${nameWrap} flex-1 font-semibold leading-tight tracking-tight text-white ${longToken(player.name) ? "text-[13px] sm:text-[15px]" : "text-[15px] sm:text-[16px]"}`}>{player.name}</span>
         <span className="w-[3.5rem] shrink-0 text-right sm:w-[4rem]">
           <span className={`otm-score block text-[1.2rem] leading-none tabular-nums sm:text-[1.45rem] ${hot ? "text-white" : "text-white/90"}`}>
             {pts(player.points)}
@@ -164,7 +170,7 @@ function FacingRows({
             return (
             <div
               key={`${line.position}-${line.home?.id ?? "h"}-${line.away?.id ?? "a"}-${i}`}
-              className="grid grid-cols-[minmax(0,1fr)_1.25rem_minmax(0,1fr)] items-start gap-1 py-0.5 sm:gap-2"
+              className="grid grid-cols-1 items-start gap-1 py-0.5 sm:grid-cols-[minmax(0,1fr)_1.25rem_minmax(0,1fr)] sm:gap-2"
             >
               <PlayerBlock
                 player={line.home}
@@ -173,7 +179,7 @@ function FacingRows({
                 expanded={expandedId === line.home?.id}
                 onToggle={() => setExpandedId(expandedId === line.home?.id ? null : line.home?.id ?? null)}
               />
-              <span className="mt-5 h-8 w-px justify-self-center bg-white/35" aria-hidden />
+              <span className="mt-5 hidden h-8 w-px justify-self-center bg-white/35 sm:block" aria-hidden />
               <PlayerBlock
                 player={line.away}
                 align="right"
@@ -233,8 +239,8 @@ function TeamMark({
           <span className="otm-kicker whitespace-nowrap text-white/70">{shortName || (align === "left" ? "Home" : "Away")}</span>
           {you ? <Badge variant="live">You</Badge> : null}
         </div>
-        <div className="otm-title mt-0.5 whitespace-normal break-words text-[1rem] leading-tight text-white sm:text-[1.35rem]">{name}</div>
-        {owner ? <div className="mt-0.5 hidden whitespace-normal break-words text-[13px] text-white/70 sm:block">{owner}</div> : null}
+        <div className={`otm-title mt-0.5 ${nameWrap} leading-tight text-white ${longToken(name) ? "text-[0.95rem] sm:text-[1.2rem]" : "text-[1rem] sm:text-[1.35rem]"}`}>{name}</div>
+        {owner ? <div className={`mt-0.5 hidden ${nameWrap} text-[13px] text-white/70 sm:block`}>{owner}</div> : null}
       </div>
     </div>
   )
@@ -370,7 +376,7 @@ export function LeagueWeek({
 
       {matchup ? (
         <div className="p-4 sm:p-7">
-          <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-6">
+          <div className="grid grid-cols-1 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-6">
             <TeamMark name={matchup.home} shortName={matchup.homeShort} owner={matchup.homeOwner} logoUrl={matchup.homeLogo} align="left" you={matchup.homeId === teamId} />
             <div className="min-w-[6rem] shrink-0 text-center sm:min-w-[10rem]">
               <div className={chrome.badge === "live" ? "otm-kicker text-[#b8ffcf]" : "otm-kicker text-white/70"}>{chrome.label}</div>
@@ -421,13 +427,13 @@ export function LeagueWeek({
               }`}
             >
               <div className="flex items-baseline justify-between gap-3 text-[13px] text-white">
-                <span className={`min-w-0 whitespace-normal break-words ${game.yours ? "font-semibold" : "text-white/80"}`}>{game.home}</span>
+                <span className={`${nameWrap} flex-1 ${longToken(game.home) ? "text-[12px]" : "text-[13px]"} ${game.yours ? "font-semibold" : "text-white/80"}`}>{game.home}</span>
                 <span className={`otm-score shrink-0 text-[1.05rem] tabular-nums ${scoreClass(Number(chrome.showActuals ? game.homeScore : game.homeProjected))}`}>
                   {chrome.showActuals ? game.homeScore ?? "0" : game.homeProjected ?? "—"}
                 </span>
               </div>
               <div className="mt-1 flex items-baseline justify-between gap-3 text-[13px] text-white">
-                <span className={`min-w-0 whitespace-normal break-words ${game.yours ? "font-semibold" : "text-white/80"}`}>{game.away}</span>
+                <span className={`${nameWrap} flex-1 ${longToken(game.away) ? "text-[12px]" : "text-[13px]"} ${game.yours ? "font-semibold" : "text-white/80"}`}>{game.away}</span>
                 <span className={`otm-score shrink-0 text-[1.05rem] tabular-nums ${scoreClass(Number(chrome.showActuals ? game.awayScore : game.awayProjected))}`}>
                   {chrome.showActuals ? game.awayScore ?? "0" : game.awayProjected ?? "—"}
                 </span>

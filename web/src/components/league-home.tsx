@@ -5,7 +5,7 @@ import type { FantraxLeagueSnapshot } from "@/lib/fantrax-shared"
 import { OTM_LEAGUE_ID, parseLeagueId, teamCode } from "@/lib/fantrax-shared"
 import { weekChrome, weekPhaseFromSnapshot } from "@/lib/scoring-week"
 import { persistMembership, rememberSquad, useConnectedLeague } from "@/lib/league-session"
-import { LeagueWeek } from "@/components/league-week"
+import { LeagueWeek, longToken, nameWrap } from "@/components/league-week"
 import { useLeagueStatus } from "@/components/league-status"
 import { PageShell } from "@/components/page-shell"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
@@ -223,7 +223,7 @@ export function LeagueHome(): React.ReactElement {
                   ) : (
                     <span className="h-6 w-6 rounded-md border border-border" />
                   )}
-                  <span className={`min-w-0 whitespace-normal break-words ${row.you ? "font-medium text-foreground" : ""}`}>{row.teamName}</span>
+                  <span className={`${nameWrap} ${longToken(row.teamName) ? "text-[13px]" : "text-[14px]"} ${row.you ? "font-medium text-foreground" : ""}`}>{row.teamName}</span>
                 </li>
               ))}
             </ul>
@@ -244,7 +244,7 @@ export function LeagueHome(): React.ReactElement {
                     >
                       {row.rank}
                     </span>
-                    <span className={`min-w-0 whitespace-normal break-words ${row.you ? "font-medium text-foreground" : ""}`}>
+                    <span className={`${nameWrap} ${longToken(row.teamName) ? "text-[13px]" : "text-[14px]"} ${row.you ? "font-medium text-foreground" : ""}`}>
                       {teamCode(row.teamName, snap.teams.find((t) => t.id === row.teamId)?.shortName)}
                     </span>
                   </span>
@@ -301,7 +301,7 @@ export function LeagueHome(): React.ReactElement {
             <ul className="mt-3">
               {snap.waivers.map((p) => (
                 <li key={p.id} className="otm-row flex items-baseline justify-between gap-3 rounded-md px-1.5 py-2.5 text-[14px]">
-                  <span className="min-w-0 whitespace-normal break-words text-foreground">{p.name}</span>
+                  <span className={`${nameWrap} text-foreground ${longToken(p.name) ? "text-[13px]" : "text-[14px]"}`}>{p.name}</span>
                   <span className="shrink-0 text-[11px] uppercase tracking-wider text-muted-foreground">{p.team}</span>
                 </li>
               ))}
@@ -341,7 +341,7 @@ export function LeagueHome(): React.ReactElement {
                 {snap.draftPicks.map((pick) => (
                   <li key={pick.pick} className="flex items-baseline gap-3 border-b border-border py-1.5 text-[13px]">
                     <span className="w-5 shrink-0 font-mono text-[11px] text-muted-foreground">{pick.pick}</span>
-                    <span className="min-w-0 whitespace-normal break-words">
+                    <span className={nameWrap}>
                       {pick.playerName}
                       <span className="ml-2 text-[11px] uppercase tracking-wider text-muted-foreground">
                         {pick.playerTeam} · {pick.teamName}

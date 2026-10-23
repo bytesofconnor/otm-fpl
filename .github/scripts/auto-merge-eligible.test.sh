@@ -27,44 +27,41 @@ base=(
 run missing-env 1
 
 run fork 2 \
-  AUTO_MERGE_HEAD_REF=cursor/ok-0e9d \
   AUTO_MERGE_HEAD_REPO=someone/otm-fpl \
-  AUTO_MERGE_BASE_REPO=bytesofconnor/otm-fpl \
-  AUTO_MERGE_AUTHOR=bytesofconnor \
-  AUTO_MERGE_FILES=web/package.json
+  AUTO_MERGE_BASE_REPO=bytesofconnor/otm-fpl
 
-run github-workflow 2 \
+run github-workflow 0 \
   "${base[@]}" \
   AUTO_MERGE_HEAD_REF=cursor/ok-0e9d \
   AUTO_MERGE_AUTHOR=bytesofconnor \
   AUTO_MERGE_FILES=$'.github/workflows/ci.yml\nweb/package.json'
 
-run cursor-rules 2 \
+run cursor-rules 0 \
   "${base[@]}" \
   AUTO_MERGE_HEAD_REF=cursor/ok-0e9d \
   AUTO_MERGE_AUTHOR=bytesofconnor \
   AUTO_MERGE_FILES=.cursor/rules/pstack-models.mdc
 
-run agents-md 2 \
+run agents-md 0 \
   "${base[@]}" \
   AUTO_MERGE_HEAD_REF=cursor/ok-0e9d \
   AUTO_MERGE_AUTHOR=bytesofconnor \
   AUTO_MERGE_FILES=AGENTS.md
 
-run other-branch 2 \
+run other-branch 0 \
   "${base[@]}" \
   AUTO_MERGE_HEAD_REF=feature/ok \
   AUTO_MERGE_AUTHOR=bytesofconnor \
   AUTO_MERGE_FILES=web/package.json
 
-run dependabot-major 2 \
+run dependabot-major 0 \
   "${base[@]}" \
   AUTO_MERGE_HEAD_REF=dependabot/npm_and_yarn/web/foo-2.0.0 \
   AUTO_MERGE_AUTHOR='dependabot[bot]' \
   AUTO_MERGE_UPDATE_TYPE=version-update:semver-major \
   AUTO_MERGE_FILES=web/package-lock.json
 
-run dependabot-unknown 2 \
+run dependabot-unknown 0 \
   "${base[@]}" \
   AUTO_MERGE_HEAD_REF=dependabot/npm_and_yarn/web/foo \
   AUTO_MERGE_AUTHOR='dependabot[bot]' \
@@ -89,6 +86,12 @@ run dependabot-minor 0 \
   AUTO_MERGE_AUTHOR='dependabot[bot]' \
   AUTO_MERGE_UPDATE_TYPE=version-update:semver-minor \
   AUTO_MERGE_FILES=web/package.json
+
+run dependabot-actions 0 \
+  "${base[@]}" \
+  AUTO_MERGE_HEAD_REF=dependabot/github_actions/actions/checkout-5.0.0 \
+  AUTO_MERGE_AUTHOR='dependabot[bot]' \
+  AUTO_MERGE_FILES=.github/workflows/ci.yml
 
 if [[ "$fail" -ne 0 ]]; then
   echo "auto-merge eligibility tests failed." >&2

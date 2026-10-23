@@ -21,6 +21,7 @@ A production build on `main` that changes `web/` still runs.
 If the parent commit is missing, the build runs.
 Dependabot opens one npm pull request and one GitHub Actions pull request each week, including major updates.
 eslint major updates stay ignored.
+TypeScript major updates stay ignored.
 
 ## Quality bar
 

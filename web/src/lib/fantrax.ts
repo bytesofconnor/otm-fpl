@@ -1,5 +1,3 @@
-// Description: Fantrax fxea client and normalizers for league info, standings, and rosters.
-
 import type {
   FantraxDraftPick,
   FantraxFormNews,
@@ -834,12 +832,6 @@ function liveStarted(slate: FantraxSlateGame[], matchup: FantraxMatchup | null):
   return weekPhaseFromSnapshot(slate, matchup) === "live"
 }
 
-/**
- * Loads a normalized snapshot for a Fantrax league, optionally scoped to one team and gameweek.
- * @param leagueId Fantrax league ID
- * @param teamId Optional fantasy team ID ("you")
- * @param requestedPeriod Optional scoring period to view
- */
 export async function loadFantraxLeague(
   leagueId: string,
   teamId?: string | null,
@@ -1290,10 +1282,6 @@ function buildPlayerSeries(weeks: Array<{ period: number; players: FantraxRoster
   })
 }
 
-/**
- * Loads manager trajectories, upcoming player projections, and news for the Form page.
- * Merges frozen projection snapshots from Supabase with live Fantrax data.
- */
 export async function loadFantraxForm(leagueId: string, teamId?: string | null): Promise<FantraxFormSnapshot> {
   const info = asRecord(await fantraxGet("getLeagueInfo", { leagueId })) ?? {}
   const currentPeriod = currentPeriodNumber(asArray(info.scoringPeriods ?? info.rosterPeriods)) ?? 1

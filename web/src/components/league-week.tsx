@@ -1,4 +1,3 @@
-// Description: This-week matchup board — facing XIs, availability, bench, and the rest of the slate.
 "use client"
 
 import * as React from "react"
@@ -280,9 +279,6 @@ function optimalCopy(matchup: FantraxMatchup, teamId: string): string | null {
   return `Optimal XI is ${opt.toFixed(1)}. ${delta.toFixed(1)} still on the bench.`
 }
 
-/**
- * Renders the current (or selected) gameweek: scoreboard, facing XIs, bench, league slate.
- */
 export function LeagueWeek({
   matchup,
   slate,

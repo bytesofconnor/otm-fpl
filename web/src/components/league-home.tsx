@@ -1,4 +1,3 @@
-// Description: League HQ — Over the Moon by default, optional other Fantrax league, this-week matchup first.
 "use client"
 
 import * as React from "react"
@@ -20,9 +19,6 @@ function tableLocked(snap: FantraxLeagueSnapshot): boolean {
   return snap.standings.every((row) => row.rank === 1) && snap.standings.every((row) => /0[–-]0/.test(row.record))
 }
 
-/**
- * League HQ: this-week board first, table/wire and season below, optional other-league connect.
- */
 export function LeagueHome(): React.ReactElement {
   const { setStatus } = useLeagueStatus()
   const membership = useConnectedLeague()

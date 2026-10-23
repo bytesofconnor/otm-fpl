@@ -1,8 +1,3 @@
-/**
- * Rollover and week-phase cases for issue #78.
- * Run with: npx tsx src/lib/scoring-week.test.ts
- */
-
 import {
   currentPeriodNumber,
   weekChrome,

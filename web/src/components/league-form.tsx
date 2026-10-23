@@ -198,7 +198,6 @@ export function LeagueForm(): React.ReactElement {
   const [teamId, setTeamId] = React.useState("")
   const [data, setData] = React.useState<FantraxFormSnapshot | null>(null)
   const [error, setError] = React.useState<string | null>(null)
-  const [loading, setLoading] = React.useState(false)
   const [managerId, setManagerId] = React.useState<string | null>(null)
   const [poolPlayerId, setPoolPlayerId] = React.useState<string | null>(null)
   const [wireId, setWireId] = React.useState<string | null>(null)
@@ -241,7 +240,6 @@ export function LeagueForm(): React.ReactElement {
   React.useEffect(() => {
     if (!membership.ready || !leagueId) return
     const ctrl = new AbortController()
-    setLoading(true)
     setError(null)
     const qs = new URLSearchParams({ leagueId })
     if (teamId) qs.set("teamId", teamId)
@@ -268,7 +266,6 @@ export function LeagueForm(): React.ReactElement {
         if ((err as { name?: string }).name === "AbortError") return
         setError(err instanceof Error ? err.message : "Could not load form")
       })
-      .finally(() => setLoading(false))
     return () => ctrl.abort()
   }, [membership.ready, leagueId, teamId, setStatus])
 
@@ -395,14 +392,6 @@ export function LeagueForm(): React.ReactElement {
     )
   }
 
-  if (loading && !data) {
-    return (
-      <PageShell>
-        <OtmLoader label="Form" hint="Charting the league" />
-      </PageShell>
-    )
-  }
-
   if (error && !data) {
     return (
       <PageShell>
@@ -411,7 +400,13 @@ export function LeagueForm(): React.ReactElement {
     )
   }
 
-  if (!data) return <div />
+  if (!data) {
+    return (
+      <PageShell>
+        <OtmLoader label="Form" hint="Charting the league" />
+      </PageShell>
+    )
+  }
 
   const scoringWeeks = Array.from({ length: Math.max(1, data.currentPeriod) }, (_, i) => i + 1)
   const weekPeriods = scoringWeeks

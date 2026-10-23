@@ -25,10 +25,9 @@ test.describe("Smoke Tests - No Black Screen Crashes", () => {
         await expect(page.getByText("Application error")).not.toBeVisible()
         await expect(page.getByText("client-side exception")).not.toBeVisible()
 
-        const mainContent = page.locator("main#main-content, main")
+        const mainContent = page.getByRole("main")
         await expect(mainContent).toBeVisible()
-        const text = (await mainContent.innerText()).trim()
-        expect(text.length, `${path} main must not render blank`).toBeGreaterThan(0)
+        await expect(mainContent, `${path} main must not render blank`).toContainText(/\S/)
       })
     }
   }

@@ -37,10 +37,8 @@ export default defineConfig({
       testIgnore: ["**/smoke.spec.ts", "**/scorebug.spec.ts"],
       use: { 
         ...devices["iPhone 12 Pro"],
-        // iPhone 12 Pro viewport: 390x844
       },
     },
-    // Smoke tests with always-on video for visual evidence
     {
       name: "Smoke Tests (Always Record)",
       testMatch: ["**/smoke.spec.ts", "**/scorebug.spec.ts"],

@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
-    "test:unit": "tsx src/lib/scoring-week.test.ts",
+    "test:unit": "tsx src/lib/scoring-week.test.ts && tsx src/lib/scorebug.test.ts",
     "test:e2e": "playwright test",
     "test:smoke": "playwright test e2e/smoke.spec.ts",
     "test:e2e:ui": "playwright test --ui",

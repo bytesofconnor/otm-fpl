@@ -226,23 +226,21 @@ function OpportunityCard({ opportunity, rank }: { opportunity: Opportunity; rank
         </div>
       </div>
 
-      {/* Form chip */}
-      <div className={`mb-4 inline-flex items-center gap-2 rounded-md px-3 py-1.5 ${chipColor}`}>
-        <span className="text-lg" aria-hidden>
+      <p className={`mb-3 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-[13px] ${chipColor}`}>
+        <span className="leading-none" aria-hidden>
           {chipEmoji}
         </span>
-        <span className="font-semibold">
-          {chipLabel}
-        </span>
-        <span className="text-sm font-medium text-white/90">
-          {typeof formScoreWithFixtures === 'number' ? formScoreWithFixtures.toFixed(1) : '—'}
-          {fixtureContext && typeof fixtureContext.adjustment === 'number' && fixtureContext.adjustment !== 0 && (
-            <span className="ml-1 text-xs opacity-75">
-              ({typeof formScore === 'number' ? formScore.toFixed(1) : '—'} {fixtureContext.adjustment > 0 ? '+' : ''}{fixtureContext.adjustment})
+        <span className="font-medium">{chipLabel}</span>
+        <span className="font-mono text-[12px] text-muted-foreground">
+          {typeof formScoreWithFixtures === "number" ? formScoreWithFixtures.toFixed(1) : "—"}
+          {fixtureContext && typeof fixtureContext.adjustment === "number" && fixtureContext.adjustment !== 0 ? (
+            <span className="ml-1">
+              ({typeof formScore === "number" ? formScore.toFixed(1) : "—"} {fixtureContext.adjustment > 0 ? "+" : ""}
+              {fixtureContext.adjustment})
             </span>
-          )}
+          ) : null}
         </span>
-      </div>
+      </p>
 
       {/* Fixture context */}
       {fixtureContext && (

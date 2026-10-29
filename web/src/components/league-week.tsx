@@ -14,6 +14,7 @@ import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { PhoneSheet, PickerOption } from "@/components/ui/phone-sheet"
 import { copyShare } from "@/lib/share"
 
 const POS: Record<string, string> = { G: "GK", D: "DEF", M: "MID", F: "FWD" }
@@ -308,6 +309,7 @@ export function LeagueWeek({
 }): React.ReactElement {
   const [expandedId, setExpandedId] = React.useState<string | null>(null)
   const [copied, setCopied] = React.useState(false)
+  const [gwOpen, setGwOpen] = React.useState(false)
   const leftover = matchup && teamId ? leftoverCopy(matchup, teamId) : null
   const insight = matchup && teamId ? optimalCopy(matchup, teamId) : null
   const chrome = weekChrome(weekPhaseFromSnapshot(slate, matchup), isCurrentWeek)
@@ -339,7 +341,17 @@ export function LeagueWeek({
             <p className="text-[12px] text-white/70">
               {chrome.badge === "live" ? <Badge variant="live" className="mr-2 text-[10px]">Live</Badge> : null}
               {chrome.badge === "final" ? <Badge variant="outline" className="mr-2 border-white/40 text-[10px] text-white/80">Final</Badge> : null}
-              <span>{periodLabel || `GW${period}`}</span>
+              <button
+                type="button"
+                className="tap inline-flex min-h-11 items-center whitespace-normal text-left text-[12px] text-white/80 md:hidden"
+                aria-label="Choose gameweek"
+                aria-haspopup="dialog"
+                aria-expanded={gwOpen}
+                onClick={() => setGwOpen(true)}
+              >
+                {periodLabel || `GW${period}`}
+              </button>
+              <span className="hidden md:inline">{periodLabel || `GW${period}`}</span>
             </p>
           </div>
         </div>
@@ -416,6 +428,27 @@ export function LeagueWeek({
           {teamId ? "No matchup in this gameweek." : "Pick your team to open this week’s fixture."}
         </p>
       )}
+
+      <PhoneSheet open={gwOpen} onOpenChange={setGwOpen} title="Gameweek">
+        <ul>
+          {Array.from({ length: Math.max(periodCount, period) }, (_, index) => {
+            const gw = index + 1
+            return (
+              <li key={gw}>
+                <PickerOption
+                  selected={gw === period}
+                  onClick={() => {
+                    onPeriod(gw)
+                    setGwOpen(false)
+                  }}
+                >
+                  GW{gw}
+                </PickerOption>
+              </li>
+            )
+          })}
+        </ul>
+      </PhoneSheet>
 
       {slate.length ? (
         <div className="grid grid-cols-1 border-t border-white/25 sm:grid-cols-2 lg:grid-cols-3">

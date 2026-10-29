@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { OtmLoader } from "@/components/otm-loader"
 import { Card } from "@/components/ui/card"
+import { PhoneSheet, PickerOption } from "@/components/ui/phone-sheet"
 
 function tableLocked(snap: FantraxLeagueSnapshot): boolean {
   if (!snap.standings.length) return true
@@ -31,6 +32,8 @@ export function LeagueHome(): React.ReactElement {
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [switching, setSwitching] = React.useState(false)
+  const [squadOpen, setSquadOpen] = React.useState(false)
+  const [leagueOpen, setLeagueOpen] = React.useState(false)
   const snap = data
   const custom = leagueId !== OTM_LEAGUE_ID
 
@@ -261,7 +264,16 @@ export function LeagueHome(): React.ReactElement {
         <p className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-muted-foreground">
           <button
             type="button"
-            className="tap underline decoration-border underline-offset-4 hover:text-foreground"
+            className="tap underline decoration-border underline-offset-4 hover:text-foreground md:hidden"
+            aria-haspopup="dialog"
+            aria-expanded={squadOpen}
+            onClick={() => setSquadOpen(true)}
+          >
+            Switch squad
+          </button>
+          <button
+            type="button"
+            className="tap hidden underline decoration-border underline-offset-4 hover:text-foreground md:inline"
             onClick={() => {
               persistMembership(leagueId, "")
               setTeamId("")
@@ -274,16 +286,60 @@ export function LeagueHome(): React.ReactElement {
               Back to Over the Moon
             </button>
           ) : (
-            <button
-              type="button"
-              className="tap underline decoration-border underline-offset-4 hover:text-foreground"
-              aria-expanded={switching}
-              onClick={() => setSwitching((open) => !open)}
-            >
-              {switching ? "Cancel" : "Not this league?"}
-            </button>
+            <>
+              <button
+                type="button"
+                className="tap underline decoration-border underline-offset-4 hover:text-foreground md:hidden"
+                aria-haspopup="dialog"
+                aria-expanded={leagueOpen}
+                onClick={() => setLeagueOpen(true)}
+              >
+                Not this league?
+              </button>
+              <button
+                type="button"
+                className="tap hidden underline decoration-border underline-offset-4 hover:text-foreground md:inline"
+                aria-expanded={switching}
+                onClick={() => setSwitching((open) => !open)}
+              >
+                {switching ? "Cancel" : "Not this league?"}
+              </button>
+            </>
           )}
         </p>
+        <PhoneSheet open={squadOpen} onOpenChange={setSquadOpen} title="Switch squad">
+          <ul>
+            {snap.teams.map((team) => (
+              <li key={team.id}>
+                <PickerOption
+                  selected={team.id === teamId}
+                  onClick={() => {
+                    chooseTeam(team.id)
+                    setSquadOpen(false)
+                  }}
+                >
+                  <span className="min-w-0 flex-1 whitespace-normal break-words">
+                    {team.name}
+                    {team.owner ? <span className="mt-0.5 block text-[12px] text-muted-foreground">{team.owner}</span> : null}
+                  </span>
+                </PickerOption>
+              </li>
+            ))}
+          </ul>
+        </PhoneSheet>
+        <PhoneSheet open={leagueOpen} onOpenChange={setLeagueOpen} title="Another league">
+          <ConnectForm
+            leagueInput={leagueInput}
+            setLeagueInput={setLeagueInput}
+            loading={loading}
+            onConnect={(event) => {
+              const id = parseLeagueId(leagueInput)
+              connect(event)
+              if (id) setLeagueOpen(false)
+            }}
+          />
+          {error ? <p className="px-3 pb-2 text-[13px] text-danger">{error}</p> : null}
+        </PhoneSheet>
         {switching ? (
           <div className="mt-4">
             <ConnectForm

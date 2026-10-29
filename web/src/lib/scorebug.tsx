@@ -1,3 +1,6 @@
+import { readFile } from "node:fs/promises"
+import { join } from "node:path"
+import { ImageResponse } from "next/og"
 import type { HeatBucket } from "@/lib/form-engine"
 import {
   computeFormScore,
@@ -565,6 +568,200 @@ async function loadScoutFacts(source: Extract<CardSource, { kind: "scout" }>): P
 async function loadBroadcastFacts(source: CardSource): Promise<BroadcastFacts | null> {
   if (source.kind === "matchup") return loadMatchupFacts(source)
   return loadScoutFacts(source)
+}
+
+type BugSlot =
+  | { readonly role: "kicker"; readonly text: string }
+  | { readonly role: "badge"; readonly text: string; readonly accent: string }
+  | { readonly role: "side"; readonly name: string; readonly detail: string; readonly figure: string }
+  | { readonly role: "foot"; readonly text: string }
+
+function bugSlots(bug: Scorebug): readonly BugSlot[] {
+  return [
+    { role: "kicker", text: bug.kicker },
+    { role: "badge", text: bug.badge, accent: bug.accent },
+    { role: "side", name: bug.homeName, detail: bug.homeDetail, figure: bug.homeFigure },
+    { role: "side", name: bug.awayName, detail: bug.awayDetail, figure: bug.awayFigure },
+    { role: "foot", text: bug.foot },
+  ]
+}
+
+const FRAME_W = 1200
+const FRAME_H = 630
+const FIELD = "#0a0a0a"
+const PANEL = "#141414"
+const TYPE = "#fafafa"
+
+function ScorebugFrame({ slots }: { slots: readonly BugSlot[] }) {
+  const kicker = slots.find((slot) => slot.role === "kicker")
+  const badge = slots.find((slot) => slot.role === "badge")
+  const foot = slots.find((slot) => slot.role === "foot")
+  const accent = badge?.role === "badge" ? badge.accent : ABSENT
+  return (
+    <div
+      style={{
+        width: "1200px",
+        height: "630px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-end",
+        background: FIELD,
+      }}
+    >
+      <div style={{ display: "flex", background: PANEL, color: TYPE }}>
+        <div style={{ width: "12px", background: accent, display: "flex" }} />
+        <div style={{ display: "flex", flexDirection: "column", width: "1140px", padding: "36px 48px 42px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div
+              style={{
+                display: "flex",
+                fontFamily: "IBM Plex Mono",
+                fontSize: 24,
+                fontWeight: 500,
+                letterSpacing: 1,
+                textTransform: "uppercase",
+                color: TYPE,
+              }}
+            >
+              {kicker?.role === "kicker" ? kicker.text : " "}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                fontFamily: "IBM Plex Mono",
+                fontSize: 24,
+                fontWeight: 500,
+                letterSpacing: 1,
+                textTransform: "uppercase",
+                color: accent,
+              }}
+            >
+              {badge?.role === "badge" ? badge.text : " "}
+            </div>
+          </div>
+          {slots
+            .filter((slot) => slot.role === "side")
+            .map((slot, index) =>
+              slot.role === "side" ? (
+                <div
+                  key={`${slot.name}-${slot.figure}-${index}`}
+                  style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginTop: 18 }}
+                >
+                  <div style={{ display: "flex", flexDirection: "column", width: "860px" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        width: "860px",
+                        fontFamily: "Barlow Condensed",
+                        fontSize: 64,
+                        fontWeight: 700,
+                        lineHeight: 1,
+                        color: TYPE,
+                      }}
+                    >
+                      {slot.name}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        width: "860px",
+                        marginTop: 8,
+                        fontFamily: "IBM Plex Mono",
+                        fontSize: 22,
+                        fontWeight: 500,
+                        color: TYPE,
+                      }}
+                    >
+                      {slot.detail || " "}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      fontFamily: "IBM Plex Mono",
+                      fontSize: 64,
+                      fontWeight: 500,
+                      lineHeight: 1,
+                      color: TYPE,
+                    }}
+                  >
+                    {slot.figure}
+                  </div>
+                </div>
+              ) : null,
+            )}
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              width: "1044px",
+              marginTop: 22,
+              fontFamily: "IBM Plex Mono",
+              fontSize: 24,
+              fontWeight: 500,
+              color: TYPE,
+            }}
+          >
+            {foot?.role === "foot" ? foot.text : " "}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function FallbackFrame({ line }: { line: string }) {
+  return (
+    <div
+      style={{
+        width: "1200px",
+        height: "630px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: FIELD,
+        color: TYPE,
+        fontSize: 48,
+      }}
+    >
+      {line || " "}
+    </div>
+  )
+}
+
+function fontBytes(bytes: Buffer): ArrayBuffer {
+  const copy = new Uint8Array(bytes.byteLength)
+  copy.set(bytes)
+  return copy.buffer
+}
+
+export async function paintScorebug(bug: Scorebug): Promise<ImageResponse> {
+  const slots = bugSlots(bug)
+  try {
+    const [display, mono] = await Promise.all([
+      readFile(join(process.cwd(), "src/lib/scorebug-fonts/BarlowCondensed-Bold.ttf")),
+      readFile(join(process.cwd(), "src/lib/scorebug-fonts/IBMPlexMono-Medium.ttf")),
+    ])
+    return new ImageResponse(<ScorebugFrame slots={slots} />, {
+      width: FRAME_W,
+      height: FRAME_H,
+      fonts: [
+        { name: "Barlow Condensed", data: fontBytes(display), weight: 700, style: "normal" },
+        { name: "IBM Plex Mono", data: fontBytes(mono), weight: 500, style: "normal" },
+      ],
+    })
+  } catch {
+    try {
+      return new ImageResponse(<FallbackFrame line={bug.line} />, { width: FRAME_W, height: FRAME_H })
+    } catch {
+      return new ImageResponse(<div style={{ width: "1200px", height: "630px", display: "flex", background: FIELD }} />, {
+        width: FRAME_W,
+        height: FRAME_H,
+      })
+    }
+  }
 }
 
 export async function readScorebug(key: string, load?: BroadcastLoader): Promise<Broadcast> {

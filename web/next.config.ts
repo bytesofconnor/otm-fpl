@@ -161,6 +161,9 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
+  outputFileTracingIncludes: {
+    "/card/[key]/og": ["./src/lib/scorebug-fonts/**/*"],
+  },
   async redirects() {
     return [
       { source: "/guides/predicted-xi", destination: "/", permanent: false },

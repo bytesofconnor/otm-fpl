@@ -8,10 +8,12 @@ import {
   type CardSource,
 } from "./scorebug-key"
 import {
+  paintScorebug,
   readScorebug,
   type Broadcast,
   type BroadcastFacts,
   type MatchupFacts,
+  type Scorebug,
   type ScoutFacts,
 } from "./scorebug"
 
@@ -380,6 +382,20 @@ async function main(): Promise<void> {
     },
   })
   assertEqual(copyFailed, "failed", "failed copy returns failed")
+
+  await assertPng(bad.bug, "bad key")
+  await assertPng(unknown.bug, "unknown team")
+  await assertPng(offWire.bug, "player off the wire")
+  await assertPng(thrown.bug, "loader throw")
+  await assertPng(live.bug, "live matchup")
+}
+
+async function assertPng(bug: Scorebug, label: string): Promise<void> {
+  const image = await paintScorebug(bug)
+  const type = image.headers.get("content-type") ?? ""
+  assert(type.includes("image/png"), `${label} content-type includes image/png`)
+  const bytes = new Uint8Array(await image.arrayBuffer())
+  assert(bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47, `${label} paints a png`)
 }
 
 main().catch((err: unknown) => {

@@ -480,7 +480,7 @@ export function LeagueForm(): React.ReactElement {
 
   return (
     <div className="relative">
-      <div className="fixed inset-0 z-0 bg-background pointer-events-none" aria-hidden="true" />
+      <div className="fixed inset-0 -z-10 bg-background pointer-events-none" aria-hidden="true" />
       <a href="#form-panel" className="skip-link">
         Skip to chart
       </a>

@@ -1,6 +1,8 @@
 import { readFile } from "node:fs/promises"
 import { join } from "node:path"
+import Link from "next/link"
 import { ImageResponse } from "next/og"
+import { ScorebugShare } from "@/components/scorebug-share"
 import type { HeatBucket } from "@/lib/form-engine"
 import {
   computeFormScore,
@@ -17,6 +19,7 @@ import {
 } from "@/lib/scout-config"
 import {
   cardKey,
+  cardPath,
   formFigure,
   matchupFigures,
   parseCardKey,
@@ -762,6 +765,123 @@ export async function paintScorebug(bug: Scorebug): Promise<ImageResponse> {
       })
     }
   }
+}
+
+function ScorebugStrip({ bug }: { bug: Scorebug }) {
+  const slots = bugSlots(bug)
+  const kicker = slots.find((slot) => slot.role === "kicker")
+  const badge = slots.find((slot) => slot.role === "badge")
+  const foot = slots.find((slot) => slot.role === "foot")
+  const accent = badge?.role === "badge" ? badge.accent : ABSENT
+  return (
+    <section className="bg-[#0a0a0a] text-[#fafafa]" aria-label={bug.line}>
+      <h1 className="sr-only">{bug.line}</h1>
+      <div className="flex bg-[#141414]">
+        <div className="w-1.5 shrink-0" style={{ background: accent }} />
+        <div className="min-w-0 flex-1 px-4 py-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <p className="otm-kicker whitespace-normal text-[#fafafa]/70">{kicker?.role === "kicker" ? kicker.text : ""}</p>
+            <p className="font-mono text-[12px] font-medium uppercase tracking-wide" style={{ color: accent }}>
+              {badge?.role === "badge" ? badge.text : ""}
+            </p>
+          </div>
+          {slots
+            .filter((slot) => slot.role === "side")
+            .map((slot, index) =>
+              slot.role === "side" ? (
+                <div key={`${slot.name}-${index}`} className="mt-3 flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="whitespace-normal break-words font-display text-[28px] font-bold leading-none">{slot.name}</p>
+                    {slot.detail ? (
+                      <p className="mt-1 whitespace-normal break-words font-mono text-[12px] text-[#fafafa]/70">{slot.detail}</p>
+                    ) : null}
+                  </div>
+                  <p className="otm-score shrink-0 text-[32px] leading-none">{slot.figure}</p>
+                </div>
+              ) : null,
+            )}
+          <p className="mt-3 whitespace-normal break-words font-mono text-[12px] text-[#fafafa]/80">
+            {foot?.role === "foot" ? foot.text : ""}
+          </p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function MatchupBoardView({ board }: { board: MatchupBoard }) {
+  const source: CardSource = {
+    kind: "matchup",
+    leagueId: board.leagueId,
+    teamId: board.teamId,
+    period: board.period,
+  }
+  return (
+    <div className="space-y-4">
+      {board.lines.length ? (
+        <ul className="space-y-3">
+          {board.lines.map((line, index) => (
+            <li key={`${line.position}-${index}`} className="flex items-start gap-3 text-[14px]">
+              <span className="w-8 shrink-0 pt-0.5 font-mono text-[12px] uppercase">{line.position}</span>
+              <span className="min-w-0 flex-1 whitespace-normal break-words">{line.home}</span>
+              <span className="otm-score w-12 shrink-0 text-right">{line.homeFigure}</span>
+              <span className="min-w-0 flex-1 whitespace-normal break-words text-right">{line.away}</span>
+              <span className="otm-score w-12 shrink-0 text-right">{line.awayFigure}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <div className="flex flex-wrap gap-2">
+        {board.period > 1 ? (
+          <Link
+            href={cardPath(cardKey({ ...source, period: board.period - 1 }))}
+            className="inline-flex min-h-11 items-center whitespace-normal rounded-md border border-white/20 px-3 text-[15px]"
+          >
+            Previous gameweek
+          </Link>
+        ) : null}
+        {board.period < board.periodCount ? (
+          <Link
+            href={cardPath(cardKey({ ...source, period: board.period + 1 }))}
+            className="inline-flex min-h-11 items-center whitespace-normal rounded-md border border-white/20 px-3 text-[15px]"
+          >
+            Next gameweek
+          </Link>
+        ) : null}
+      </div>
+      <ScorebugShare source={source} />
+    </div>
+  )
+}
+
+function ScoutBoardView({ board }: { board: ScoutBoard }) {
+  return (
+    <div className="space-y-3 text-[15px]">
+      {board.whyNow ? <p className="whitespace-normal break-words">{board.whyNow}</p> : null}
+      {board.minutes ? <p className="whitespace-normal break-words">{board.minutes}</p> : null}
+      {board.beatsName ? <p className="whitespace-normal break-words">Beats {board.beatsName}</p> : null}
+      {board.confidence ? <p className="whitespace-normal break-words">Confidence {board.confidence}</p> : null}
+      {board.killLine ? <p className="whitespace-normal break-words">{board.killLine}</p> : null}
+      {board.onWire ? (
+        <ScorebugShare
+          source={{ kind: "scout", leagueId: board.leagueId, teamId: board.teamId, playerId: board.playerId }}
+        />
+      ) : null}
+    </div>
+  )
+}
+
+export function ScorebugPage({ broadcast }: { broadcast: Broadcast }) {
+  return (
+    <div className="space-y-5">
+      <ScorebugStrip bug={broadcast.bug} />
+      {broadcast.board.kind === "matchup" ? <MatchupBoardView board={broadcast.board} /> : null}
+      {broadcast.board.kind === "scout" ? <ScoutBoardView board={broadcast.board} /> : null}
+      {broadcast.board.kind === "absent" ? (
+        <p className="whitespace-normal break-words text-[15px]">{broadcast.board.sentence}</p>
+      ) : null}
+    </div>
+  )
 }
 
 export async function readScorebug(key: string, load?: BroadcastLoader): Promise<Broadcast> {

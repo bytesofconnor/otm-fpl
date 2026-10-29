@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { PhoneSheet, PickerOption } from "@/components/ui/phone-sheet"
-import { copyShare } from "@/lib/share"
+import { ScorebugShare } from "@/components/scorebug-share"
 
 const POS: Record<string, string> = { G: "GK", D: "DEF", M: "MID", F: "FWD" }
 
@@ -287,6 +287,7 @@ function optimalCopy(matchup: FantraxMatchup, teamId: string): string | null {
 }
 
 export function LeagueWeek({
+  leagueId,
   matchup,
   slate,
   teamId,
@@ -297,6 +298,7 @@ export function LeagueWeek({
   onPeriod,
   loading = false,
 }: {
+  leagueId: string
   matchup: FantraxMatchup | null
   slate: FantraxSlateGame[]
   teamId: string
@@ -308,29 +310,10 @@ export function LeagueWeek({
   loading?: boolean
 }): React.ReactElement {
   const [expandedId, setExpandedId] = React.useState<string | null>(null)
-  const [copied, setCopied] = React.useState(false)
   const [gwOpen, setGwOpen] = React.useState(false)
   const leftover = matchup && teamId ? leftoverCopy(matchup, teamId) : null
   const insight = matchup && teamId ? optimalCopy(matchup, teamId) : null
   const chrome = weekChrome(weekPhaseFromSnapshot(slate, matchup), isCurrentWeek)
-
-  async function onCopy() {
-    if (!matchup) return
-    const home = chrome.showActuals ? matchup.homeScore ?? "0" : matchup.homeProjected ?? "—"
-    const away = chrome.showActuals ? matchup.awayScore ?? "0" : matchup.awayProjected ?? "—"
-    const caption = [
-      "OTM",
-      matchup.periodLabel || "This week",
-      `${matchup.homeShort || matchup.home} ${home}–${away} ${matchup.awayShort || matchup.away}`,
-      chrome.showProjLine && matchup.homeProjected ? `proj ${matchup.homeProjected}–${matchup.awayProjected}` : null,
-    ]
-      .filter(Boolean)
-      .join(" · ")
-    const ok = await copyShare(caption, window.location.href)
-    if (!ok) return
-    setCopied(true)
-    window.setTimeout(() => setCopied(false), 1600)
-  }
 
   return (
     <Card size="flush" className="otm-pitch">
@@ -378,11 +361,6 @@ export function LeagueWeek({
           >
             <span className="text-[28px] leading-none">›</span>
           </Button>
-          {matchup ? (
-            <Button type="button" variant="outline" size="sm" className="ml-1 h-11 min-h-[44px] min-w-[4.5rem] whitespace-nowrap border-white/40 bg-black/25 px-3 text-[14px] text-white hover:bg-black/35 hover:text-white" onClick={() => void onCopy()} aria-label="Copy matchup score">
-              {copied ? "Copied" : "Copy"}
-            </Button>
-          ) : null}
         </div>
       </div>
 
@@ -405,6 +383,9 @@ export function LeagueWeek({
               ) : null}
             </div>
             <TeamMark name={matchup.away} shortName={matchup.awayShort} owner={matchup.awayOwner} logoUrl={matchup.awayLogo} align="right" you={matchup.awayId === teamId} />
+          </div>
+          <div className="mt-4">
+            <ScorebugShare source={{ kind: "matchup", leagueId, teamId, period }} />
           </div>
           {leftover || insight ? (
             <div className="mt-3 space-y-1 text-center text-[13px] text-white/75">

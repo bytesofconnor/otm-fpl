@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test:unit": "tsx src/lib/scoring-week.test.ts && tsx src/lib/scorebug.test.ts",
     "test:e2e": "playwright test",
-    "test:smoke": "playwright test e2e/smoke.spec.ts",
+    "test:smoke": "playwright test e2e/smoke.spec.ts e2e/scorebug.spec.ts",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "data:enrich:last-season": "tsx scripts/enrich-last-season.ts",

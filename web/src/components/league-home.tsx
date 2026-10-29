@@ -200,6 +200,7 @@ export function LeagueHome(): React.ReactElement {
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <LeagueWeek
+          leagueId={leagueId}
           matchup={snap.matchup}
           slate={snap.slate}
           teamId={teamId}

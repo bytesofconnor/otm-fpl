@@ -44,7 +44,7 @@ function scoreClass(value: number | null | undefined): string {
 
 function Crest({ src, alt }: { src?: string; alt: string }): React.ReactElement | null {
   if (!src) return null
-  return <ImageWithFallback src={src} alt={alt} className="h-7 w-7 shrink-0 object-contain sm:h-8 sm:w-8" fallback="/favicon.svg" />
+  return <ImageWithFallback src={src} alt={alt} className="h-6 w-6 shrink-0 object-contain sm:h-8 sm:w-8" fallback="/favicon.svg" />
 }
 
 function PlayerMeta({ player, align }: { player: FantraxRosterPlayer; align: "left" | "right" }): React.ReactElement {
@@ -52,7 +52,7 @@ function PlayerMeta({ player, align }: { player: FantraxRosterPlayer; align: "le
   const status = player.availabilityLabel
   return (
     <div className={`mt-0.5 flex flex-wrap items-baseline gap-x-2 text-[13px] leading-snug text-muted-foreground ${align === "right" ? "justify-end" : ""}`}>
-      <span className="truncate">{fixture}</span>
+      <span className="min-w-0 whitespace-normal break-words">{fixture}</span>
       {status ? (
         <span className={availabilityClass(player.availability)} title={player.news || undefined}>
           {status}
@@ -79,7 +79,7 @@ function StatChips({ player }: { player: FantraxRosterPlayer }): React.ReactElem
 
 function EmptySlot({ align }: { align: "left" | "right" }): React.ReactElement {
   return (
-    <div className={`flex min-h-14 items-center px-2 ${align === "right" ? "justify-end" : ""}`}>
+    <div className={`flex min-h-11 items-center px-1.5 ${align === "right" ? "justify-end" : ""}`}>
       <span className="text-[13px] text-white/55">Empty</span>
     </div>
   )
@@ -106,11 +106,11 @@ function PlayerBlock({
       type="button"
       variant="ghost"
       onClick={onToggle}
-      className={`otm-kit h-auto min-h-[44px] w-full min-w-0 flex-col items-stretch justify-start gap-0 px-2 py-2 text-left hover:bg-white/10 ${
+      className={`otm-kit h-auto min-h-[44px] w-full min-w-0 flex-col items-stretch justify-start gap-0 px-1.5 py-1 text-left hover:bg-white/10 sm:px-2 sm:py-2 ${
         align === "right" ? "text-right" : "text-left"
       } ${hot ? "otm-kit-hot" : ""}`}
     >
-      <div className={`flex items-start gap-2.5 ${align === "right" ? "flex-row-reverse" : ""}`}>
+      <div className={`flex items-start gap-2 ${align === "right" ? "flex-row-reverse" : ""}`}>
         <Crest src={player.headshotUrl} alt={player.team} />
         <span className={`${nameWrap} flex-1 font-semibold leading-tight tracking-tight text-white ${longToken(player.name) ? "text-[13px] sm:text-[15px]" : "text-[15px] sm:text-[16px]"}`}>{player.name}</span>
         <span className="w-[3.5rem] shrink-0 text-right sm:w-[4rem]">
@@ -387,7 +387,7 @@ export function LeagueWeek({
       </div>
 
       {matchup ? (
-        <div className="p-4 sm:p-7">
+        <div className="px-3 py-3 sm:p-7">
           <div className="grid grid-cols-1 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-6">
             <TeamMark name={matchup.home} shortName={matchup.homeShort} owner={matchup.homeOwner} logoUrl={matchup.homeLogo} align="left" you={matchup.homeId === teamId} />
             <div className="min-w-[6rem] shrink-0 text-center sm:min-w-[10rem]">
@@ -407,14 +407,14 @@ export function LeagueWeek({
             <TeamMark name={matchup.away} shortName={matchup.awayShort} owner={matchup.awayOwner} logoUrl={matchup.awayLogo} align="right" you={matchup.awayId === teamId} />
           </div>
           {leftover || insight ? (
-            <div className="mt-5 space-y-1 text-center text-[13px] text-white/75">
+            <div className="mt-3 space-y-1 text-center text-[13px] text-white/75">
               {leftover ? <p className="text-white">{leftover}</p> : null}
               {insight ? <p>{insight}</p> : null}
             </div>
           ) : null}
 
           {matchup.lines.length ? (
-            <div className="mt-6">
+            <div className="mt-4">
               <FacingRows lines={matchup.lines} expandedId={expandedId} setExpandedId={setExpandedId} />
               <Bench matchup={matchup} expandedId={expandedId} setExpandedId={setExpandedId} />
               <p className="mt-4 text-[13px] text-white/70">Tap a name for the projection breakdown.</p>

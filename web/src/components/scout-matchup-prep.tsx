@@ -218,23 +218,22 @@ function PlayerCard({ player, rank }: { player: Player; rank?: number }) {
         </span>
       )}
       
-      <div className={cn("flex size-12 shrink-0 items-center justify-center rounded-md", chipColor)}>
-        <span className="text-2xl" aria-hidden>
-          {chipEmoji}
-        </span>
-      </div>
-
       <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold">{player.name}</p>
+        <p className="whitespace-normal break-words font-semibold">{player.name}</p>
         <p className="text-xs text-muted-foreground">
           {player.position} · {player.club}
         </p>
       </div>
 
-      <div className="flex flex-col items-end text-right">
-        <p className="text-xs font-medium text-muted-foreground">{chipLabel}</p>
+      <div className="flex shrink-0 flex-col items-end text-right">
+        <p className={cn("text-[12px] font-medium", chipColor)}>
+          <span className="leading-none" aria-hidden>
+            {chipEmoji}
+          </span>{" "}
+          {chipLabel}
+        </p>
         <p className="font-mono text-sm font-semibold">
-          {typeof player.formScore === 'number' && !isNaN(player.formScore) ? player.formScore.toFixed(1) : '—'}
+          {typeof player.formScore === "number" && !isNaN(player.formScore) ? player.formScore.toFixed(1) : "—"}
         </p>
       </div>
     </div>

@@ -119,12 +119,12 @@ export default function RootLayout({
         `,
             }}
           />
-          <div className="relative z-10 min-h-screen flex flex-col">
+          <div className="relative z-10 flex min-h-screen flex-col">
             <AppHeader />
+            <IOSInstallPrompt />
             <main id="main-content" className="flex-1">{children}</main>
             <Footer />
           </div>
-          <IOSInstallPrompt />
           <Analytics />
           <SpeedInsights />
           </TooltipProvider>

@@ -29,21 +29,19 @@ export default defineConfig({
   projects: [
     {
       name: "Desktop Chrome",
-      testIgnore: "**/smoke.spec.ts",
+      testIgnore: ["**/smoke.spec.ts", "**/scorebug.spec.ts"],
       use: { ...devices["Desktop Chrome"] },
     },
     {
       name: "Mobile Safari",
-      testIgnore: "**/smoke.spec.ts",
+      testIgnore: ["**/smoke.spec.ts", "**/scorebug.spec.ts"],
       use: { 
         ...devices["iPhone 12 Pro"],
-        // iPhone 12 Pro viewport: 390x844
       },
     },
-    // Smoke tests with always-on video for visual evidence
     {
       name: "Smoke Tests (Always Record)",
-      testMatch: "**/smoke.spec.ts",
+      testMatch: ["**/smoke.spec.ts", "**/scorebug.spec.ts"],
       use: {
         ...devices["Desktop Chrome"],
         video: "on",

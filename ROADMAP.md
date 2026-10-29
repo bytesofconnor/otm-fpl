@@ -57,7 +57,7 @@ Fantrax's weekly proj view is not a frozen forecast. After kickoff it converges 
 - [x] **Matchup Prep** (✅ Merged) — Start/sit intelligence at `/scout/matchup`. Lineup heatmap shows form scores. Bench order by form. Helps managers optimize starting lineups.
 - [x] **League-wide Scout rollout** (✅ Shipped) — Expanded Scout beyond SIA to all Over the Moon managers. Each team gets personalized Opportunity Board, Matchup Prep, and Waivers based on their roster holes. Team picker on all Scout pages. SIA-specific filters (drop bans, Arsenal exclusion) apply only to SIA.
 - [ ] **Scout: Pricing & Auth** — Stripe integration + Convex auth. Scout is paid-brain tier ($5-10/mo or per-league). Freemium option: Opportunity Board free, Matchup Prep paid (TBD).
-- [ ] **Share cards** that look like a scorebug, not a URL dump (League + Scout recs)
+- [x] **Share cards** that look like a scorebug, not a URL dump (League + Scout recs)
 - [ ] Dark matchday theme as an option, not a second product
 
 ## Season 2 Features

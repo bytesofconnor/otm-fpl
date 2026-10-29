@@ -7,6 +7,7 @@ import { heatLabel, heatEmoji, heatColor, type HeatBucket } from "@/lib/form-eng
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { OtmLoader } from "@/components/otm-loader"
+import { ScorebugShare } from "@/components/scorebug-share"
 
 type Opportunity = {
   player: {
@@ -185,14 +186,30 @@ export function OpportunityBoard() {
 
       <div className="grid gap-4">
         {data.opportunities.map((opp, idx) => (
-          <OpportunityCard key={opp.player.id} opportunity={opp} rank={idx + 1} />
+          <OpportunityCard
+            key={opp.player.id}
+            opportunity={opp}
+            rank={idx + 1}
+            leagueId={data.leagueId}
+            teamId={teamId}
+          />
         ))}
       </div>
     </div>
   )
 }
 
-function OpportunityCard({ opportunity, rank }: { opportunity: Opportunity; rank: number }) {
+function OpportunityCard({
+  opportunity,
+  rank,
+  leagueId,
+  teamId,
+}: {
+  opportunity: Opportunity
+  rank: number
+  leagueId: string
+  teamId: string
+}) {
   const { player, whyNow, formChip, formScore, formScoreWithFixtures, minutesContext, fixtureContext, beatsWho, confidence, killConditions } = opportunity
   const chipColor = heatColor(formChip)
   const chipLabel = heatLabel(formChip)
@@ -337,6 +354,10 @@ function OpportunityCard({ opportunity, rank }: { opportunity: Opportunity; rank
           </ul>
         </details>
       )}
+
+      <div className="mt-4">
+        <ScorebugShare source={{ kind: "scout", leagueId, teamId, playerId: player.id }} />
+      </div>
     </article>
   )
 }

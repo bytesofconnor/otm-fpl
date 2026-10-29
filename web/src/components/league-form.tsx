@@ -210,6 +210,10 @@ export function LeagueForm(): React.ReactElement {
   const [weekFocus, setWeekFocus] = React.useState<number | "season" | null>(null)
   const [dir, setDir] = React.useState<1 | -1>(1)
   const [searchExpanded, setSearchExpanded] = React.useState(false)
+  React.useEffect(() => {
+    if (!searchExpanded) return
+    document.getElementById("form-search")?.focus()
+  }, [searchExpanded])
   const hydrated = React.useRef(false)
   const paneRef = React.useRef(pane)
   const swipe = React.useRef<{ x: number; y: number; id: number } | null>(null)

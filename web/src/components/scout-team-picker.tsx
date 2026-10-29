@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { persistMembership, useConnectedLeague } from "@/lib/league-session"
 import { preferredTeamId } from "@/lib/scout-config"
+import { PhoneSheet, PickerOption } from "@/components/ui/phone-sheet"
 import {
   Select,
   SelectContent,
@@ -38,6 +39,7 @@ export function ScoutTeamPicker({ currentTeamId, basePath }: ScoutTeamPickerProp
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<TeamsResponse | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   useEffect(() => {
     if (!ready) return
@@ -116,24 +118,58 @@ export function ScoutTeamPicker({ currentTeamId, basePath }: ScoutTeamPickerProp
         Scouting another squad
       </summary>
       <div className="mt-3">
-        <label htmlFor="team-picker" className="sr-only">
-          Your squad
-        </label>
-        <Select value={currentTeamId || ""} onValueChange={handleTeamChange}>
-          <SelectTrigger id="team-picker" className="w-full sm:w-[280px]" aria-label="Your squad">
-            <SelectValue placeholder="Your squad">{displayName}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {data.teams.map((team) => (
-              <SelectItem key={team.id} value={team.id}>
-                <div className="flex flex-col">
-                  <span>{team.name}</span>
-                  {team.owner ? <span className="text-xs text-muted-foreground">{team.owner}</span> : null}
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="md:hidden">
+          <button
+            type="button"
+            className="tap flex min-h-11 w-full items-center justify-between rounded-md border border-input bg-card px-3 text-left text-sm"
+            aria-label="Your squad"
+            aria-haspopup="dialog"
+            aria-expanded={sheetOpen}
+            onClick={() => setSheetOpen(true)}
+          >
+            <span className="min-w-0 whitespace-normal break-words">{displayName}</span>
+          </button>
+          <PhoneSheet open={sheetOpen} onOpenChange={setSheetOpen} title="Your squad">
+            <ul>
+              {data.teams.map((team) => (
+                <li key={team.id}>
+                  <PickerOption
+                    selected={team.id === currentTeamId}
+                    onClick={() => {
+                      handleTeamChange(team.id)
+                      setSheetOpen(false)
+                    }}
+                  >
+                    <span className="min-w-0 flex-1 whitespace-normal break-words">
+                      {team.name}
+                      {team.owner ? <span className="mt-0.5 block text-xs text-muted-foreground">{team.owner}</span> : null}
+                    </span>
+                  </PickerOption>
+                </li>
+              ))}
+            </ul>
+          </PhoneSheet>
+        </div>
+        <div className="hidden md:block">
+          <label htmlFor="team-picker" className="sr-only">
+            Your squad
+          </label>
+          <Select value={currentTeamId || ""} onValueChange={handleTeamChange}>
+            <SelectTrigger id="team-picker" className="w-full sm:w-[280px]" aria-label="Your squad">
+              <SelectValue placeholder="Your squad">{displayName}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {data.teams.map((team) => (
+                <SelectItem key={team.id} value={team.id}>
+                  <div className="flex flex-col">
+                    <span className="whitespace-normal break-words">{team.name}</span>
+                    {team.owner ? <span className="text-xs text-muted-foreground">{team.owner}</span> : null}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     </details>
   )

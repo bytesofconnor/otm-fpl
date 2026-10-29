@@ -5,7 +5,9 @@ import * as React from "react"
 import type { ReactElement } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { PhoneSheet, PickerOption } from "@/components/ui/phone-sheet"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ChevronDown } from "lucide-react"
 import { remainingPts } from "@/lib/fantrax-shared"
 import { nextPlayerPhotoUrl } from "@/lib/clubs"
 import type { StatChip } from "@/lib/fantrax-shared"
@@ -13,6 +15,8 @@ import { heatEmoji, heatLabel, type HeatBucket } from "@/lib/form-engine"
 import { SplitBoard } from "@/components/split-board"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { cn } from "@/lib/utils"
+
+const wrapName = "min-w-0 whitespace-normal [overflow-wrap:break-word] [word-break:normal]"
 
 export type ChartSeries = {
   id: string
@@ -211,43 +215,76 @@ function TitleSelect({
   ariaLabel: string
   className?: string
 }): ReactElement {
+  const [sheetOpen, setSheetOpen] = React.useState(false)
+  const title = <span className={`block ${wrapName}`}>{label}</span>
+  const triggerClass = cn(
+    "otm-title h-auto min-h-11 w-full max-w-full items-start justify-start gap-2 rounded-md border-0 bg-transparent py-1 pl-0 pr-1 shadow-none",
+    "data-[size=default]:h-auto data-[size=sm]:h-auto",
+    "text-left text-[1.35rem] leading-tight sm:text-[1.35rem] sm:leading-snug md:text-[1.5rem]",
+    "hover:bg-muted/50 hover:border-transparent",
+    "focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/40",
+    "*:data-[slot=select-value]:block *:data-[slot=select-value]:min-w-0 *:data-[slot=select-value]:flex-none",
+    "[&_svg]:mt-1 [&_svg]:text-muted-foreground [&_svg:not([class*='size-'])]:size-5",
+    className,
+  )
   return (
-    <Select
-      value={value}
-      onValueChange={(id) => {
-        if (typeof id === "string") onChange(id)
-      }}
-    >
-      <SelectTrigger
-        aria-label={ariaLabel}
-        className={cn(
-          "otm-title h-auto min-h-[2.7rem] w-full max-w-full items-start justify-start gap-2 rounded-md border-0 bg-transparent py-0 pl-0 pr-1 shadow-none",
-          "text-left text-[1.35rem] leading-tight sm:text-[1.35rem] sm:leading-snug md:text-[1.5rem]",
-          "hover:bg-muted/50 hover:border-transparent",
-          "focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/40",
-          "*:data-[slot=select-value]:block *:data-[slot=select-value]:min-w-0 *:data-[slot=select-value]:flex-none",
-          "[&_svg]:mt-1.5 [&_svg]:text-muted-foreground [&_svg:not([class*='size-'])]:size-5",
-          className,
-        )}
-      >
-        <SelectValue>
-          <span className="block min-w-0 whitespace-normal [overflow-wrap:break-word] [word-break:normal] line-clamp-2">
-            {label}
-          </span>
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent align="start" alignItemWithTrigger={false} className="min-w-[min(calc(100vw-2rem),22rem)]">
-        {options.map((row) => (
-          <SelectItem key={row.id} value={row.id}>
-            <span className="flex min-w-0 items-center gap-2">
-              <span className="h-2 w-2 shrink-0 rounded-sm" style={{ background: row.color }} />
-              <span className="truncate">{row.label}</span>
-              {row.you ? <span className="text-[11px] uppercase tracking-wide text-muted-foreground">You</span> : null}
-            </span>
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <>
+      <div className="md:hidden">
+        <button
+          type="button"
+          aria-label={ariaLabel}
+          aria-haspopup="dialog"
+          aria-expanded={sheetOpen}
+          onClick={() => setSheetOpen(true)}
+          className={cn(triggerClass, "flex")}
+        >
+          {title}
+          <ChevronDown className="mt-1 size-5 shrink-0 text-muted-foreground" />
+        </button>
+        <PhoneSheet open={sheetOpen} onOpenChange={setSheetOpen} title={ariaLabel}>
+          <ul>
+            {options.map((row) => (
+              <li key={row.id}>
+                <PickerOption
+                  selected={row.id === value}
+                  onClick={() => {
+                    onChange(row.id)
+                    setSheetOpen(false)
+                  }}
+                >
+                  <span className="mt-1.5 h-2 w-2 shrink-0 rounded-sm" style={{ background: row.color }} />
+                  <span className={`flex-1 ${wrapName}`}>{row.label}</span>
+                  {row.you ? <span className="shrink-0 text-[11px] uppercase tracking-wide text-muted-foreground">You</span> : null}
+                </PickerOption>
+              </li>
+            ))}
+          </ul>
+        </PhoneSheet>
+      </div>
+      <div className="hidden md:block">
+        <Select
+          value={value}
+          onValueChange={(id) => {
+            if (typeof id === "string") onChange(id)
+          }}
+        >
+          <SelectTrigger aria-label={ariaLabel} className={triggerClass}>
+            <SelectValue>{title}</SelectValue>
+          </SelectTrigger>
+          <SelectContent align="start" alignItemWithTrigger={false} className="min-w-[min(calc(100vw-2rem),22rem)]">
+            {options.map((row) => (
+              <SelectItem key={row.id} value={row.id}>
+                <span className="flex min-w-0 items-start gap-2">
+                  <span className="mt-1.5 h-2 w-2 shrink-0 rounded-sm" style={{ background: row.color }} />
+                  <span className={wrapName}>{row.label}</span>
+                  {row.you ? <span className="shrink-0 text-[11px] uppercase tracking-wide text-muted-foreground">You</span> : null}
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </>
   )
 }
 
@@ -505,7 +542,7 @@ function SeriesIdentity({
   return (
     <span className="min-w-0 flex-1 text-left whitespace-normal">
       <span className="flex items-baseline gap-1.5">
-        <span className="min-w-0 truncate font-medium" title={label}>
+        <span className={`${wrapName} flex-1 font-medium`}>
           {label}
         </span>
         {heat ? (
@@ -514,7 +551,7 @@ function SeriesIdentity({
           </span>
         ) : null}
       </span>
-      {meta ? <span className="mt-0.5 block truncate text-[12px] text-muted-foreground">{meta}</span> : null}
+      {meta ? <span className={`mt-0.5 block text-[12px] text-muted-foreground ${wrapName}`}>{meta}</span> : null}
       <StatLine chips={chips} />
       {why ? <span className="mt-0.5 block text-[12px] leading-snug text-muted-foreground">{why}</span> : null}
     </span>
@@ -878,11 +915,11 @@ export function FormChart({
               />
             ) : (
               <h3 className={`otm-title text-[1.35rem] leading-tight sm:text-[1.35rem] sm:leading-snug md:text-[1.5rem] ${onBack ? "mt-0.5" : ""}`}>
-                <span className="block min-h-[2.7rem] whitespace-normal [overflow-wrap:break-word] [word-break:normal] line-clamp-2">{heading}</span>
+                <span className={`block ${wrapName}`}>{heading}</span>
               </h3>
             )}
             {focused?.hint && focused.hint !== "You" ? (
-              <p className="mt-1 whitespace-normal [overflow-wrap:break-word] [word-break:normal] line-clamp-2 text-[13px] text-muted-foreground sm:text-[13px]">{focused.hint}</p>
+              <p className={`mt-1 text-[13px] text-muted-foreground sm:text-[13px] ${wrapName}`}>{focused.hint}</p>
             ) : focused?.hint === "You" ? (
               <p className="mt-1 text-[13px] text-muted-foreground sm:text-[13px]">Your team</p>
             ) : null}
@@ -1489,10 +1526,10 @@ export function PoolChart({
               />
             ) : (
               <h3 className="otm-title text-[1.35rem] leading-tight sm:text-[1.35rem] sm:leading-snug md:text-[1.5rem]">
-                <span className="block min-h-[2.7rem] whitespace-normal [overflow-wrap:break-word] [word-break:normal] line-clamp-2">{heading}</span>
+                <span className={`block ${wrapName}`}>{heading}</span>
               </h3>
             )}
-            <p className="mt-1 whitespace-normal [overflow-wrap:break-word] [word-break:normal] line-clamp-2 text-[13px] text-muted-foreground sm:text-[13px]">
+            <p className={`mt-1 text-[13px] text-muted-foreground sm:text-[13px] ${wrapName}`}>
               {picked
                 ? [picked.owner, picked.club, picked.position].filter(Boolean).join(" · ") || highlighted?.name
                 : highlighted
@@ -1669,11 +1706,11 @@ export function PoolChart({
                 aria-pressed={on}
                 title={`${g.code} · ${g.name}`}
                 onClick={() => onSelect?.(g.id)}
-                className={`tap h-14 min-w-0 flex-col gap-0.5 rounded-none px-0.5 sm:h-12 sm:px-1 ${
+                className={`tap h-auto min-h-11 min-w-0 flex-col gap-0.5 whitespace-normal rounded-none px-0.5 py-1 sm:px-1 ${
                   gi > 0 ? "border-l border-border" : ""
                 } ${on ? "bg-background font-semibold text-foreground" : "text-muted-foreground"}`}
               >
-                <span className="max-w-full truncate px-0.5 text-[12px] font-medium tracking-wide sm:text-[12px]">{g.code}</span>
+                <span className={`max-w-full px-0.5 text-center text-[12px] font-medium tracking-wide sm:text-[12px] ${wrapName}`}>{g.code}</span>
                 <span className="font-mono text-[11px] tabular-nums text-muted-foreground sm:text-[10px]">{g.players.length}</span>
               </Button>
             )
@@ -1701,10 +1738,10 @@ export function PoolChart({
                 size="sm"
                 aria-pressed={on}
                 onClick={() => (swatches ? onSwatch?.(id) : onSelect?.(id))}
-                className="tap h-11 gap-2 px-3 text-[14px] sm:h-9 sm:gap-1.5 sm:px-2.5 sm:text-[13px]"
+                className="tap h-auto min-h-11 gap-2 whitespace-normal px-3 py-2 text-[14px] sm:gap-1.5 sm:px-2.5 sm:text-[13px]"
               >
-                <span className="h-2.5 w-2.5 shrink-0 rounded-sm sm:h-2 sm:w-2" style={{ background: color }} />
-                <span className="truncate">{label}</span>
+                <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-sm sm:h-2 sm:w-2" style={{ background: color }} />
+                <span className={wrapName}>{label}</span>
                 {count != null ? <span className="font-mono text-[12px] opacity-70 sm:text-[11px]">{count}</span> : null}
               </Button>
             )
@@ -1755,14 +1792,14 @@ export function PoolChart({
                       className="h-3 w-3 shrink-0 border sm:h-2 sm:w-2"
                       style={{ borderColor: color, background: scored != null && scored > 0 ? color : "transparent" }}
                     />
-                    <span className="min-w-0 flex-1 whitespace-normal break-words line-clamp-2 text-left" title={p.name}>{p.name}</span>
+                    <span className={`flex-1 text-left ${wrapName}`}>{p.name}</span>
                   </Button>
                   {p.owner && p.ownerId && onFilterOwner ? (
                     <Button
                       type="button"
                       variant="link"
                       onClick={() => onFilterOwner(p.ownerId!)}
-                      className="tap hidden h-auto min-h-11 max-w-[28%] min-w-0 whitespace-normal break-words px-2 py-2.5 text-left text-[14px] font-normal text-muted-foreground sm:inline-flex sm:min-h-10 sm:px-1.5 sm:py-2 sm:text-[12px] line-clamp-2"
+                      className="tap hidden h-auto min-h-11 max-w-[40%] min-w-0 whitespace-normal break-words px-2 py-2.5 text-left text-[14px] font-normal text-muted-foreground sm:inline-flex sm:min-h-10 sm:px-1.5 sm:py-2 sm:text-[12px]"
                       title={p.owner}
                     >
                       {p.owner}
